@@ -1,0 +1,4 @@
+PASS SAX events, namespaces, attributes, UTF-8/UTF-16, entities, callbacks, errors and stream cleanup
+PASS nested parsing, recursive-call rejection, thread callbacks and GC roots
+PASS VM abort on main/child stacks with active XML parsers (sanitizer output checked)
+Host only; calculator execution not verified.

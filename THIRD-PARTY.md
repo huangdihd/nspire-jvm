@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 79 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 102 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -29,6 +29,21 @@ path and SHA-256. These files are not relicensed under this project's MIT licens
 it embeds the notices and source manifest. The corresponding sources are in
 this repository and the source ZIP. A separate Java 8 rt.jar is used only for
 compile-time API signatures and is not redistributed or copied into the JAR.
+
+The SAX sources also preserve their historical SAX notices. The OpenJDK source
+headers and root license files remain intact. The additional Java adapter and
+provider selector in `runtime/nspire/` are original MIT-licensed project code,
+compiled into the same supplemental JAR with their own license and source hashes.
+
+Expat XML parser:
+https://github.com/libexpat/libexpat/releases/tag/R_2_8_4
+
+`vendor/expat/` contains unchanged library source files and upstream COPYING,
+README.md and Changes from the official 2.8.4 release archive. Its SOURCES.json
+records the archive URL, SHA-256 and per-file hashes. The original MIT notices
+are preserved. Project-specific configuration is in `src/expat_config.h`;
+the upstream source is not modified. Expat is statically linked into the host
+and Ndless VM builds. The Java bridge is original code, not Xerces.
 
 Xinbot release audited (not redistributed in this package):
 https://github.com/huangdihd/xinbot/releases/tag/2.4.3-RELEASE

@@ -317,6 +317,98 @@
     "java/util/function/DoubleConsumer.java": {
       "upstream_path": "jdk/src/share/classes/java/util/function/DoubleConsumer.java",
       "sha256": "77c42e3127e3b0e0d74a137bc01abc74b2ea0944b2a30d523a25d3d3a8d81b85"
+    },
+    "org/xml/sax/InputSource.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/InputSource.java",
+      "sha256": "68c3e4e84e7345b003aa5b73ecc928427fa5dd01d336c3b04f58f8da9a096394"
+    },
+    "org/xml/sax/SAXException.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/SAXException.java",
+      "sha256": "3a278f567652b6b4466206f12ce79a8d0fd552643208cf6f227615471fe97504"
+    },
+    "org/xml/sax/SAXParseException.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/SAXParseException.java",
+      "sha256": "6556045a31118faccf3313dc160962790fb8c1fc027464ba149ca5261d758a23"
+    },
+    "org/xml/sax/SAXNotRecognizedException.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/SAXNotRecognizedException.java",
+      "sha256": "a0cc28e982a0190e7a90bcd2683f62cfd9a70a306722778fe0405c64599f186c"
+    },
+    "org/xml/sax/SAXNotSupportedException.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/SAXNotSupportedException.java",
+      "sha256": "c7f65b3bc390eeb5f60c9ddc4daac0dc3ee70230b3114b0d7441a965a974640c"
+    },
+    "org/xml/sax/ContentHandler.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/ContentHandler.java",
+      "sha256": "8d90638f699599b88f3eb13ba5921f46764a97f96f8133b4e3c4fa39eb5848a5"
+    },
+    "org/xml/sax/DTDHandler.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/DTDHandler.java",
+      "sha256": "49cb11a476d25b557d800ab7dc50bd285beae1d644189ddb8e2b69c95e4b0ff6"
+    },
+    "org/xml/sax/EntityResolver.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/EntityResolver.java",
+      "sha256": "a172a2bd2e40a3489f069104fe54a97ee98b00f4c725c9bc03d4a4a5716a00b2"
+    },
+    "org/xml/sax/ErrorHandler.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/ErrorHandler.java",
+      "sha256": "b82f008c752cbc5c872282473e8994bf5c51cf2de21ad3d558b3119e66118a5a"
+    },
+    "org/xml/sax/Locator.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/Locator.java",
+      "sha256": "07da0de7f31073f72d584b23dcd9ea57c60c6bba0b678783f72f621a2664a9f1"
+    },
+    "org/xml/sax/Attributes.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/Attributes.java",
+      "sha256": "5d3d30980f5c84fe63101f6227a5ea5a7c337ce687f8d8842fce848654b0e3bb"
+    },
+    "org/xml/sax/XMLReader.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/XMLReader.java",
+      "sha256": "4da225f8db8a1ad90afefbde6b77c39f54706b0b1469d84c9dc220124ef83658"
+    },
+    "org/xml/sax/Parser.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/Parser.java",
+      "sha256": "2e77bf6db12e369b958cee8b59d6d2bdb367564f18b7ebb7cd6ac76b39425362"
+    },
+    "org/xml/sax/AttributeList.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/AttributeList.java",
+      "sha256": "0e0e8fa4b1937b713c76003891761d6f3a1d8ef7c37f36533827f4b656f959b0"
+    },
+    "org/xml/sax/DocumentHandler.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/DocumentHandler.java",
+      "sha256": "c103da22af29fe35f36dec39cae92a1fee4278cadd0de67fe4fdfb283493cfce"
+    },
+    "org/xml/sax/HandlerBase.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/HandlerBase.java",
+      "sha256": "af9659990c589899ab22e49a3ee38d00190cbb975a7494461ae4e107f16f39d1"
+    },
+    "org/xml/sax/helpers/DefaultHandler.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/helpers/DefaultHandler.java",
+      "sha256": "da8972f662118f16493806a5accb0e7839c6e6678f7b2d5670f342e4e55c776a"
+    },
+    "org/xml/sax/helpers/AttributesImpl.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/helpers/AttributesImpl.java",
+      "sha256": "ab8419b098e9bbcae907e20cc342b8029b5fede4237c10ae00c91dda49cf638e"
+    },
+    "org/xml/sax/helpers/LocatorImpl.java": {
+      "upstream_path": "jaxp/src/org/xml/sax/helpers/LocatorImpl.java",
+      "sha256": "730c552a082efb956e0a092fe4f160b253490cd4ff87a756ded7ccfcb0f4ec00"
+    },
+    "javax/xml/parsers/SAXParser.java": {
+      "upstream_path": "jaxp/src/javax/xml/parsers/SAXParser.java",
+      "sha256": "46d93d397d60b413c295b61fd22b983c9b1f32cd14d26550690d9036802b5b23"
+    },
+    "javax/xml/parsers/SAXParserFactory.java": {
+      "upstream_path": "jaxp/src/javax/xml/parsers/SAXParserFactory.java",
+      "sha256": "c18b5426af48cb44f72238fdf5911acae1293d285b3ad18a00b636f5a7bef96d"
+    },
+    "javax/xml/parsers/ParserConfigurationException.java": {
+      "upstream_path": "jaxp/src/javax/xml/parsers/ParserConfigurationException.java",
+      "sha256": "28d63ef3823bc305a7763bed9da06b4f27bf2620414ab6a698f81ab06e78c8e8"
+    },
+    "javax/xml/parsers/FactoryConfigurationError.java": {
+      "upstream_path": "jaxp/src/javax/xml/parsers/FactoryConfigurationError.java",
+      "sha256": "ba9d455ec327be8bc3a790cf2b281380c5f1aa9f9ebf85fab384617bc1cb4802"
     }
   }
 }

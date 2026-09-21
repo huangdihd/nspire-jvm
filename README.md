@@ -14,6 +14,7 @@
 - 字节码类的构造器查找与调用、参数类型查询、访问检查、Integer/Boolean 拆箱及部分拓宽转换、InvocationTargetException 包装。
 - 部分输入流与 UTF-8 Reader、资源 URL、Integer/Boolean 装箱缓存、数组和 Cloneable 对象浅复制。
 - 类路径 JAR/文件的只读 URLConnection：连接设置、内容长度、资源流关闭和无缓存 JAR 流的关闭联动。
+- Expat 2.8.4 驱动的 SAX XML 解析：命名空间、属性、UTF-8/UTF-16、内部实体、回调异常、错误定位和输入流关闭；真实 Logback 配置的事件结果已对照标准 Java。
 - `StringConcatFactory` 字符串拼接：支持引用、整数、long、char、boolean 和配方常量；对象转换调用实际的 toString。
 - String 的字符数组构造、Comparable/CharSequence、前后缀匹配；String.format 支持 `%s`、`%%`、`%n`、参数索引、宽度和字符串精度。
 - 读取 class-file version 45–61；只执行本解释器已实现的指令。
@@ -86,10 +87,13 @@ python3 tools/test.py --vm build/nspire-jvm
 python3 tools/build-runtime.py --java8-home /path/to/java8
 python3 tools/test-runtime.py --vm build/nspire-jvm
 python3 tools/test-loader.py --vm build/nspire-jvm
+python3 tools/test-xml.py --vm build/nspire-jvm
+# 可选：使用自己下载的真实 Xinbot 发布包测试其中的 Logback XML 组件
+python3 tools/test-logback-xml.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 79 个上游源文件。
-本次有 45 项基础检查、5 项运行库对照运行和 9 项资源/连接/服务/反射测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 102 个上游源文件；`runtime/nspire/` 是本项目编写的 XML 适配层。
+本次有 45 项基础检查、5 项运行库对照运行、9 项资源/连接/服务/反射测试、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -108,6 +112,7 @@ jar cf myapp.jar.tns -C classes .
 - 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
 - 完整 Java 标准类库、自定义 ClassLoader 命名空间和 defineClass、JNI、插件 JAR 动态加载。现有资源 API 只读启动时指定的类路径，单个资源最多 8 MiB。
 - 资源流会一次性读入内存，类路径 JAR 在一次运行期间须保持不变；URLConnection 尚不支持 HTTP、任意 URL 构造、完整元数据和 JAR 热替换。
+- 完整 JAXP/XML：当前仅有 SAX 解析子集，外部实体保持禁用；DTD/XSD 验证、DOM、XSLT、SAX1、词法回调、仅凭 URI 打开 XML 等尚未实现。详细范围见 `XML-SUPPORT.md`。
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
@@ -120,6 +125,7 @@ jar cf myapp.jar.tns -C classes .
 ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 个类，调用深度最多 128，
 默认指令预算为 1 亿。这些是本版实现限制，不是计算器硬件规格。
 当前线程实现最多同时保留 32 个活动线程，每个子线程分配 256 KiB 的 C 栈，计入解释器分配预算。
+Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的输入字节数最多 8 MiB。
 
 ## Xinbot 的真实验证结果
 
@@ -135,15 +141,15 @@ ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 �
 当前实际结果：
 
 ```text
-VM error: class not found: org/xml/sax/InputSource
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=0
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
-  at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
+VM error: invokedynamic bootstrap not implemented: java/lang/invoke/LambdaMetafactory.metafactory
+  at ch/qos/logback/core/ContextBase.fireConfigurationEvent(Lch/qos/logback/core/spi/ConfigurationEvent;)V pc=5
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=8
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已打开日志配置资源流，停在 SAX InputSource 类加载处，尚未解析 XML 或进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
-仍需实现 SAX/XML 和其他运行库、动态调用、完整线程语义和网络支持。
+当前已打开日志配置资源流并创建 InputSource，停在配置事件使用的 lambda，尚未进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
+另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
+仍需实现 lambda 等动态调用、其他运行库、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -157,5 +163,6 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/unsafe.inc` 为 OpenJDK 提供经过对象边界检查的字段访问和原子操作。
 `src/loader.inc` 实现类加载器与资源 API，`src/indy.inc` 实现字符串拼接 bootstrap。
 `src/reflection.inc` 实现构造器反射，`src/format.inc` 实现上述字符串格式化子集。
+`src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。
-`vendor/miniz.*` 仅用于读取压缩 JAR。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。
+`vendor/miniz.*` 仅用于读取压缩 JAR，`vendor/expat/` 提供 XML 解析。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。

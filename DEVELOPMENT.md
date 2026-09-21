@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 79 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 102 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -27,21 +27,31 @@ The current interpreter and passing sample programs do not achieve that objectiv
   Initialization precedes argument conversion, verified against standard Java.
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
-  The next failure is the missing org.xml.sax.InputSource class in
-  GenericXMLConfigurator (see XINBOT-RUN.txt), still before Xinbot.main.
+  InputSource is now available. The next failure is LambdaMetafactory.metafactory
+  in ContextBase.fireConfigurationEvent (see XINBOT-RUN.txt), before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
   unchanged during a run. HTTP and general URL creation remain unsupported.
+- Added actual SAX parsing through Expat 2.8.4, with Java callbacks, namespaces,
+  UTF-8/UTF-16, internal entities, disabled external entities, errors and cleanup.
+  The unchanged Logback SaxEventRecorder inside Xinbot produces the same 27
+  events for its original logback.xml as standard Java in a component test.
+  Whole-application startup reaches a lambda before the parser; it still fails.
+  Parser limits and gaps are documented in XML-SUPPORT.md.
 - 45 basic checks, 5 OpenJDK runtime runs and 9 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
+- Three SAX test runs and the real Logback XML component run also passed on
+  ordinary and ASan/UBSan/leak-detection builds, including an active-parser VM
+  abort and nested readers with thread callbacks and a 64 KiB Java heap.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement SAX APIs and the actual XML configuration-reading path used by
-   Logback. Preserve real initialization; do not skip logging.
+1. Implement LambdaMetafactory and actual captured functional-interface calls
+   used by Logback configuration events. Preserve real initialization; do not
+   skip logging. Continue through XML model construction after that failure.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

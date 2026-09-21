@@ -1,0 +1,42 @@
+PASS actual Logback SAX event recording from Xinbot
+Xinbot SHA-256: 601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853
+start configuration line=18
+start statusListener line=19
+class=ch.qos.logback.core.status.NopStatusListener
+end statusListener
+start property line=21
+name=log.charset
+value=${log.charset:-UTF-8}
+end property
+start property line=22
+name=log.level
+value=${log.level:-INFO}
+end property
+start conversionRule line=24
+conversionWord=translatedLevel
+class=xin.bbtt.mcbot.jLine.TranslatedLevelConverter
+end conversionRule
+start appender line=26
+name=CONSOLE
+class=xin.bbtt.mcbot.jLine.JLineConsoleAppender
+start withJansi line=27
+body true
+end withJansi
+start encoder line=28
+start pattern line=29
+body [%d{HH:mm:ss} %highlight(%translatedLevel)] [%cyan(%logger)]%marker: %msg%n
+end pattern
+start charset line=30
+body ${log.charset}
+end charset
+end encoder
+end appender
+start root line=33
+level=${log.level}
+start appender-ref line=34
+ref=CONSOLE
+end appender-ref
+end root
+end configuration
+events=27
+Component test only; complete Xinbot startup and calculator execution are not verified.

@@ -50,6 +50,7 @@ bash tools/build-local-sdk.sh
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
 - 内存检查：当前 45 项基础检查、5 项运行库对照运行和 9 项资源/连接/服务/反射测试均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
+- XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
@@ -66,3 +67,11 @@ bash tools/build-local-sdk.sh
 当前 Ndless SDK 的 `_gettimeofday` 实现仅读取 RTC 秒数，微秒部分恒为零。
 计算器端定时等待和 `nanoTime` 的精度、单调性仍需要更换计时后端并做实机验证；
 主机定时测试使用 CLOCK_MONOTONIC，不能证明计算器定时行为。
+
+## Expat XML 解析后端
+
+使用官方 Expat 2.8.4 发行源码，原文件位于 `vendor/expat/`，版本与哈希见其 `SOURCES.json`。
+应用使用 `XML_UNICODE` 接收 UTF-16 SAX 数据，并启用命名空间和内部实体解析。
+外部实体在 Java 适配层保持关闭；解析器不读取它们指向的文件或网络资源。
+主机另编译 Expat 的 `/dev/urandom` 模块，Ndless 使用上游低熵后备实现。
+本机 XML 分配经过独立的每 VM 8 MiB 上限检查；完整限制见 `XML-SUPPORT.md`。

@@ -5,6 +5,7 @@
 #include "vm.h"
 #include "context.h"
 #include "miniz.h"
+#include "expat.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@ typedef struct Object Object;
 typedef struct Method Method;
 typedef struct VM VM;
 typedef struct VmThread VmThread;
+typedef struct XmlParse XmlParse;
+typedef struct XmlMem XmlMem;
 typedef struct LocalEntry { struct LocalEntry *next;Object *key,*value; } LocalEntry;
 typedef struct Property { struct Property *next;char *key,*value,*initial; } Property;
 typedef struct { uint64_t bits; unsigned char tag; } Value;
@@ -93,6 +96,7 @@ struct VM {
     Object *app_loader;
     Object *integer_cache[256];
     Property *properties;
+    XmlParse *xml_parsers;XmlMem *xml_mem;size_t xml_bytes;
 };
 static void abort_vm(VM *v);
 static void fail(VM *v, const char *fmt, ...) {
@@ -338,6 +342,8 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/NoSuchFieldException"))return "java/lang/ReflectiveOperationException";
     if(!strcmp(n,"java/lang/CloneNotSupportedException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/Error"))return "java/lang/Throwable";
+    if(!strcmp(n,"java/lang/VirtualMachineError"))return "java/lang/Error";
+    if(!strcmp(n,"java/lang/OutOfMemoryError"))return "java/lang/VirtualMachineError";
     if(!strcmp(n,"java/lang/AssertionError")||!strcmp(n,"java/lang/InternalError"))return "java/lang/Error";
     if(!strcmp(n,"java/lang/InterruptedException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/IllegalThreadStateException"))return "java/lang/IllegalArgumentException";
@@ -722,6 +728,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "identifiers.inc"
 #include "indy.inc"
 #include "format.inc"
+#include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
     return (s[0]=='t'||s[0]=='T')&&(s[1]=='r'||s[1]=='R')&&(s[2]=='u'||s[2]=='U')&&(s[3]=='e'||s[3]=='E');
@@ -731,6 +738,9 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
+    if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
+        xml_parse(v,self,obj(a[1]),integer(a[2]),integer(a[3]));return none;
+    }
     if(isstatic&&!strcmp(cl,"java/security/AccessController")&&!strcmp(n,"doPrivileged")&&!strcmp(d,"(Ljava/security/PrivilegedAction;)Ljava/lang/Object;")) {
         /* This VM has no SecurityManager/protection-domain policy. Only the
          * no-context action overload is supported; the action really runs. */
@@ -1035,15 +1045,19 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(isstatic&&!strcmp(n,"valueOf")&&(!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     }
     if(!strcmp(cl,"java/lang/StringBuilder")) {
+        if(!strcmp(n,"length")&&!strcmp(d,"()I")) {
+            const unsigned char *s=(const unsigned char *)(self->text?self->text:"");int32_t length=0;
+            while(*s){utf_unit(&s);length++;}return iv(length);
+        }
         if(!strcmp(n,"append")&&!strcmp(d,"(C)Ljava/lang/StringBuilder;")) {
             size_t x=self->text?strlen(self->text):0;char *buf=(char *)alloc(v,x+4);
             if(x)memcpy(buf,self->text,x);x+=write_unit(buf+x,(uint16_t)integer(a[1]));buf[x]=0;
             set_text(v,self,buf);release(v,buf);return a[0];
         }
-        if(!strcmp(n,"append")&&na==2&&(!strcmp(d,"(I)Ljava/lang/StringBuilder;")||!strcmp(d,"(J)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/String;)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/StringBuilder;"))) {
+        if(!strcmp(n,"append")&&na==2&&(!strcmp(d,"(I)Ljava/lang/StringBuilder;")||!strcmp(d,"(J)Ljava/lang/StringBuilder;")||!strcmp(d,"(Z)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/String;)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/StringBuilder;"))) {
             Value text=a[1];int converted=!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/StringBuilder;");
             if(converted){text=object_string(v,text);if(v->exception)return none;root(v,obj(text));}
-            char b[128]; const char *s=as_text(v,text,b); size_t x=self->text?strlen(self->text):0, y=strlen(s);
+            char b[128]; const char *s=d[1]=='Z'?(integer(a[1])?"true":"false"):as_text(v,text,b); size_t x=self->text?strlen(self->text):0, y=strlen(s);
             char *t=(char *)alloc(v,x+y+1); if(x) memcpy(t,self->text,x); memcpy(t+x,s,y+1); set_text(v,self,t); release(v,t);
             if(converted)v->nr--;return a[0];
         }
@@ -1375,6 +1389,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
                 if(target->flags&NATIVE) {
                     if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
+                    else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
                     else fail(v,"unbound native method: %s.%s%s",c->name,n,d);
                 } else res=execute(v,target,aa,na);
             } else if(!strcmp(c->name,"java/lang/System")&&!strcmp(n,"arraycopy")&&!strcmp(d,"(Ljava/lang/Object;ILjava/lang/Object;II)V")&&stat) res=arraycopy(v,aa);
@@ -1481,6 +1496,11 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
         clear_locals(v,v->main_thread);v->main_thread->finished=1;v->live_threads--;
         if(workers_alive(v)){v->main_thread->state=T_DRAIN;schedule(v);}
     }
+    while(v->xml_parsers)xml_destroy(v,v->xml_parsers);
+    /* A fatal longjmp can leave Expat's callback-depth guard set. Its public
+     * destructor then refuses to free it. No parser can run after this point;
+     * release every remaining allocation through our tracked memory suite. */
+    while(v->xml_mem)xml_free(v->xml_mem+1);
     for(unsigned i=0;i<v->npaths;i++)if(v->paths[i].is_zip)mz_zip_reader_end(&v->paths[i].zip);
     while(v->objects){Object *o=v->objects;v->objects=o->next;free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
     while(v->mem){Mem *m=v->mem;v->mem=m->next;free(m);}free(v);return status;

@@ -274,6 +274,8 @@ static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,u
     int reader=!strcmp(cl,"java/io/Reader")||!strcmp(cl,"java/io/InputStreamReader")||!strcmp(cl,"java/io/BufferedReader")||(self&&(self->kind=='r'||self->kind=='R'));
     if((byte_stream||reader)&&!stat) {
         if(!strcmp(n,"<init>")) {
+            if(!strcmp(cl,"java/io/InputStream")&&!strcmp(d,"()V"))return none;
+            if(!strcmp(cl,"java/io/Reader")&&!strcmp(d,"()V"))return none;
             if(!strcmp(cl,"java/io/ByteArrayInputStream")&&(!strcmp(d,"([B)V")||!strcmp(d,"([BII)V"))) {
                 Object *bytes=nonnull(v,a[1]);if(!bytes)return none;
                 int32_t off=na==4?integer(a[2]):0,len=na==4?integer(a[3]):(int32_t)bytes->count;
