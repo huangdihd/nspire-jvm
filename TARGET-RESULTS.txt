@@ -4,14 +4,15 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 12359
-  Zehn executable size: 660796 bytes
-  Bytes needed to load: 661732 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 12099
+  Zehn executable size: 663164 bytes
+  Bytes needed to load: 664100 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
+  ELF text/data/bss: 352972 / 261714 / 936 bytes.
 
 Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
-11/11 loader/resource/connection/service/reflection/string cases, 2/2 Java 8/17
-lambda runs, 3/3 casing checks, 6/6 stream/enum/boxing checks,
+11/11 loader/resource/connection/service/reflection/string cases, 6/6 Java 8/17
+lambda/exception runs, 8/8 time/date checks, 3/3 casing checks, 6/6 stream/enum/boxing checks,
 6/6 annotation checks (including actual Logback phases), 8/8 regex and supporting
 runtime checks (including actual Logback Duration), 7/7 output checks (including
 actual Logback ConsoleTarget), 10/10 method/package/interface checks (including actual
@@ -24,13 +25,18 @@ sanitizer errors reported. Expected-failure tests also reject sanitizer output.
 The output concurrency test excludes only ASan's exact known ucontext warning
 from its stderr byte comparison; all other stderr remains compared.
 The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
-same missing java/time/ZoneId in CachingDateFormatter initialization,
+same missing java/io/FileDescriptor in Jansi AnsiConsole.ansiStream,
 with no sanitizer errors. Initial lambda creation/invocation, XML parsing,
 stream-based element path matching, actual annotation phase selection, regex
 compilation, environment substitution and AtomicBoolean initialization pass;
 execution creates Xinbot's JLineConsoleAppender, completes method discovery and
 package lookup, loads Charset/File and traverses direct component interfaces.
-It now starts the PatternLayout date converter, before Xinbot.main.
+It now completes the PatternLayout date converter and enters the original
+Jansi console initialization, still before Xinbot.main.
+Actual CachingDateFormatter output matches standard Java in a separate
+component test. Time checks also cover historical offsets, DST gaps/overlaps,
+ISO parsing/arithmetic, host default-zone configuration, 4,585 log/sqrt bit
+patterns, CRC32, literal replacement and UTF-16 builder edits.
 The ordinary and instrumented component checks read the same phases as standard
 Java from nine original Xinbot/Logback classes. Class capacity is now 2,048;
 the 16 MiB metadata budget remains enforced.

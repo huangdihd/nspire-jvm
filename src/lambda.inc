@@ -48,6 +48,14 @@ static void lambda_byte(LambdaBuilder *b,unsigned byte) {
 }
 static void lambda_word(LambdaBuilder *b,unsigned word){lambda_byte(b,word>>8);lambda_byte(b,word);}
 static void lambda_cp_instruction(LambdaBuilder *b,unsigned op,unsigned index){lambda_byte(b,op);lambda_word(b,index);}
+static void lambda_string_constant(LambdaBuilder *b,const char *text) {
+    unsigned utf_index=lambda_pool(b,1,0,0,text);
+    lambda_cp_instruction(b,0x13,lambda_pool(b,8,utf_index,0,NULL));
+}
+static void lambda_small_int(LambdaBuilder *b,unsigned value) {
+    if(value>32767)fail(b->vm,"lambda integer constant too large");
+    lambda_byte(b,0x11);lambda_word(b,value);
+}
 static unsigned lambda_slots(Class *c){return c->primitive=='J'||c->primitive=='D'?2:1;}
 static unsigned lambda_load_opcode(Class *c) {
     return !c->primitive?0x19:c->primitive=='J'?0x16:c->primitive=='F'?0x17:c->primitive=='D'?0x18:0x15;
@@ -134,11 +142,11 @@ static Class *lambda_build(VM *v,Class *owner,CP *site,const char *factory_desc,
     if(factory.count+sam.count!=implementation.count)fail(v,"lambda capture/target arity mismatch");
     for(unsigned i=0;i<factory.count;i++)if(factory.args[i]!=implementation.args[i]&&!(i==0&&receiver&&subtype(factory.args[i],implementation.args[i])))fail(v,"lambda capture type mismatch");
     Class *interfaces[256];interfaces[0]=factory.result;unsigned ni=1;
-    const char *descriptors[256];descriptors[0]=sam_desc;unsigned nm=1,index=3;
+    const char *descriptors[256];descriptors[0]=sam_desc;unsigned nm=1,index=3;int serializable=0;
     if(alternate) {
         unsigned flags=lambda_boot_int(v,owner,bootstrap,&index);
-        if(flags&1)fail(v,"serializable lambda protocol is not implemented");
-        if(flags&~6U)fail(v,"unknown alternate lambda flags");
+        serializable=!!(flags&1);
+        if(flags&~7U)fail(v,"unknown alternate lambda flags");
         if(flags&2) {
             unsigned count=lambda_boot_int(v,owner,bootstrap,&index);if(count>255)fail(v,"too many lambda marker interfaces");
             for(unsigned i=0;i<count;i++) {
@@ -157,6 +165,11 @@ static Class *lambda_build(VM *v,Class *owner,CP *site,const char *factory_desc,
         }
         if(index!=bootstrap->nargs)fail(v,"unused alternate lambda arguments");
     }
+    if(serializable) {
+        Class *marker=load(v,"java/io/Serializable");int present=0;
+        for(unsigned i=0;i<ni;i++)if(subtype(interfaces[i],marker))present=1;
+        if(!present){if(ni==256)fail(v,"too many lambda interfaces");interfaces[ni++]=marker;}
+    }
     if(v->nclasses==MAX_CLASSES)fail(v,"class count limit (%d)",MAX_CLASSES);
     Class *c=(Class *)alloc(v,sizeof *c);v->classes[v->nclasses++]=c;
     char name[768];if(snprintf(name,sizeof name,"%s$$Lambda$%u",owner->name,(unsigned)(site-owner->cp))>=(int)sizeof name)fail(v,"lambda class name too long");
@@ -167,7 +180,7 @@ static Class *lambda_build(VM *v,Class *owner,CP *site,const char *factory_desc,
         Field *f=&c->fields[i];char name[32];snprintf(name,sizeof name,"capture$%u",i);
         f->name=copy(v,name);f->desc=lambda_descriptor(v,factory.args[i]);f->slot=i;f->flags=0x1012;
     }
-    c->nm=(uint16_t)nm;c->methods=(Method *)alloc(v,nm*sizeof(Method));c->nc=1;
+    c->nm=(uint16_t)(nm+serializable);c->methods=(Method *)alloc(v,c->nm*sizeof(Method));c->nc=1;
     LambdaBuilder builder={0};builder.vm=v;builder.cls=c;
     /* Seed a pool allocation: the first append must have room for index one. */
     builder.capacity=32;c->cp=(CP *)alloc(v,builder.capacity*sizeof(CP));
@@ -190,6 +203,27 @@ static Class *lambda_build(VM *v,Class *owner,CP *site,const char *factory_desc,
         lambda_adapt(&builder,implementation.result,dynamic.result);lambda_adapt(&builder,dynamic.result,bridge.result);
         lambda_byte(&builder,bridge.result->primitive=='V'?0xb1:!bridge.result->primitive?0xb0:bridge.result->primitive=='J'?0xad:bridge.result->primitive=='F'?0xae:bridge.result->primitive=='D'?0xaf:0xac);
         m->locals=(uint16_t)local;m->stack=(uint16_t)(implementation.count*2+8);m->code=builder.code;m->length=(uint32_t)builder.length;
+    }
+    if(serializable) {
+        /* Follow InnerClassLambdaMetafactory's writeReplace protocol. The
+         * original SerializedLambda owns metadata, capture cloning, and
+         * readResolve; javac's actual $deserializeLambda$ validates/relinks it. */
+        Method *m=&c->methods[nm];m->owner=c;m->name=copy(v,"writeReplace");m->desc=copy(v,"()Ljava/lang/Object;");m->flags=0x12;
+        builder.code=NULL;builder.length=builder.code_capacity=0;
+        Class *serialized=load(v,"java/lang/invoke/SerializedLambda"),*object=load(v,"java/lang/Object");
+        lambda_cp_instruction(&builder,0xbb,lambda_class_constant(&builder,serialized));lambda_byte(&builder,0x59);
+        lambda_cp_instruction(&builder,0x13,lambda_class_constant(&builder,owner));
+        lambda_string_constant(&builder,factory.result->name);lambda_string_constant(&builder,sam_name);lambda_string_constant(&builder,sam_desc);
+        lambda_small_int(&builder,kind);lambda_string_constant(&builder,target->name);lambda_string_constant(&builder,target_name);
+        lambda_string_constant(&builder,target_desc);lambda_string_constant(&builder,dynamic_desc);
+        lambda_small_int(&builder,factory.count);lambda_cp_instruction(&builder,0xbd,lambda_class_constant(&builder,object));
+        for(unsigned i=0;i<factory.count;i++) {
+            lambda_byte(&builder,0x59);lambda_small_int(&builder,i);lambda_byte(&builder,0x2a);
+            lambda_cp_instruction(&builder,0xb4,lambda_reference(&builder,9,c,c->fields[i].name,c->fields[i].desc));
+            lambda_adapt(&builder,factory.args[i],object);lambda_byte(&builder,0x53);
+        }
+        lambda_cp_instruction(&builder,0xb7,lambda_reference(&builder,10,serialized,"<init>","(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;[Ljava/lang/Object;)V"));
+        lambda_byte(&builder,0xb0);m->locals=1;m->stack=24;m->code=builder.code;m->length=(uint32_t)builder.length;
     }
     site->lambda_class=c;return c;
 }

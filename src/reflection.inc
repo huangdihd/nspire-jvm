@@ -76,7 +76,7 @@ static Object *construct(VM *v,Object *ctor,Object *args) {
     if(ctor->represented_method)execute(v,ctor->represented_method,snapshot->data,count+1);
     if(v->exception) {
         Object *cause=v->exception;root(v,cause);v->exception=NULL;
-        Object *wrapped=new_object(v,load(v,"java/lang/reflect/InvocationTargetException"),'o',0);wrapped->cause=cause;
+        Object *wrapped=new_object(v,load(v,"java/lang/reflect/InvocationTargetException"),'o',0);wrapped->cause=cause;wrapped->cause_initialized=1;
         v->exception=wrapped;v->nr--;
     }
     v->nr--;return v->exception?NULL:o;

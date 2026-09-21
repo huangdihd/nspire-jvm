@@ -37,3 +37,13 @@ static void builder_chars(VM *v,Object *builder,Object *chars,int offset,int len
     char *text=(char *)alloc(v,prefix+(size_t)length*3+1),*end=text+prefix;if(prefix)memcpy(text,builder->text,prefix);
     for(int i=0;i<length;i++)end+=write_unit(end,(uint16_t)integer(chars->data[offset+i]));*end=0;set_text(v,builder,text);release(v,text);
 }
+static void builder_change_char(VM *v,Object *builder,int32_t index,int value) {
+    if(index<0){throwing(v,"java/lang/StringIndexOutOfBoundsException");return;}
+    const unsigned char *start=(const unsigned char *)(builder->text?builder->text:""),*p=start;
+    for(int32_t i=0;*p&&i<index;i++)utf_unit(&p);
+    if(!*p){throwing(v,"java/lang/StringIndexOutOfBoundsException");return;}
+    size_t prefix=(size_t)(p-start);utf_unit(&p);size_t rest=strlen((const char *)p);
+    char *text=(char *)alloc(v,prefix+rest+4),*out=text+prefix;memcpy(text,start,prefix);
+    if(value>=0)out+=write_unit(out,(uint16_t)value);memcpy(out,p,rest+1);
+    set_text(v,builder,text);release(v,text);
+}

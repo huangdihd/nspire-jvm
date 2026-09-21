@@ -42,7 +42,8 @@ public class MethodInvokeTest {
         check(()->setter.invoke(object,(Object)null));check(()->setter.invoke(object,Long.valueOf(1)));check(()->setter.invoke(object,true));
         check(()->type.getMethod("bool",boolean.class).invoke(object,1));
         check(()->type.getMethod("ch",char.class).invoke(object,Byte.valueOf((byte)1)));
-        for(String n:new String[]{"fail","fatal"})try{type.getMethod(n).invoke(object);}catch(InvocationTargetException e){System.out.println(e.getCause().getClass().getName());System.out.println(e.getTargetException()==e.getCause());}
+        for(String n:new String[]{"fail","fatal"})try{type.getMethod(n).invoke(object);}catch(InvocationTargetException e){System.out.println(e.getCause().getClass().getName());System.out.println(e.getTargetException()==e.getCause());
+            try{e.initCause(null);throw new AssertionError();}catch(IllegalStateException expected){System.out.println("wrapper cause locked");}}
         System.out.println(Boolean.class.getMethod("valueOf",String.class).invoke(null,"TRUE"));
         System.out.println(Object.class.getMethod("equals",Object.class).invoke("same","same"));
         System.out.println(Object.class.getMethod("hashCode").invoke("text").equals("text".hashCode()));

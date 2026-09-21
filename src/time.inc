@@ -1,5 +1,6 @@
 /* Platform timezone discovery and CRC32 used by the original TZDB decoder.
  * Time arithmetic, rules and formatting execute the OpenJDK Java code. */
+#include "strictmath.h"
 static Object *system_offset(VM *v) {
 #ifdef _TINSPIRE
     /* No device timezone service is exposed. Its configured default is UTC. */
@@ -29,7 +30,7 @@ static Object *system_timezone(VM *v) {
 static int platform_native_bound(Method *method) {
     if(!(method->flags&NATIVE))return 0;const char *owner=method->owner->name;
     return !strcmp(owner,"java/io/UnixFileSystem")||!strcmp(owner,"java/util/TimeZone")||!strcmp(owner,"java/util/zip/CRC32")||
-        (!strcmp(owner,"java/lang/StrictMath")&&!strcmp(method->name,"sqrt")&&!strcmp(method->desc,"(D)D"));
+        (!strcmp(owner,"java/lang/StrictMath")&&(!strcmp(method->name,"sqrt")||!strcmp(method->name,"log"))&&!strcmp(method->desc,"(D)D"));
 }
 static Value time_native(VM *v,Class *c,const char *name,const char *desc,Value *a,int stat,int *handled) {
     *handled=0;Value result=iv(0);if(!stat)return result;
@@ -37,7 +38,10 @@ static Value time_native(VM *v,Class *c,const char *name,const char *desc,Value 
         if(!strcmp(name,"getSystemTimeZoneID")&&!strcmp(desc,"(Ljava/lang/String;)Ljava/lang/String;")){*handled=1;return rv(system_timezone(v));}
         if(!strcmp(name,"getSystemGMTOffsetID")&&!strcmp(desc,"()Ljava/lang/String;")){*handled=1;return rv(system_offset(v));}
     }
-    if(!strcmp(c->name,"java/lang/StrictMath")&&!strcmp(name,"sqrt")&&!strcmp(desc,"(D)D")){*handled=1;return dv(sqrt(dbl(a[0])));}
+    if(!strcmp(c->name,"java/lang/StrictMath")&&!strcmp(desc,"(D)D")) {
+        if(!strcmp(name,"sqrt")){*handled=1;return dv(nspire_fdlibm_sqrt(dbl(a[0])));}
+        if(!strcmp(name,"log")){*handled=1;return dv(nspire_fdlibm_log(dbl(a[0])));}
+    }
     if(!strcmp(c->name,"java/util/zip/CRC32")) {
         uint32_t crc=(uint32_t)a[0].bits;
         if(!strcmp(name,"update")&&!strcmp(desc,"(II)I")){unsigned char byte=(unsigned char)integer(a[1]);*handled=1;return iv((int32_t)mz_crc32(crc,&byte,1));}

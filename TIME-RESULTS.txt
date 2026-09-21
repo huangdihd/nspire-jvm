@@ -1,0 +1,9 @@
+PASS StrictMathTest (standard Java oracle)
+PASS TimeSupportTest (standard Java oracle)
+PASS StringReplaceTest (standard Java oracle)
+PASS TimeTest (standard Java oracle)
+PASS DefaultZoneTest (standard Java oracle); TZ=America/New_York
+PASS DefaultZoneTest (standard Java oracle); TZ=Europe/Paris
+PASS DefaultZoneTest (standard Java oracle); explicit zone overrides TZ
+PASS LogbackDateTest (standard Java oracle)
+Host only; calculator execution is unverified.

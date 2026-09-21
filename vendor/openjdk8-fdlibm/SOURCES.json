@@ -1,0 +1,46 @@
+{
+  "repository": "https://github.com/openjdk/jdk8u",
+  "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
+  "files": {
+    "upstream/fdlibm.h": {
+      "upstream_path": "jdk/src/share/native/java/lang/fdlibm/include/fdlibm.h",
+      "sha256": "3b498af145a9f597250e1939d00ead9adebe29e79c34349a185dd217108b923e"
+    },
+    "upstream/jfdlibm.h": {
+      "upstream_path": "jdk/src/share/native/java/lang/fdlibm/include/jfdlibm.h",
+      "sha256": "903c0281ef81886b24a4e0b8e14059dc060ac7a5edd3767dca5abd692c7c3a02"
+    },
+    "upstream/e_log.c": {
+      "upstream_path": "jdk/src/share/native/java/lang/fdlibm/src/e_log.c",
+      "sha256": "23990b53ae37f36dfb4e81e3061e4a65bd2997dbd84194f8a630f1f2dbf7080b"
+    },
+    "upstream/e_sqrt.c": {
+      "upstream_path": "jdk/src/share/native/java/lang/fdlibm/src/e_sqrt.c",
+      "sha256": "bc9ada233c8d4d49b9e29f9319d0f1075488e13e3a4b2045a45f26bd88ba0e30"
+    },
+    "upstream/StrictMath.c": {
+      "upstream_path": "jdk/src/share/native/java/lang/StrictMath.c",
+      "sha256": "51d6031a08ed4e60e4e59a291e0f69d66fc9b4b602c96162a3c9b31bda34cabe"
+    },
+    "upstream/CoreLibraries.gmk": {
+      "upstream_path": "jdk/make/lib/CoreLibraries.gmk",
+      "sha256": "d39c3fca54c6250bec5be5df6ef2739b23666553a447e47732f284694b2ed5e4"
+    },
+    "LICENSE": {
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    "ASSEMBLY_EXCEPTION": {
+      "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb"
+    },
+    "THIRD_PARTY_README": {
+      "sha256": "ded88776c93aaf687a6d6ff7a8faa94532f1d2c00f315814820a8cea36f83d91"
+    }
+  },
+  "generated": {
+    "generated/e_sqrt.c": {
+      "sha256": "858ded55ef5de57461f36348726264f7208e65fa9f882b665212968a9c30ea3a",
+      "source": "upstream/e_sqrt.c",
+      "change": "Replace signed negative left shift with equivalent representable multiplication."
+    }
+  }
+}

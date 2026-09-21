@@ -81,6 +81,7 @@ struct Object {
     VmThread *thread, *monitor_owner; unsigned monitor_depth;
     Object *thread_target;
     Object *cause,*suppressed;
+    unsigned cause_initialized;
     unsigned output_flags,output_pending;int output_fd;
     int file_fd,file_open;
     unsigned char *buffer;size_t buffer_size,cursor,mark_cursor;
@@ -775,6 +776,8 @@ static Value object_string(VM *v,Value value) {
             fail(v,"toString did not return String");
         return result;
     }
+    if(subtype(obj(value)->cls,load(v,"java/lang/Throwable")))
+        return native_call(v,load(v,"java/lang/Throwable"),"toString","()Ljava/lang/String;",&value,1,0);
     char text[128];return rv(string(v,as_text(v,value,text)));
 }
 static Object *class_name_string(VM *v,Class *c,int simple) {
@@ -885,6 +888,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
          * no-context action overload is supported; the action really runs. */
         Object *action=nonnull(v,a[0]);if(!action)return none;
         Method *run=method(action->cls,"run","()Ljava/lang/Object;");if(!run)fail(v,"PrivilegedAction.run not found");
+        return execute(v,run,a,1);
+    }
+    if(isstatic&&!strcmp(cl,"java/security/AccessController")&&!strcmp(n,"doPrivileged")&&!strcmp(d,"(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;")) {
+        Class *actions=load(v,"nspire/security/Actions");initialize(v,actions);if(v->exception)return none;
+        Method *run=method(actions,"run",d);if(!run)fail(v,"PrivilegedExceptionAction bridge is missing");
         return execute(v,run,a,1);
     }
     if(isstatic&&!strcmp(cl,"sun/misc/SharedSecrets")&&!strcmp(n,"getJavaLangAccess")&&!strcmp(d,"()Lsun/misc/JavaLangAccess;")) {
@@ -1072,12 +1080,35 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             return none;
         }
         if(subtype(c,load(v,"java/lang/Throwable"))&&!strcmp(d,"(Ljava/lang/String;Ljava/lang/Throwable;)V")) {
-            self->cause=obj(a[2]);if(obj(a[1]))set_text(v,self,obj(a[1])->text);return none;
+            self->cause=obj(a[2]);self->cause_initialized=1;if(obj(a[1]))set_text(v,self,obj(a[1])->text);return none;
+        }
+        if(subtype(c,load(v,"java/lang/Throwable"))&&!strcmp(d,"(Ljava/lang/Throwable;)V")) {
+            self->cause=obj(a[1]);self->cause_initialized=1;
+            if(self->cause){Value message=object_string(v,a[1]);if(!v->exception&&obj(message))set_text(v,self,obj(message)->text);}
+            return none;
         }
     }
     if(!isstatic&&subtype(c,load(v,"java/lang/Throwable"))) {
         if(!strcmp(n,"getMessage")&&!strcmp(d,"()Ljava/lang/String;"))return rv(self->text?string(v,self->text):NULL);
+        if(!strcmp(n,"getLocalizedMessage")&&!strcmp(d,"()Ljava/lang/String;")) {
+            Method *message=method(self->cls,"getMessage",d);
+            return message?execute(v,message,a,1):native_call(v,load(v,"java/lang/Throwable"),"getMessage",d,a,1,0);
+        }
+        if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) {
+            Method *message=method(self->cls,"getLocalizedMessage",d);
+            Value value=message?execute(v,message,a,1):native_call(v,load(v,"java/lang/Throwable"),"getLocalizedMessage",d,a,1,0);
+            if(v->exception)return none;root(v,obj(value));
+            Object *name=class_name_string(v,self->cls,0);root(v,name);
+            const char *suffix=obj(value)?obj(value)->text:NULL;size_t size=strlen(name->text)+(suffix?strlen(suffix)+2:0)+1;
+            char *text=(char *)alloc(v,size);snprintf(text,size,suffix?"%s: %s":"%s",name->text,suffix);
+            Object *result=string(v,text);release(v,text);v->nr-=2;return rv(result);
+        }
         if(!strcmp(n,"getCause")&&!strcmp(d,"()Ljava/lang/Throwable;"))return rv(self->cause);
+        if(!strcmp(n,"initCause")&&!strcmp(d,"(Ljava/lang/Throwable;)Ljava/lang/Throwable;")) {
+            if(self->cause_initialized){throwing(v,"java/lang/IllegalStateException");return none;}
+            if(obj(a[1])==self){throwing(v,"java/lang/IllegalArgumentException");return none;}
+            self->cause=obj(a[1]);self->cause_initialized=1;return rv(self);
+        }
         if(!strcmp(n,"addSuppressed")&&!strcmp(d,"(Ljava/lang/Throwable;)V")) {
             Object *other=nonnull(v,a[1]);if(!other)return none;if(other==self){throwing(v,"java/lang/IllegalArgumentException");return none;}
             size_t length=self->suppressed?self->suppressed->count:0;
@@ -1095,7 +1126,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"clone")&&!strcmp(d,"()Ljava/lang/Object;")) {
             if(!subtype(self->cls,load(v,"java/lang/Cloneable"))||subtype(self->cls,load(v,"java/lang/Thread"))){throwing(v,"java/lang/CloneNotSupportedException");return none;}
             Object *o=self->kind=='a'?array_new(v,self->array_desc,(int32_t)self->count):new_object(v,self->cls,self->kind,self->count);
-            root(v,o);memcpy(o->data,self->data,self->count*sizeof(Value));o->cause=self->cause;o->suppressed=self->suppressed;
+            root(v,o);memcpy(o->data,self->data,self->count*sizeof(Value));o->cause=self->cause;o->suppressed=self->suppressed;o->cause_initialized=self->cause_initialized;
             o->output_flags=self->output_flags;o->output_pending=self->output_pending;o->output_fd=self->output_fd;
             if(self->text)set_text(v,o,self->text);
             if(self->buffer){stream_buffer(v,o,self->buffer_size);memcpy(o->buffer,self->buffer,self->buffer_size);}
@@ -1171,6 +1202,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             Object *out=array_new(v,"[C",length);string_get_chars(v,self,0,length,out,0);return rv(out);
         }
         if(!isstatic&&!strcmp(n,"matches")&&!strcmp(d,"(Ljava/lang/String;)Z"))return regex_string(v,self,obj(a[1]),NULL,0,1);
+        if(!isstatic&&!strcmp(n,"replace")&&!strcmp(d,"(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;")) {
+            Class *ops=load(v,"nspire/text/StringOperations");initialize(v,ops);if(v->exception)return none;
+            Method *replace=method(ops,"replace","(Ljava/lang/String;Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Ljava/lang/String;");
+            if(!replace)fail(v,"literal String.replace bridge is missing");return execute(v,replace,a,3);
+        }
         if(!isstatic&&(!strcmp(n,"replaceAll")||!strcmp(n,"replaceFirst"))&&!strcmp(d,"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"))return regex_string(v,self,obj(a[1]),obj(a[2]),0,!strcmp(n,"replaceAll")?2:3);
         if(!isstatic&&(!strcmp(n,"toLowerCase")||!strcmp(n,"toUpperCase"))&&(!strcmp(d,"()Ljava/lang/String;")||!strcmp(d,"(Ljava/util/Locale;)Ljava/lang/String;")))
             return rv(case_string(v,self,na==2?obj(a[1]):NULL,na==1,!strcmp(n,"toUpperCase")));
@@ -1309,6 +1345,8 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             builder_sequence(v,self,obj(a[1]),na==4?integer(a[2]):0,na==4?integer(a[3]):0,na==2);return a[0];
         }
         if(!strcmp(n,"setLength")&&!strcmp(d,"(I)V")){builder_length(v,self,integer(a[1]));return none;}
+        if(!strcmp(n,"deleteCharAt")&&!strcmp(d,"(I)Ljava/lang/StringBuilder;")){builder_change_char(v,self,integer(a[1]),-1);return a[0];}
+        if(!strcmp(n,"setCharAt")&&!strcmp(d,"(IC)V")){builder_change_char(v,self,integer(a[1]),(uint16_t)integer(a[2]));return none;}
         if(!strcmp(n,"charAt")&&!strcmp(d,"(I)C")) {
             int32_t index=integer(a[1]),position=0;const unsigned char *p=(const unsigned char *)(self->text?self->text:"");
             while(*p){unsigned ch=utf_unit(&p);if(position++==index)return iv((int32_t)ch);}
@@ -1355,24 +1393,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"identityHashCode")&&!strcmp(d,"(Ljava/lang/Object;)I"))return iv((int32_t)(uintptr_t)obj(a[0]));
         /* arraycopy is implemented below after type checking helpers. */
     }
-    if(!strcmp(cl,"java/lang/Math")&&isstatic) {
-        if(!strcmp(n,"abs")&&!strcmp(d,"(I)I")) return iv(integer(a[0])<0?(int32_t)(0U-(uint32_t)a[0].bits):integer(a[0]));
-        if(!strcmp(n,"abs")&&!strcmp(d,"(J)J")) return val((int64_t)a[0].bits<0?0-a[0].bits:a[0].bits,LONG);
-        if(!strcmp(n,"sqrt")&&!strcmp(d,"(D)D")) return dv(sqrt(dbl(a[0])));
-        if((!strcmp(n,"min")||!strcmp(n,"max"))&&!strcmp(d,"(II)I")) { int less=integer(a[0])<integer(a[1]); return (!strcmp(n,"min")?less:!less)?a[0]:a[1]; }
-        if((!strcmp(n,"min")||!strcmp(n,"max"))&&!strcmp(d,"(JJ)J")) {int less=(int64_t)a[0].bits<(int64_t)a[1].bits;return (!strcmp(n,"min")?less:!less)?a[0]:a[1];}
-        if((!strcmp(n,"min")||!strcmp(n,"max"))&&(!strcmp(d,"(FF)F")||!strcmp(d,"(DD)D"))) {
-            double x=d[1]=='F'?(double)flt(a[0]):dbl(a[0]),y=d[1]=='F'?(double)flt(a[1]):dbl(a[1]);
-            int minimum=!strcmp(n,"min");
-            if(isnan(x))return a[0];if(isnan(y))return a[1];
-            if(x==0&&y==0)return (minimum?signbit(x):!signbit(x))?a[0]:a[1];
-            return (minimum?x<=y:x>=y)?a[0]:a[1];
-        }
-    }
     if((!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))&&isstatic&&!strcmp(n,"toString")&&
        (!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     if(isstatic&&(!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))) {
         int large=!strcmp(cl,"java/lang/Long");
+        if(!strcmp(n,"signum")&&!strcmp(d,large?"(J)I":"(I)I")) {
+            int64_t value=large?(int64_t)a[0].bits:integer(a[0]);return iv(value<0?-1:value>0?1:0);
+        }
         if(!strcmp(n,"compare")&&!strcmp(d,large?"(JJ)I":"(II)I")) {
             int64_t x=large?(int64_t)a[0].bits:integer(a[0]),y=large?(int64_t)a[1].bits:integer(a[1]);return iv(x<y?-1:x>y?1:0);
         }

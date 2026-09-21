@@ -1,7 +1,7 @@
 # Lambda and method-reference support
 
 The interpreter recognizes the compiled `LambdaMetafactory.metafactory`
-bootstrap and the marker/bridge portions of `altMetafactory`. It generates a
+bootstrap and the marker/bridge/serializable portions of `altMetafactory`. It generates a
 class for each linked invokedynamic constant-pool entry. Captured values become
 ordinary instance fields; each SAM/bridge method is executable JVM bytecode.
 Calls therefore use the same GC roots, exception handling, instruction budget,
@@ -20,7 +20,16 @@ Implemented paths:
   these basic operations; Float/Double object text formatting and other wrapper APIs
   remain incomplete and still fail explicitly when reached.
 - `altMetafactory` marker interfaces and additional bridge descriptors.
-  Serializable-lambda flags are rejected; no serialized representation is faked.
+- Serializable lambda classes implement Serializable and generate a private
+  writeReplace method with actual capture-site/implementation metadata and
+  boxed captured values. It constructs the preserved OpenJDK SerializedLambda.
+  That class's original readResolve invokes javac's real $deserializeLambda$
+  method, which validates and reconstructs the lambda. This protocol works
+  independently of the still-missing generic object-stream implementation.
+- The no-context PrivilegedExceptionAction overload executes the action and
+  wraps checked exceptions in the original PrivilegedActionException. Runtime
+  exceptions and Errors propagate unchanged. There is no SecurityManager or
+  protection-domain enforcement.
 - Interface default methods are selected by specificity. Interfaces declaring
   default methods are initialized when their implementing class is initialized.
   Newer javac's private-method references do not dispatch to unrelated subclass
@@ -31,7 +40,9 @@ Current limits:
 - No general MethodHandle/MethodType/CallSite APIs, application-defined bootstrap
   methods, dynamic constants or direct Java calls to LambdaMetafactory.
 - Generated classes use internal VM class metadata; full hidden-class reflection,
-  nestmate metadata, class unloading and lambda serialization are not implemented.
+  nestmate metadata and class unloading are not implemented. Generic stream
+  serialization/deserialization is missing; no serialized byte-stream round
+  trip or arbitrary object graph persistence is claimed.
 - Generated classes count toward the existing 2,048-class and 16 MiB metadata
   limits. The current global-per-name class loader model still applies.
 - Linkage checks and failure reporting are a subset of JVM bootstrap verification;
@@ -45,10 +56,15 @@ array references, synchronized targets, generic casts, boxing/unboxing, exceptio
 propagation, null receivers, marker interfaces, bridges, interface initialization,
 private/super references, default-method composition and threaded execution.
 
-The original unsupported-lambda tests now use a serializable lambda to preserve
-their main-stack and child-stack fatal-error checks. Ordinary lambda execution
-is covered by the new positive tests. Real Xinbot now passes its initial lambda
-bootstrap, XML parsing, sequential stream matching and annotation-based phase
-selection. It also compiles the real Duration regex and passes property
-substitution and creates the application's JLineConsoleAppender. Bean discovery
-also passes; Charset is supplied and the next failure is missing File during property substitution.
+There are also standard-Java comparisons for writeReplace metadata, primitive
+and reference captures, GC pressure, original readResolve, method/constructor
+references and invalid metadata rejection. These run for Java 8 and Java 17
+bytecode with a 64 KiB VM heap. Privileged actions have separate checked,
+unchecked, Error, null-action and exception-cause checks.
+Invalid metadata must reach javac's IllegalArgumentException. The check compares
+that root cause: Java 17 adds an InvalidObjectException wrapper around readResolve
+failures, while this runtime preserves the Java 8 implementation and its wrappers.
+
+The fatal cleanup tests now use explicitly unbound application native methods
+on the main and child stacks. Real Xinbot passes its time formatter's internal
+serializable lambdas; the next whole-startup failure is FileDescriptor in Jansi.

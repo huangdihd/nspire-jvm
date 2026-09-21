@@ -1,3 +1,7 @@
-PASS Java 8 captures, method references, adaptation, bridges, defaults, exceptions, threads and GC
-PASS Java 17 captures, method references, adaptation, bridges, defaults, exceptions, threads and GC
+PASS Java 8 LambdaTest (standard Java oracle, 64 KiB heap)
+PASS Java 8 SerializableLambdaTest (standard Java oracle, 64 KiB heap)
+PASS Java 8 PrivilegedActionTest (standard Java oracle, 64 KiB heap)
+PASS Java 17 LambdaTest (standard Java oracle, 64 KiB heap)
+PASS Java 17 SerializableLambdaTest (standard Java oracle, 64 KiB heap)
+PASS Java 17 PrivilegedActionTest (standard Java oracle, 64 KiB heap)
 Host only; calculator execution not verified.

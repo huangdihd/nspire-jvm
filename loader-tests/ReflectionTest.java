@@ -24,7 +24,8 @@ public class ReflectionTest {
         System.out.println(hidden.isAccessible());hidden.setAccessible(true);System.out.println(hidden.newInstance().getClass()==Fixture.Hidden.class);
         System.out.println(Fixture.Hidden.class.getDeclaredConstructor().isAccessible());hidden.setAccessible(false);
         try{hidden.newInstance();}catch(IllegalAccessException e){System.out.println("private denied again");}
-        try{Fixture.Broken.class.getConstructor().newInstance();}catch(InvocationTargetException e){System.out.println(e.getCause()==e.getTargetException());System.out.println(e.getCause().getMessage());}
+        try{Fixture.Broken.class.getConstructor().newInstance();}catch(InvocationTargetException e){System.out.println(e.getCause()==e.getTargetException());System.out.println(e.getCause().getMessage());
+            try{e.initCause(null);throw new AssertionError();}catch(IllegalStateException expected){System.out.println("wrapper cause locked");}}
         try{Fixture.Abstract.class.getConstructor().newInstance();}catch(InstantiationException e){System.out.println("abstract rejected");}
         Constructor<Fixture.Varargs> varargs=Fixture.Varargs.class.getConstructor(String[].class);
         System.out.println(varargs.isVarArgs());System.out.println(varargs.newInstance((Object)new String[]{"a","b"}).size);

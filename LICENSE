@@ -29,3 +29,6 @@ and GPLv2 + Classpath exception terms are preserved there; see THIRD-PARTY.md.
 The adapted OpenJDK TzdbZoneRulesProvider.java and ZoneInfoFile.java under
 runtime/nspire/ also retain GPLv2 + Classpath exception terms. Their originals
 and the time database notices are preserved in vendor/openjdk8-time/.
+
+The original and adapted native fdlibm algorithms in vendor/openjdk8-fdlibm/
+retain their GPLv2 + Classpath exception terms and upstream notices.

@@ -1,6 +1,6 @@
 """Build the supplemental class library from its preserved upstream sources."""
 from pathlib import Path
-import argparse, hashlib, json, subprocess, tempfile, zipfile
+import argparse, hashlib, json, re, subprocess, tempfile, zipfile
 from test import ROOT, tool, path_for
 
 def main():
@@ -12,7 +12,11 @@ def main():
     candidates = [ns.java8_home / 'jre/lib/rt.jar', ns.java8_home / 'lib/rt.jar']
     rt = next((p for p in candidates if p.is_file()), None)
     if rt is None: ap.error('--java8-home must contain jre/lib/rt.jar or lib/rt.jar')
-    javac = ns.javac or tool('javac')
+    compilers=[ns.java8_home/'bin/javac',ns.java8_home/'bin/javac.exe']
+    javac = ns.javac or next((str(p.resolve()) for p in compilers if p.is_file()),None) or tool('javac')
+    version=subprocess.run([javac,'-version'],text=True,capture_output=True,check=True)
+    if not re.search(r'javac 1\.8\.',version.stdout+version.stderr):
+        ap.error('The preserved OpenJDK time sources require Java 8 javac; use --javac /path/to/jdk8/bin/javac')
     source = ROOT / 'runtime' / 'openjdk8'
     build = ROOT / 'build'
     build.mkdir(parents=True, exist_ok=True)

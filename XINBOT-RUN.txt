@@ -1,4 +1,4 @@
-Attempted on the Linux host interpreter using the real upstream release:
+Actual Linux host attempt using the unchanged upstream release:
   xinbot-2.4.3-RELEASE.jar
   SHA-256: 601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853
 
@@ -7,16 +7,14 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/time/ZoneId
-  at ch/qos/logback/core/util/CachingDateFormatter.<init>(Ljava/lang/String;Ljava/time/ZoneId;Ljava/util/Locale;)V pc=9
-  at ch/qos/logback/classic/pattern/DateConverter.start()V pc=153
-  at ch/qos/logback/core/pattern/ConverterUtil.startConverters(Lch/qos/logback/core/pattern/Converter;)V pc=47
-  at ch/qos/logback/core/pattern/PatternLayoutBase.start()V pc=108
-  at ch/qos/logback/classic/encoder/PatternLayoutEncoder.start()V pc=33
-  at ch/qos/logback/core/model/processor/ImplicitModelHandler.postHandleComplex(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/joran/action/ImplicitModelDataForComplexProperty;)V pc=72
-  at ch/qos/logback/core/model/processor/ImplicitModelHandler.postHandle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=47
+VM error: class not found: java/io/FileDescriptor
+  at org/fusesource/jansi/AnsiConsole.ansiStream(Z)Lorg/fusesource/jansi/AnsiPrintStream; pc=4
+  at org/fusesource/jansi/AnsiConsole.initStreams()V pc=7
+  at org/fusesource/jansi/AnsiConsole.systemInstall()V pc=6
+  at ch/qos/logback/core/ConsoleAppender.wrapWithJansi(Ljava/io/OutputStream;)Ljava/io/OutputStream; pc=45
+  at ch/qos/logback/core/ConsoleAppender.start()V pc=35
+  at ch/qos/logback/core/model/processor/AppenderModelHandler.postHandle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=29
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=154
-  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor$$Lambda$138.traverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=8
   at ch/qos/logback/core/model/processor/DefaultProcessor.traversalLoop(Lch/qos/logback/core/model/processor/DefaultProcessor$TraverseMethod;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;Ljava/lang/String;)V pc=16
@@ -39,55 +37,24 @@ VM error: class not found: java/time/ZoneId
   at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
-Startup passes ConcurrentHashMap, queue, atomic and thread-local setup. SLF4J
-reads its real service descriptor, instantiates the Logback provider, reads
-version properties, generates formatted status messages and sorts configurators.
-Constructor reflection creates the actual DefaultJoranConfigurator, which finds
-the XML resource in the upstream JAR. Its URL connection opens the resource
-stream with caching disabled. The configuration-event lambda is created and
-invoked through the actual collection API, and SAX parses the original XML.
-Unicode case conversion, literal substring checks and Stack initialization now
-pass. Collection.stream and Stream.noneMatch now execute the original OpenJDK
-pipeline and application predicate while matching element paths. The recorded
-SAX events are interpreted and the configuration model is built. Execution
-now reads the actual PhaseIndicator annotations and selects processing phases.
-It compiles Logback Duration's actual regex and substitutes configuration
-variables, including real native environment lookups. The second-phase
-traversal creates the application's JLineConsoleAppender and passes
-AtomicBoolean and ConsoleTarget initialization. BeanDescriptionFactory now
-discovers the actual inherited public methods, including their parameter and
-return types. Property analysis queries the actual class package and then
-StringToObjectConverter can now load Charset. Execution proceeds into basic
-property substitution and CoreConstants File initialization. Actual component
-interface inspection now lets NoAutoStartUtil perform its annotation walk.
-PatternLayout starts its original converter chain, reaching CachingDateFormatter
-which now requires java/time/ZoneId.
-This is still before Xinbot.main().
-No Minecraft connection was made and
-no account credentials were used.
-The same stopping point was confirmed with ASan/UBSan/leak detection enabled;
-that direct run reported no sanitizer errors.
-Separately, the unchanged Logback SaxEventRecorder in this same release parsed
-its actual logback.xml with this VM's Expat-backed SAX provider. It produced the
-same 27 events as standard Java (see LOGBACK-XML-RESULTS.txt). This component test
-does not mean that whole-application startup succeeds.
-The unchanged Duration class from the same Xinbot JAR also passed a separate
-component test of regex matching, numeric conversion, formatting and exception
-classes against standard Java (LOGBACK-DURATION-RESULTS.txt).
-The original ConsoleTarget wrappers also pass a separate standard-Java
-comparison of byte output, flush, close and dynamic System.out/err replacement
-(LOGBACK-CONSOLE-RESULTS.txt).
-The unchanged BeanDescriptionCache and BeanDescriptionFactory also pass a
-standard-Java component comparison of actual JLineConsoleAppender getters,
-setters and adders. Real setters change withJansi and name, and getters return
-those values (LOGBACK-BEAN-RESULTS.txt).
-In a separate component check, the original StringToObjectConverter resolves
-four actual charsets. Reflective setCharset and LayoutWrappingEncoder.encode
-produce the same bytes as Java 17 (LOGBACK-CHARSET-RESULTS.txt). Its headerBytes
-path now returns the same header bytes as Java 17 with the same configured LF
-line separator. No logger initialization was skipped.
-Host file operations and descriptor-backed streams are tested separately against
-Java 8; Ndless still lacks several native filesystem operations.
-ZoneId is the next missing class. Time/timezone APIs, additional reflection,
-encoding coverage, dynamic invocation, filesystem completion, networking and device verification
-remain. The application or its logging setup was not bypassed.
+The actual SLF4J provider discovery, Logback XML processing, annotation phases,
+bean reflection, charset initialization and PatternLayout converter creation
+execute normally. The previously missing java.time.ZoneId is supplied by the
+preserved OpenJDK time/calendar code and packaged TZDB. The formatter now passes
+its default-zone, locale and internal serializable-lambda initialization.
+The original ConsoleAppender follows withJansi=true from Xinbot's own logback.xml
+and invokes Jansi's AnsiConsole.systemInstall. Its original ansiStream now needs
+java/io/FileDescriptor. No application configuration or logger was bypassed.
+
+The same stopping point was confirmed with ASan/UBSan/leak detection enabled,
+with no sanitizer errors. Separate date-component tests compare the unchanged
+CachingDateFormatter from this JAR against standard Java, including fractions,
+multiple zones, historical dates, default-zone selection and cache behavior.
+See TIME-RESULTS.txt, LOGBACK-DATE-RESULTS.txt and TIME-SUPPORT.md. Existing XML,
+bean, charset, annotation, regex and output component checks remain separate.
+
+This is still before Xinbot.main. Complete startup has NOT succeeded.
+No Minecraft connection was made and no account credentials were used.
+Calculator/firmware-emulator execution is NOT verified. Console descriptors,
+Jansi platform/native dependencies, further JDK paths, networking/transport and
+device execution remain to be implemented and verified.

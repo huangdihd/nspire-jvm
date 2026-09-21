@@ -135,7 +135,7 @@ static Object *reflection_invoke(VM *v,Object *mirror,Object *receiver,Object *a
     }
     if(v->exception) {
         Object *cause=v->exception;root(v,cause);v->exception=NULL;
-        Object *exception=new_object(v,load(v,"java/lang/reflect/InvocationTargetException"),'o',0);exception->cause=cause;v->exception=exception;v->nr=saved;return NULL;
+        Object *exception=new_object(v,load(v,"java/lang/reflect/InvocationTargetException"),'o',0);exception->cause=cause;exception->cause_initialized=1;v->exception=exception;v->nr=saved;return NULL;
     }
     Class *returns=reflection_return(v,m);Object *boxed=NULL;
     if(!returns->primitive)boxed=obj(result);

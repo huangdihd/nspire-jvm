@@ -198,6 +198,10 @@
       "upstream_path": "jdk/src/share/classes/java/lang/annotation/Target.java",
       "sha256": "2653863ca379960c66d6d43e3a9a1cc61b7b385950d32771db28b9d4f8727964"
     },
+    "java/lang/invoke/SerializedLambda.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/invoke/SerializedLambda.java",
+      "sha256": "9762a44a3c1335d7cf4c8d7236dc5ae8e31f98dab9c0952568ffd56fabd3352a"
+    },
     "java/math/BigDecimal.java": {
       "upstream_path": "jdk/src/share/classes/java/math/BigDecimal.java",
       "sha256": "0f2841a42b20c24021f5e024263cd886286e3adb953c318ebe69fc9c336a49a1"
@@ -277,6 +281,14 @@
     "java/security/PrivilegedAction.java": {
       "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",
       "sha256": "4781bfec1d395eb7f042c3a8123b89065d359cb7ecf848d40b436989b76483b6"
+    },
+    "java/security/PrivilegedActionException.java": {
+      "upstream_path": "jdk/src/share/classes/java/security/PrivilegedActionException.java",
+      "sha256": "896b8219c7d37136a97d295d72aa7ae9646e1c9a6e1d36e35596511a98c16fdf"
+    },
+    "java/security/PrivilegedExceptionAction.java": {
+      "upstream_path": "jdk/src/share/classes/java/security/PrivilegedExceptionAction.java",
+      "sha256": "d797c9e3572d84ae0bfd84fa099f411e7f34332740926cee4752331e6a336462"
     },
     "java/text/ParsePosition.java": {
       "upstream_path": "jdk/src/share/classes/java/text/ParsePosition.java",

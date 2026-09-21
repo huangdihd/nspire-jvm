@@ -49,7 +49,7 @@ bash tools/build-local-sdk.sh
 ## 验证范围
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
-- 内存检查：当前 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查和 6 项流/枚举/装箱检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
+- 内存检查：当前 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查和 6 项流/枚举/装箱检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 注解检查：4 项标准 Java 对照、1 项真实 Logback 阶段对照和 1 项不支持文本格式的明确失败检查，均通过普通构建和 ASan/UBSan/泄漏检测；记录见 `ANNOTATION-RESULTS.txt`。
 - 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
@@ -65,7 +65,8 @@ bash tools/build-local-sdk.sh
 ## 补充运行库
 
 固定 OpenJDK 8 提交及逐文件校验记录见 `runtime/openjdk8/SOURCES.json`。
-使用 JDK 17 javac 的 `-source 8 -target 8`，并以 Java 8 `rt.jar` 为 bootclasspath。
+使用 JDK 8 javac 的 `-source 8 -target 8`，并以 Java 8 `rt.jar` 为 bootclasspath。
+原始 JapaneseDate 不能由 JDK 17 javac 原样编译；构建工具会明确检查编译器版本。
 本次编译接口来自 Temurin 8u504-b01 的 Linux x64 JRE 压缩包，SHA-256：
 `52dcd578baca1d3e449ea86768a9129c0ee04d7b22565695498353cc66940c61`。
 该 JRE 仅是构建依赖；计算器执行的是本项目解释器和重新编译的补充类库。
@@ -106,3 +107,15 @@ bash tools/build-local-sdk.sh
 
 浮点字符串先按 Java 语法检查，再由 libc 转换。Linux 主机的边界值与随机十进制
 输入通过标准 Java 位模式对照；Ndless 使用 newlib，其实际舍入结果仍需实机验证。
+
+
+## 时间库与数学后端
+
+本次 Java 8 编译器来自 Temurin 8u504-b01 Linux x64 JDK，压缩包 SHA-256：
+`9c70e102f527ac674ac2fe9c7d47b9a04e2d19842ba5ab8e9b33f368bbadfaea`。
+TZDB 2026b 来自上述固定 JRE，原始加载器、数据库和授权见 `vendor/openjdk8-time/`。
+fdlibm log/sqrt 及 sqrt 的单处已定义整数运算调整见 `vendor/openjdk8-fdlibm/`；
+使用 `-fno-strict-aliasing -ffp-contract=off`，没有关闭 UBSan 的整数检查。
+`make build/nspire-jvm-asan` 使用相同源文件和平台选项构建内存检查版本。
+8 项时间检查（含真实 Logback 日期组件）与普通/可序列化 lambda 的验证范围见
+`TIME-SUPPORT.md`、`LAMBDA-SUPPORT.md`。时区配置、时钟精度和软浮点行为尚未实机验证。

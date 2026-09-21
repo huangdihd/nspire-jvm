@@ -3,6 +3,8 @@ import java.util.*;
 import java.util.zip.CRC32;
 public class TimeSupportTest {
     public static void main(String[] args)throws Exception {
+        for(long value:new long[]{Long.MIN_VALUE,-1,0,1,Long.MAX_VALUE})System.out.println(Long.signum(value));
+        for(int value:new int[]{Integer.MIN_VALUE,-1,0,1,Integer.MAX_VALUE})System.out.println(Integer.signum(value));
         for(long x:new long[]{Long.MIN_VALUE,-1001,-1,0,1,1001,Long.MAX_VALUE})for(long y:new long[]{Long.MIN_VALUE,-1000,-1,0,1,1000,Long.MAX_VALUE}) {
             try{System.out.println(Math.addExact(x,y));}catch(ArithmeticException e){System.out.println("add overflow");}
             try{System.out.println(Math.subtractExact(x,y));}catch(ArithmeticException e){System.out.println("subtract overflow");}
