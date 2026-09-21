@@ -23,5 +23,19 @@ public class NumericTest {
         System.out.println((int)Math.sqrt(144));
         System.out.println(Math.abs(Integer.MIN_VALUE)); System.out.println(Math.abs(Long.MIN_VALUE));
         System.out.println(Math.min(4,9));System.out.println(Math.max(4,9));
+        for(double x:doubles)for(double y:doubles) {
+            double lo=Math.min(x,y),hi=Math.max(x,y);
+            System.out.println(Double.isNaN(lo));System.out.println(Double.isNaN(hi));
+            System.out.println((long)lo);System.out.println((long)hi);
+            System.out.println(1.0/lo==Double.NEGATIVE_INFINITY);System.out.println(1.0/hi==Double.NEGATIVE_INFINITY);
+            float flo=Math.min((float)x,(float)y),fhi=Math.max((float)x,(float)y);
+            System.out.println(Float.isNaN(flo));System.out.println(Float.isNaN(fhi));
+            System.out.println((long)flo);System.out.println((long)fhi);
+            System.out.println(1.0f/flo==Float.NEGATIVE_INFINITY);System.out.println(1.0f/fhi==Float.NEGATIVE_INFINITY);
+        }
+        int[] fbits={0,0x80000000,0x7f800000,0xff800000,0x7fc01234,0xffc05678,1,0x3fc00000};
+        for(int bits:fbits){float value=Float.intBitsToFloat(bits);System.out.println(Float.floatToRawIntBits(value));System.out.println(Float.floatToIntBits(value));}
+        long[] dbits={0L,0x8000000000000000L,0x7ff0000000000000L,0xfff0000000000000L,0x7ff8000000001234L,0xfff8000000005678L,1L,0x3ff8000000000000L};
+        for(long bits:dbits){double value=Double.longBitsToDouble(bits);System.out.println(Double.doubleToRawLongBits(value));System.out.println(Double.doubleToLongBits(value));}
     }
 }

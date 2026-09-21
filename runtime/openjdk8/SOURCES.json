@@ -214,6 +214,38 @@
       "upstream_path": "jdk/src/share/classes/java/util/ServiceConfigurationError.java",
       "sha256": "74c91a97d4910948e3a36a655f039a567e41e3b2aed1f67f18cc1e338f0e356e"
     },
+    "java/util/Dictionary.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Dictionary.java",
+      "sha256": "cc260f8263f44d4c04e2492dda16ea7ed592cc37be6dd0f2f55fe6139a878fde"
+    },
+    "java/util/Hashtable.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Hashtable.java",
+      "sha256": "79827ff4e3ac1cacef94545bcaa59e8cf264129458b0d47f4e33c0dfee6cec0b"
+    },
+    "java/util/Properties.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Properties.java",
+      "sha256": "219e6963c956441a62d5b475c9035840f7a16e2de61ddd4899028b659bd36b55"
+    },
+    "java/util/TimSort.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/TimSort.java",
+      "sha256": "073e5e10bbb58ad9fa6799195d18ee4cc393c0ab904deeae2636eddca6c3f1e2"
+    },
+    "java/util/ComparableTimSort.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ComparableTimSort.java",
+      "sha256": "07f941948f769c6d62c6a85c8c23bbc8672e8ab08da6e55dca5578971897355d"
+    },
+    "java/util/DualPivotQuicksort.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/DualPivotQuicksort.java",
+      "sha256": "199d3ca023cb22270062cdd7db498bd0ea350e63a28578b4b8112bb691f56caa"
+    },
+    "java/security/PrivilegedAction.java": {
+      "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",
+      "sha256": "4781bfec1d395eb7f042c3a8123b89065d359cb7ecf848d40b436989b76483b6"
+    },
+    "sun/security/action/GetBooleanAction.java": {
+      "upstream_path": "jdk/src/share/classes/sun/security/action/GetBooleanAction.java",
+      "sha256": "bfcb7836e13e08cdbb7f3c6ed9041e81a95dfddfa28f5746a87529ec0850c4d6"
+    },
     "java/util/concurrent/CopyOnWriteArrayList.java": {
       "upstream_path": "jdk/src/share/classes/java/util/concurrent/CopyOnWriteArrayList.java",
       "sha256": "30026d65ef30facaa5f8025a55db468dd82a8340ef5494ec53f4c365508f801b"

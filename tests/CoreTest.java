@@ -42,6 +42,12 @@ public class CoreTest {
         System.out.println("hello".length()); System.out.println("hello".charAt(1));
         System.out.println("same" == "same");
         System.out.println("same".equals("same")); System.out.println("same".equals(null));
+        CharSequence text="hello";System.out.println(text.length());System.out.println(text.charAt(2));System.out.println(text.subSequence(1,4));
+        System.out.println(((Comparable<String>)"abc").compareTo("abd"));
+        System.out.println("jar:file:/logback.xml".endsWith(".xml"));System.out.println("abc".endsWith("abcd"));
+        System.out.println("abc".startsWith("bc",1));System.out.println("abc".startsWith("",3));System.out.println("abc".startsWith("",4));
+        System.out.println("a\ud83d\ude00".startsWith("\ude00",2));System.out.println("a\ud83d\ude00".endsWith("\ude00"));
+        try{"x".endsWith(null);}catch(NullPointerException e){System.out.println("null suffix rejected");}
         System.out.println("answer=" + d.value() + ",long=" + d.extra);
         byte[] bytes = new byte[1]; bytes[0] = (byte)255; System.out.println(bytes[0]);
         short[] shorts = {(short)65535}; System.out.println(shorts[0]);

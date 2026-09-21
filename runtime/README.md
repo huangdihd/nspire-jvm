@@ -25,5 +25,13 @@ queue operations, timed polling, reentrant locks, conditions and parking.
 They also cover copy-on-write list snapshot iterators and cloning, resource
 lookup across JARs/directories, UTF-8 service descriptors, lazy provider creation,
 duplicate filtering, reload, context loader inheritance and provider errors.
+Additional programs exercise Properties.load with Latin-1/UTF-8 readers,
+escapes, continuations, long lines and defaults; stable object and primitive
+sorting; actual PrivilegedAction execution; and constructor reflection including
+initialization order, argument checks, access and target exception wrapping.
 They do not establish Java SE compatibility, serialization support, or support
 for all methods present in the JAR (including streams, lambdas and fork/join).
+The VM has no protection-domain/SecurityManager policy. Only the no-context
+doPrivileged(PrivilegedAction) overload is currently supported; it executes the
+provided action and propagates its exception. Other access-control operations
+remain unsupported. Properties.store and XML persistence also need further I/O.

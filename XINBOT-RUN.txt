@@ -7,10 +7,12 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/util/Properties
-  at ch/qos/logback/core/util/CoreVersionUtil.getCoreVersionBySelfDeclaredProperties()Ljava/lang/String; pc=0
-  at ch/qos/logback/classic/util/ContextInitializer.checkVersions()V pc=0
-  at ch/qos/logback/classic/util/ContextInitializer.autoConfig(Ljava/lang/ClassLoader;)V pc=6
+VM error: runtime method not implemented: java/net/URL.openConnection()Ljava/net/URLConnection;
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=8
+  at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
+  at ch/qos/logback/classic/util/DefaultJoranConfigurator.configure(Lch/qos/logback/classic/LoggerContext;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=12
+  at ch/qos/logback/classic/util/ContextInitializer.invokeConfigure(Lch/qos/logback/classic/spi/Configurator;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=42
+  at ch/qos/logback/classic/util/ContextInitializer.autoConfig(Ljava/lang/ClassLoader;)V pc=205
   at ch/qos/logback/classic/util/ContextInitializer.autoConfig()V pc=6
   at ch/qos/logback/classic/spi/LogbackServiceProvider.initializeLoggerContext()V pc=11
   at ch/qos/logback/classic/spi/LogbackServiceProvider.initialize()V pc=21
@@ -22,11 +24,14 @@ VM error: class not found: java/util/Properties
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
 Startup passes ConcurrentHashMap, queue, atomic and thread-local setup. SLF4J
-reads its real service descriptor, instantiates the Logback provider and calls
-initialize(). StringConcatFactory builds its version-resource names. Execution
-then stops at Properties, still before Xinbot.main(). No Minecraft connection
-was made and no account credentials were used.
+reads its real service descriptor, instantiates the Logback provider, reads
+version properties, generates formatted status messages and sorts configurators.
+Constructor reflection creates the actual DefaultJoranConfigurator, which finds
+the XML resource in the upstream JAR. Execution stops while opening that URL,
+still before Xinbot.main(). No Minecraft connection was made and no account
+credentials were used.
 The same stopping point was confirmed with ASan/UBSan/leak detection enabled;
 that direct run reported no sanitizer diagnostics.
-Properties is only the next missing dependency; general dynamic invocation,
-reflection, additional I/O, networking and device verification remain.
+Classpath URLConnection and XML configuration are the next missing paths;
+general dynamic invocation, full reflection, I/O, networking and device
+verification remain. The application or its logging setup was not bypassed.

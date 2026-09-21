@@ -27,6 +27,10 @@ def path_for(exe, path):
 
 def run(cmd, ok=True):
     result = subprocess.run(list(map(str,cmd)), text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=45)
+    # Negative VM tests intentionally exit nonzero; do not let that hide a
+    # sanitizer failure underneath the expected unsupported-feature message.
+    if any(marker in result.stderr for marker in ('ERROR: AddressSanitizer','ERROR: LeakSanitizer','SUMMARY: UndefinedBehaviorSanitizer','runtime error:')):
+        raise AssertionError(f'Sanitizer diagnostic: {cmd}\n{result.stderr}')
     if ok and result.returncode:
         raise AssertionError(f'Failed: {cmd}\n{result.stdout}\n{result.stderr}')
     return result
@@ -51,7 +55,7 @@ def main():
     jar=build/'tests.jar'
     with zipfile.ZipFile(jar,'w',zipfile.ZIP_DEFLATED) as z:
         for p in sorted(build.glob('*.class')): z.write(p,p.name)
-    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[]),('BoxingTest',[]),('ConcatTest',[])]
+    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[]),('BoxingTest',[]),('ConcatTest',[]),('FormatTest',[])]
     count=0
     report=[]
     for name,args in cases:
@@ -64,7 +68,7 @@ def main():
                 raise AssertionError(name+' output differs\n'+''.join(difflib.unified_diff(ref.splitlines(True),result.stdout.splitlines(True),fromfile='Java',tofile='Nspire JVM')))
             count+=1; report.append(f'PASS {name} ({"JAR" if cp==jar else "directory"})')
             print(report[-1],flush=True)
-    negative=[('UnsupportedTest',[],'invokedynamic'),('ThreadFailureTest',[],'invokedynamic'),('LoopTest',['--steps','1000'],'instruction budget')]
+    negative=[('UnsupportedTest',[],'invokedynamic'),('ThreadFailureTest',[],'invokedynamic'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
     # Split a real application across JARs; runtime resolution must find all
     # dependency classes, not just the entry point. Check boot precedence too.
     appjar,libjar=build/'split-app.jar',build/'split-lib.jar'

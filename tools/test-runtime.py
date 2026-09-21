@@ -10,11 +10,11 @@ def main():
     sources=sorted((ROOT/'runtime-tests').glob('*.java'))
     run([javac,'--release','8','-encoding','UTF-8','-d',path_for(javac,build),*[path_for(javac,p) for p in sources]])
     report=[]
-    for name in ('CollectionsTest','ConcurrentLibraryTest'):
-        expected=run([java,'-cp',path_for(java,build),name]).stdout
-        result=run([str(Path(ns.vm).resolve()),'-bootclasspath',ROOT/'dist/runtime.jar.tns','-cp',build,name])
+    for name,args in [('CollectionsTest',[]),('ConcurrentLibraryTest',[]),('PropertyFileTest',[]),('SortingTest',[]),('SortingTest',['legacy'])]:
+        expected=run([java,'-cp',path_for(java,build),name,*args]).stdout
+        result=run([str(Path(ns.vm).resolve()),'-bootclasspath',ROOT/'dist/runtime.jar.tns','-cp',build,name,*args])
         assert result.stdout==expected,(name,expected,result.stdout,result.stderr)
-        report.append('PASS '+name+' (OpenJDK runtime JAR)');print(report[-1],flush=True)
+        report.append('PASS '+name+(' '+args[0] if args else '')+' (OpenJDK runtime JAR)');print(report[-1],flush=True)
     (ROOT/'RUNTIME-RESULTS.txt').write_text('\n'.join(report)+'\nHost only; calculator execution not verified.\n')
 
 if __name__=='__main__':main()

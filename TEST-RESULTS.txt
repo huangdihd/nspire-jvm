@@ -28,11 +28,14 @@ PASS BoxingTest (directory)
 PASS BoxingTest (JAR)
 PASS ConcatTest (directory)
 PASS ConcatTest (JAR)
+PASS FormatTest (directory)
+PASS FormatTest (JAR)
 PASS split application/runtime classpath
 PASS split application/runtime classpath
 PASS boot classpath precedence
 PASS fail-fast UnsupportedTest
 PASS fail-fast ThreadFailureTest
+PASS fail-fast UnsupportedFormatTest
 PASS fail-fast LoopTest
 PASS six truncated class files
-42 checks passed. Host only; no calculator execution verified.
+45 checks passed. Host only; no calculator execution verified.

@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 71 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 79 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -19,18 +19,25 @@ The current interpreter and passing sample programs do not achieve that objectiv
   Custom loader namespaces and defineClass remain unsupported.
 - Added Integer boxing/cache, Cloneable copies, copy-on-write collections and
   limited StringConcatFactory bootstrap support with virtual toString conversion.
-- Real Xinbot instantiates its Logback provider and starts initialization. The
-  next failure is java.util.Properties while reading version metadata (see
-  XINBOT-RUN.txt); Xinbot.main has not been reached.
-- 42 basic checks, 2 OpenJDK runtime programs and 7 loader/service checks passed
+- Added Properties/Hashtable, TimSort/legacy/primitive sorting, Boolean boxing,
+  float/double min/max and bit conversions, String constructors/interfaces and
+  a limited String.format implementation (%s, %%, %n, indexing/width/precision).
+- Added constructor lookup/invocation, access flags, parameter mirrors,
+  Integer/Boolean unboxing/widening and InvocationTargetException wrapping.
+  Initialization precedes argument conversion, verified against standard Java.
+- Real Xinbot reads version properties, emits log status messages, sorts and
+  instantiates configurators and finds its XML resource. The next failure is
+  URL.openConnection in GenericXMLConfigurator (see XINBOT-RUN.txt), still
+  before Xinbot.main.
+- 45 basic checks, 5 OpenJDK runtime runs and 8 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement java.util.Properties and the actual version-resource reading path
-   used by Logback. Preserve real provider initialization; do not skip logging.
+1. Implement classpath URLConnection and the actual XML configuration-reading
+   path used by Logback. Preserve real initialization; do not skip logging.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

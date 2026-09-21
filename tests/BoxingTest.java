@@ -12,5 +12,13 @@ public class BoxingTest {
         Comparable<Integer> c=new Integer(0);
         System.out.println(c.compareTo(new Integer(Integer.MIN_VALUE)));
         System.out.println(c.compareTo(new Integer(Integer.MAX_VALUE)));
+        Boolean yes=Boolean.valueOf(true),no=Boolean.valueOf("false");
+        System.gc();System.out.println(yes==Boolean.TRUE);System.out.println(no==Boolean.FALSE);
+        Object flag=new Boolean("TrUe");System.out.println(flag);System.out.println(flag.equals(yes));System.out.println(flag.hashCode());
+        System.out.println(yes.booleanValue());System.out.println(((Comparable<Boolean>)no).compareTo(yes));
+        System.out.println(Boolean.valueOf((String)null)==Boolean.FALSE);
+        System.setProperty("test.boolean","TrUe");System.out.println(Boolean.getBoolean("test.boolean"));
+        System.clearProperty("test.boolean");System.out.println(Boolean.getBoolean("test.boolean"));
+        System.out.println(Boolean.getBoolean(null));System.out.println(Boolean.getBoolean(""));
     }
 }

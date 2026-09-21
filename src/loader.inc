@@ -150,6 +150,16 @@ static void reader_close(VM *v,Object *o) {
 }
 static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,unsigned na,int stat,int *handled) {
     const char *cl=c->name;Object *self=stat?NULL:obj(a[0]);Value none=iv(0);*handled=1;
+    if(stat&&!strcmp(cl,"java/lang/reflect/Array")&&!strcmp(n,"newInstance")&&!strcmp(d,"(Ljava/lang/Class;I)Ljava/lang/Object;")) {
+        Object *mirror=nonnull(v,a[0]);if(!mirror)return none;
+        Class *type=mirror->represented;if(mirror->kind!='c'||!type)fail(v,"Array.newInstance requires Class");
+        unsigned rank=0;for(Class *component=type;component->component;component=component->component)rank++;
+        if(type->primitive=='V'||rank>=255){throwing(v,"java/lang/IllegalArgumentException");return none;}
+        char desc[1024];
+        if(type->primitive){desc[0]='[';desc[1]=(char)type->primitive;desc[2]=0;}
+        else if(snprintf(desc,sizeof desc,type->component?"[%s":"[L%s;",type->name)>=(int)sizeof desc)fail(v,"array descriptor too long");
+        return rv(array_new(v,desc,integer(a[1])));
+    }
     if(!strcmp(cl,"java/lang/ClassLoader")) {
         if(stat&&!strcmp(n,"getSystemClassLoader")&&!strcmp(d,"()Ljava/lang/ClassLoader;"))return rv(system_loader(v));
         if(!stat&&self!=system_loader(v))fail(v,"custom ClassLoader dispatch is not implemented");
