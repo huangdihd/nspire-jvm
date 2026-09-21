@@ -50,5 +50,5 @@ their main-stack and child-stack fatal-error checks. Ordinary lambda execution
 is covered by the new positive tests. Real Xinbot now passes its initial lambda
 bootstrap, XML parsing, sequential stream matching and annotation-based phase
 selection. It also compiles the real Duration regex and passes property
-substitution. It still fails loading java.io.OutputStream while creating the
-application's JLineConsoleAppender.
+substitution and creates the application's JLineConsoleAppender. The next
+failure is Class.getMethods in BeanDescriptionFactory during property setup.

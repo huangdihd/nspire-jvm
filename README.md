@@ -21,6 +21,7 @@
 - 接口默认方法分派及初始化，包含 lambda 的继承默认方法；Java 17 私有方法引用保持直接调用原声明方法。
 - String 的字符数组构造、Comparable/CharSequence、前后缀匹配；String.format 支持 `%s`、`%%`、`%n`、参数索引、宽度和字符串精度。
 - 原始 OpenJDK Pattern/Matcher 正则引擎，支持已验证的捕获、回溯引用、断言、替换和分割路径；String.matches/replaceAll/replaceFirst/split 调用真实引擎。规范等价及脚本/区块属性仍缺依赖，见 `REGEX-SUPPORT.md`。
+- 原始 OpenJDK 输出流、过滤流、缓冲流和内存流；PrintStream 适配层提供实际字节输出、UTF-8、刷新、关闭、错误状态与 System.out/err 重定向。支持原始 Logback 控制台包装类，范围见 `OUTPUT-SUPPORT.md`。
 - Unicode 13 大小写转换、Locale 默认值、土耳其语/立陶宛语与希腊 sigma 上下文规则，以及大小写不敏感比较；范围与数据来源见 `CASE-SUPPORT.md`。
 - 字符串 contains/indexOf/lastIndexOf 子串查找：UTF-16 下标、空串及实际 CharSequence.toString 调用。
 - UTF-16 代理项、码点遍历与 Unicode 13 字符分类/数字属性；原始 StringBuffer 及字符串数组复制接口。
@@ -48,26 +49,29 @@
 
 ## 计算器端使用
 
-若发行包的 `dist/` 中包含 `nspire-jvm.tns`，把以下三个文件传入计算器文档区的**同一个文件夹**：
+若发行包的 `dist/` 中包含 `nspire-jvm.tns`，把以下四个文件传入计算器文档区的**同一个文件夹**：
 
 ```text
 nspire-jvm.tns
 demo.jar.tns
 jvm.cfg.tns
+runtime.jar.tns
 ```
 
 安装 Ndless 后打开 `nspire-jvm.tns`。默认示例会计算 Fibonacci、20!，测试数组并捕获除零异常。
 执行过程中按 ESC 请求终止，结束后按任意键返回。没有实际设备运行记录，第一次上机仍是移植验证。
 
-`jvm.cfg.tns` 是普通文本，不是 TI 文档，内容为两行：
+`jvm.cfg.tns` 是普通文本，不是 TI 文档，当前示例内容为三行：
 
 ```text
 demo.jar.tns
 Demo
+runtime.jar.tns
 ```
 
 第一行是相对于启动器的 JAR 路径，第二行是入口类名（可使用 `a.b.Main`）。
-可选第三行指定补充运行库路径。多个路径用分号分隔，计算器与主机采用相同规则。
+第三行指定运行库路径；基础控制台现在也需要其中的原始 Java 输出流类。
+多个路径用分号分隔，计算器与主机采用相同规则。
 主机对应参数为 `-bootclasspath runtime.jar -cp 'app.jar;library.jar'`。
 补充运行库先于应用路径查找，但内建的基础类仍由 VM 提供；这尚不是完整的 Java ClassLoader 模型。
 JAR 的 Manifest `Main-Class` 尚未读取，需要显式指定入口类。
@@ -86,7 +90,7 @@ make ndless
 ```sh
 make host
 python3 tools/test.py --vm build/nspire-jvm
-./build/nspire-jvm -cp build/tests/tests.jar CoreTest one two
+./build/nspire-jvm -bootclasspath dist/runtime.jar.tns -cp build/tests/tests.jar CoreTest one two
 ```
 
 测试脚本会生成 `dist/demo.jar.tns`、`dist/jvm.cfg.tns` 和 `TEST-RESULTS.txt`。
@@ -105,14 +109,16 @@ python3 tools/test-case.py --vm build/nspire-jvm
 python3 tools/test-stream.py --vm build/nspire-jvm
 python3 tools/test-annotations.py --vm build/nspire-jvm
 python3 tools/test-regex.py --vm build/nspire-jvm
+python3 tools/test-output.py --vm build/nspire-jvm --java /path/to/java8/bin/java
 # 可选：使用自己下载的真实 Xinbot 发布包测试其中的 Logback XML 组件
 python3 tools/test-logback-xml.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-annotations.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-regex.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
+python3 tools/test-output.py --vm build/nspire-jvm --java /path/to/java8/bin/java --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 205 个上游源文件；`runtime/nspire/` 包含本项目编写的 XML 适配层和 Locale 子集。
-本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 211 个上游源文件；`runtime/nspire/` 包含本项目编写的 XML 适配层和 Locale 子集。
+本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -135,7 +141,7 @@ jar cf myapp.jar.tns -C classes .
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
-- 并行 Stream 的 CountedCompleter/ForkJoinPool 后端，以及 Java 8 之后新增的流接口；多个关闭回调同时失败所需的 suppressed-exception API；Double 对象的 Java 精确文本转换。
+- 并行 Stream 的 CountedCompleter/ForkJoinPool 后端，以及 Java 8 之后新增的流接口；Double 对象的 Java 精确文本转换。已补入基本 suppressed-exception 列表，但完整 Throwable 构造器、堆栈与序列化接口仍不完整。
 - Locale 的服务提供者、语言标签和分类默认值；泰语字典词边界（影响该 Locale 下的希腊词尾 sigma）。
 - 旧式 `jsr/ret` 指令及完整的类初始化错误语义。
 
@@ -162,14 +168,14 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 当前实际结果：
 
 ```text
-VM error: class not found: java/io/OutputStream
-  at ch/qos/logback/core/model/processor/DefaultProcessor.determineProcessingPhase(Ljava/lang/Class;)Lch/qos/logback/core/model/processor/ProcessingPhase; pc=1
+VM error: runtime method not implemented: java/lang/Class.getMethods()[Ljava/lang/reflect/Method;
+  at ch/qos/logback/core/joran/util/beans/BeanDescriptionFactory.create(Ljava/lang/Class;)Lch/qos/logback/core/joran/util/beans/BeanDescription; pc=26
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。执行开始创建 Xinbot 自身的 JLineConsoleAppender，现在 ConsoleTarget 初始化缺少 OutputStream，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。现在成功创建 Xinbot 自身的 JLineConsoleAppender，日志属性配置的 BeanDescriptionFactory 接着需要 Class.getMethods；尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
-真实 Logback 的 9 个相关类的注解阶段读取、Duration 时长解析也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt` 和 `LOGBACK-DURATION-RESULTS.txt`。仍需补齐输出流等运行库、完整反射、更多动态调用路径、完整线程语义和网络支持。
+真实 Logback 的 9 个相关类的注解阶段读取、Duration 时长解析及 ConsoleTarget 输出包装也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt`、`LOGBACK-DURATION-RESULTS.txt` 和 `LOGBACK-CONSOLE-RESULTS.txt`。仍需补齐方法反射、更多动态调用路径、其他 I/O、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -188,6 +194,7 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/reflection.inc` 实现构造器反射，`src/format.inc` 实现上述字符串格式化子集。
 `src/annotations.inc` 读取运行时注解、默认值，并提供注解成员访问器。
 `src/regex.inc` 把 String 正则入口接到实际类库；`src/character.inc` 提供字符属性与码点接口，`src/parse_number.inc` 和 `src/environment.inc` 提供上述数值解析与环境查询。
+`src/output.inc` 把 PrintStream 接到 Java 输出流或主机/Ndless 控制台，保留回调、监视器与 GC 根。
 `src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。
 `vendor/miniz.*` 仅用于读取压缩 JAR，`vendor/expat/` 提供 XML 解析。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。

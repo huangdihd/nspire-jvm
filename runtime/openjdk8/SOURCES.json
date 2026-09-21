@@ -2,9 +2,33 @@
   "repository": "https://github.com/openjdk/jdk8u",
   "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
   "files": {
+    "java/io/BufferedOutputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/BufferedOutputStream.java",
+      "sha256": "a8ccca0cf334be5d11d840a3d46dd45346fe9be2600b4cb0bdf8d949baf25c4f"
+    },
+    "java/io/ByteArrayOutputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ByteArrayOutputStream.java",
+      "sha256": "97f991d6e95f6c7dc531fc57484c6b86ce6c66ad9077809dd46e7053bb9ca0e7"
+    },
+    "java/io/FilterOutputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FilterOutputStream.java",
+      "sha256": "553b087a00a85d337e403deac3f86ed97495040d91bead9bd4b3676d7c95f945"
+    },
+    "java/io/Flushable.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/Flushable.java",
+      "sha256": "ad3bed7f6b496bb9ecdf3865880a91c40c07e9e2a0504ccec0fb24123d0f3121"
+    },
+    "java/io/InterruptedIOException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/InterruptedIOException.java",
+      "sha256": "e0701c5850763cf84f4578293a58fa804217f1f705dfee89cfa5312c9f457b8f"
+    },
     "java/io/ObjectStreamField.java": {
       "upstream_path": "jdk/src/share/classes/java/io/ObjectStreamField.java",
       "sha256": "1e973cc45621856fb8c997a437d1986110ee2ca2a282ddc3cb6f3851ca568153"
+    },
+    "java/io/OutputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/OutputStream.java",
+      "sha256": "7e1f7f258e781cc951af58c3151e7071321c21b1125042d962ea6cd5271452e6"
     },
     "java/lang/AbstractStringBuilder.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/AbstractStringBuilder.java",

@@ -1,0 +1,8 @@
+PASS OutputStreamTest (Java 8 exact stdout and stderr bytes)
+PASS PrintStreamTest (Java 8 exact stdout and stderr bytes)
+PASS OutputFailureTest (Java 8 exact stdout and stderr bytes)
+PASS ConsoleOutputTest (Java 8 exact stdout and stderr bytes)
+PASS OutputConcurrencyTest (Java 8 exact stdout and stderr bytes)
+PASS LogbackConsoleTest (Java 17 exact stdout and stderr bytes)
+PASS explicit unsupported file constructor (no file created; sanitizer output checked)
+Host only; calculator execution not verified.

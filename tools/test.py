@@ -40,6 +40,8 @@ def main():
     ap.add_argument('--vm', required=True)
     ns = ap.parse_args()
     vm = str(Path(ns.vm).resolve())
+    runtime = str(ROOT/'dist/runtime.jar.tns')
+    boot = ['-bootclasspath', runtime]
     build=ROOT/'build'/'tests'; build.mkdir(parents=True, exist_ok=True)
     javac,java=tool('javac'),tool('java')
     old=[p for p in (ROOT/'tests').glob('*.java') if p.name not in ('ModernTest.java','UnsupportedTest.java','ConcatTest.java')]
@@ -61,7 +63,7 @@ def main():
     for name,args in cases:
         ref=run([java,'-cp',path_for(java,build),name,*args]).stdout
         for cp in (build,jar):
-            cmd=[vm,'-cp',cp,'--heap','32768' if name in ('GcTest','ThreadGcTest','ThreadLocalTest') else '8388608',name,*args]
+            cmd=[vm,*boot,'-cp',cp,'--heap','32768' if name in ('GcTest','ThreadGcTest','ThreadLocalTest') else '8388608',name,*args]
             result=run(cmd)
             if result.stdout!=ref:
                 import difflib
@@ -78,29 +80,29 @@ def main():
         for p in build.glob('*.class'):
             if p.name!='CoreTest.class':z.write(p,p.name)
     expected=run([java,'-cp',path_for(java,build),'CoreTest','one','two']).stdout
-    for options in (['-cp',str(appjar)+';'+str(libjar)],['-bootclasspath',libjar,'-cp',appjar]):
+    for options in ([*boot,'-cp',str(appjar)+';'+str(libjar)],['-bootclasspath',runtime+';'+str(libjar),'-cp',appjar]):
         assert run([vm,*options,'CoreTest','one','two']).stdout==expected
         count+=1;report.append('PASS split application/runtime classpath');print(report[-1],flush=True)
     # A malformed application shadow must not override a boot class.
     shadow=build/'shadow';shadow.mkdir(exist_ok=True);(shadow/'Derived.class').write_bytes(b'bad class')
-    assert run([vm,'-bootclasspath',libjar,'-cp',str(shadow)+';'+str(appjar),'CoreTest','one','two']).stdout==expected
+    assert run([vm,'-bootclasspath',runtime+';'+str(libjar),'-cp',str(shadow)+';'+str(appjar),'CoreTest','one','two']).stdout==expected
     count+=1;report.append('PASS boot classpath precedence');print(report[-1],flush=True)
     for name,opts,needle in negative:
-        result=run([vm,'-cp',jar,*opts,name],ok=False)
+        result=run([vm,*boot,'-cp',jar,*opts,name],ok=False)
         assert result.returncode!=0 and needle in result.stderr,(name,result)
         count+=1;report.append(f'PASS fail-fast {name}');print(report[-1],flush=True)
     bad=build/'broken';bad.mkdir(exist_ok=True)
     demo=(build/'Demo.class').read_bytes()
     for cut in (0,4,12,40,len(demo)//2,len(demo)-1):
         (bad/'Demo.class').write_bytes(demo[:cut])
-        result=run([vm,'-cp',bad,'Demo'],ok=False)
+        result=run([vm,*boot,'-cp',bad,'Demo'],ok=False)
         assert result.returncode!=0 and 'VM error:' in result.stderr,result
         count+=1
     report.append('PASS six truncated class files')
     dist=ROOT/'dist';dist.mkdir(exist_ok=True)
     with zipfile.ZipFile(dist/'demo.jar.tns','w',zipfile.ZIP_DEFLATED) as z:
         z.write(build/'Demo.class','Demo.class')
-    (dist/'jvm.cfg.tns').write_text('demo.jar.tns\nDemo\n',encoding='ascii')
+    (dist/'jvm.cfg.tns').write_text('demo.jar.tns\nDemo\nruntime.jar.tns\n',encoding='ascii')
     report.append(f'{count} checks passed. Host only; no calculator execution verified.')
     (ROOT/'TEST-RESULTS.txt').write_text('\n'.join(report)+'\n',encoding='utf-8')
     print(report[-1])

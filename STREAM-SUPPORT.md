@@ -53,13 +53,13 @@ This is an OpenJDK 8 library, so newer Stream APIs such as toList are not suppli
 Float/Byte/Short/Character wrapper APIs remain incomplete. Double object text
 formatting is explicitly rejected pending a Java-compatible conversion routine;
 the numeric object operations above do not imply formatting support. Numeric
-parsing, broad reflection and serialization also remain incomplete. Throwable
-suppressed-exception APIs used when multiple close handlers throw are not yet
-implemented. The tests cover ordinary close composition and callback exceptions,
-not that multiple-failure case.
+parsing, broad reflection and serialization also remain incomplete. Basic
+Throwable suppressed-exception lists now support the original FilterOutputStream
+close path (OUTPUT-SUPPORT.md). The stream suite covers ordinary close composition
+and callback exceptions, not multiple stream-close failures.
 
 The existing class-count, metadata, stack and Java-heap budgets apply. Host
 success does not verify the ARM context switch, device timing or calculator
 memory use. Full Xinbot startup passes annotation phase selection and still
-fails later while loading OutputStream for the application's console appender;
+fails later at Class.getMethods after creating the application's console appender;
 see XINBOT-RUN.txt.

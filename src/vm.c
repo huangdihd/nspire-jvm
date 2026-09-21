@@ -69,7 +69,8 @@ struct Object {
     Method *represented_method;int accessible;
     VmThread *thread, *monitor_owner; unsigned monitor_depth;
     Object *thread_target;
-    Object *cause;
+    Object *cause,*suppressed;
+    unsigned output_flags,output_pending;int output_fd;
     unsigned char *buffer;size_t buffer_size,cursor,mark_cursor;
     int resource_path,resource_index,closed,pending,skip_lf;
     char *resource_name;
@@ -208,6 +209,7 @@ static void collect(VM *v) {
         Object *o=grey; grey=o->grey;
         mark(o->thread_target,&grey);
         mark(o->cause,&grey);
+        mark(o->suppressed,&grey);
         if(o->thread)mark(o->thread->context_loader,&grey);
         if(o->thread)for(LocalEntry *e=o->thread->locals_map;e;e=e->next)mark(e->value,&grey);
         for(size_t i=0;i<o->count;i++) if(o->data[i].tag==REF) mark(obj(o->data[i]),&grey);
@@ -273,6 +275,7 @@ static Class *load(VM *,const char *);
 static void initialize(VM *,Class *);
 static Value execute(VM *,Method *,Value *,unsigned);
 static Value native_call(VM *,Class *,const char *,const char *,Value *,unsigned,int);
+static void printstream_class(VM *,Class *);
 static Object *array_new(VM *,const char *,int32_t);
 static void schedule(VM *);
 static int monitor_enter(VM *,Object *);
@@ -321,6 +324,7 @@ static const char *wrapper_primitive(const char *name) {
     return NULL;
 }
 static const char *builtin_super(const char *n) {
+    if(!strcmp(n,"java/io/PrintStream"))return "java/io/FilterOutputStream";
     if(!strcmp(n,"java/lang/Object")) return "";
     if(!strcmp(n,"java/lang/AutoCloseable")||!strcmp(n,"java/io/Closeable")||!strcmp(n,"java/net/URLConnection"))return "java/lang/Object";
     if(!strcmp(n,"java/net/JarURLConnection")||!strcmp(n,"nspire/FileConnection"))return "java/net/URLConnection";
@@ -510,7 +514,8 @@ static Class *load(VM *v,const char *name) {
     }
     const char *base=builtin_super(name);
     if(base) {
-        c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->loading=0;
+        c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->slots=c->super?c->super->slots:0;c->loading=0;
+        if(!strcmp(name,"java/io/PrintStream"))printstream_class(v,c);
         if(!strcmp(name,"java/lang/AutoCloseable")||!strcmp(name,"java/io/Closeable"))c->access=0x601;
         if(!strcmp(name,"java/io/Closeable")||!strcmp(name,"java/io/InputStream")||!strcmp(name,"java/io/Reader")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,!strcmp(name,"java/io/Closeable")?"java/lang/AutoCloseable":"java/io/Closeable");
@@ -656,7 +661,10 @@ static void initialize(VM *v,Class *c) {
     if(!(c->access&0x200))for(unsigned i=0;i<c->ni&&!v->exception;i++)initialize_default_interfaces(v,c->interfaces[i]);
     if(v->exception) { c->init=3; return; }
     if(!strcmp(c->name,"java/lang/System")) {
-        for(unsigned i=0;i<2;i++) c->fields[i].value=rv(new_object(v,load(v,"java/io/PrintStream"),'o',0));
+        Class *ps=load(v,"java/io/PrintStream");
+        for(unsigned i=0;i<2;i++) {
+            Object *out=new_object(v,ps,'P',ps->slots);out->output_fd=(int)i+1;out->output_flags=2;out->data[0]=rv(NULL);c->fields[i].value=rv(out);
+        }
     }
     const char *primitive=wrapper_primitive(c->name);
     if(primitive)c->fields[0].value=rv(class_mirror(v,load(v,primitive)));
@@ -803,6 +811,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "character.inc"
 #include "parse_number.inc"
 #include "environment.inc"
+#include "output.inc"
 #include "annotations.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
@@ -1006,27 +1015,25 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     if(!isstatic&&subtype(c,load(v,"java/lang/Throwable"))) {
         if(!strcmp(n,"getMessage")&&!strcmp(d,"()Ljava/lang/String;"))return rv(self->text?string(v,self->text):NULL);
         if(!strcmp(n,"getCause")&&!strcmp(d,"()Ljava/lang/Throwable;"))return rv(self->cause);
-    }
-    if(!strcmp(cl,"java/io/PrintStream")&&(!strcmp(n,"println")||!strcmp(n,"print"))) {
-        const char *allowed[]={"()V","(I)V","(J)V","(F)V","(D)V","(Z)V","(C)V","(Ljava/lang/String;)V","(Ljava/lang/Object;)V",NULL};
-        int ok=0; for(int i=0;allowed[i];i++) if(!strcmp(d,allowed[i])) ok=1;
-        if(!ok) goto missing;
-        FILE *out=stdout; Class *s=load(v,"java/lang/System"); if(s->nf==2&&obj(s->fields[1].value)==self) out=stderr;
-        if(na==2) { char b[128];
-            if(d[1]=='Z') fputs(integer(a[1])?"true":"false",out);
-            else if(d[1]=='C') { unsigned ch=(uint16_t)integer(a[1]); if(ch<128) fputc((int)ch,out); else if(ch<2048) { fputc(0xc0|(ch>>6),out); fputc(0x80|(ch&63),out); } else { fputc(0xe0|(ch>>12),out); fputc(0x80|((ch>>6)&63),out); fputc(0x80|(ch&63),out); } }
-            else if(!strcmp(d,"(Ljava/lang/Object;)V")) {
-                Value text=object_string(v,a[1]);if(v->exception)return none;
-                fputs(as_text(v,text,b),out);
-            } else fputs(as_text(v,a[1],b),out);
+        if(!strcmp(n,"addSuppressed")&&!strcmp(d,"(Ljava/lang/Throwable;)V")) {
+            Object *other=nonnull(v,a[1]);if(!other)return none;if(other==self){throwing(v,"java/lang/IllegalArgumentException");return none;}
+            size_t length=self->suppressed?self->suppressed->count:0;
+            if(length>=INT_MAX)fail(v,"too many suppressed exceptions");
+            Object *list=array_new(v,"[Ljava/lang/Throwable;",(int32_t)length+1);
+            if(length)memcpy(list->data,self->suppressed->data,length*sizeof(Value));list->data[length]=rv(other);self->suppressed=list;return none;
         }
-        if(!strcmp(n,"println")) fputc('\n',out); return none;
+        if(!strcmp(n,"getSuppressed")&&!strcmp(d,"()[Ljava/lang/Throwable;")) {
+            size_t length=self->suppressed?self->suppressed->count:0;Object *list=array_new(v,"[Ljava/lang/Throwable;",(int32_t)length);
+            if(length)memcpy(list->data,self->suppressed->data,length*sizeof(Value));return rv(list);
+        }
     }
+    if(!strcmp(cl,"java/io/PrintStream")&&!isstatic)return printstream_native(v,self,n,d,a,na);
     if(!strcmp(cl,"java/lang/Object")) {
         if(!strcmp(n,"clone")&&!strcmp(d,"()Ljava/lang/Object;")) {
             if(!subtype(self->cls,load(v,"java/lang/Cloneable"))||subtype(self->cls,load(v,"java/lang/Thread"))){throwing(v,"java/lang/CloneNotSupportedException");return none;}
             Object *o=self->kind=='a'?array_new(v,self->array_desc,(int32_t)self->count):new_object(v,self->cls,self->kind,self->count);
-            root(v,o);memcpy(o->data,self->data,self->count*sizeof(Value));o->cause=self->cause;
+            root(v,o);memcpy(o->data,self->data,self->count*sizeof(Value));o->cause=self->cause;o->suppressed=self->suppressed;
+            o->output_flags=self->output_flags;o->output_pending=self->output_pending;o->output_fd=self->output_fd;
             if(self->text)set_text(v,o,self->text);
             if(self->buffer){stream_buffer(v,o,self->buffer_size);memcpy(o->buffer,self->buffer,self->buffer_size);}
             else o->buffer_size=self->buffer_size;
@@ -1218,6 +1225,10 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(isstatic&&!strcmp(n,"valueOf")&&(!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     }
     if(!strcmp(cl,"java/lang/StringBuilder")) {
+        if(!strcmp(n,"subSequence")&&!strcmp(d,"(II)Ljava/lang/CharSequence;")) {
+            Object *text=string(v,self->text?self->text:"");root(v,text);Value args[]={rv(text),a[1],a[2]};
+            Value result=native_call(v,load(v,"java/lang/String"),n,d,args,3,0);v->nr--;return result;
+        }
         if(!strcmp(n,"<init>")&&!strcmp(d,"(I)V")) {
             int capacity=integer(a[1]);if(capacity<0){throwing(v,"java/lang/NegativeArraySizeException");return none;}
             if((size_t)capacity>v->opt.heap_limit/2)fail(v,"StringBuilder capacity exceeds heap limit");set_text(v,self,"");return none;
@@ -1253,6 +1264,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return rv(string(v,self->text?self->text:""));
     }
     if(!strcmp(cl,"java/lang/System")&&isstatic) {
+        if((!strcmp(n,"setOut")||!strcmp(n,"setErr"))&&!strcmp(d,"(Ljava/io/PrintStream;)V")){c->fields[!strcmp(n,"setErr")].value=a[0];return none;}
         if(!strcmp(n,"getenv")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;"))return rv(environment_get(v,obj(a[0])));
         if(!strcmp(n,"getSecurityManager")&&!strcmp(d,"()Ljava/lang/SecurityManager;"))return rv(NULL);
         int get=!strcmp(n,"getProperty"),set=!strcmp(n,"setProperty"),clear=!strcmp(n,"clearProperty");
@@ -1475,6 +1487,11 @@ static void stackop(VM *v,Frame *f,unsigned op) {
     }
 }
 static Value execute(VM *v,Method *m,Value *args,unsigned count) {
+    if((m->flags&NATIVE)&&m->owner->builtin) {
+        if(++v->depth>MAX_DEPTH)fail(v,"maximum native call depth exceeded");
+        unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
+        Value result=native_call(v,m->owner,m->name,m->desc,args,count,!!(m->flags&STATIC));v->nr=saved;v->depth--;return result;
+    }
     if((m->flags&NATIVE)&&m->owner->annotation_type) {
         if(++v->depth>MAX_DEPTH)fail(v,"maximum annotation call depth exceeded");
         unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
@@ -1616,7 +1633,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
                 if(target->flags&NATIVE) {
-                    if(target->owner->annotation_type)res=execute(v,target,aa,na);
+                    if(target->owner->annotation_type||target->owner->builtin)res=execute(v,target,aa,na);
                     else if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
                     else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
                     else fail(v,"unbound native method: %s.%s%s",c->name,n,d);

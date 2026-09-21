@@ -67,6 +67,6 @@ Limits:
 
 Actual Xinbot now passes annotation-based configuration phase selection and
 starts creating configuration handlers. Regex compilation and property
-substitution also pass. It next fails loading `java.io.OutputStream` while
-constructing Xinbot's JLineConsoleAppender. This remains
+substitution also pass. It constructs Xinbot's JLineConsoleAppender and next
+fails at `Class.getMethods` in BeanDescriptionFactory. This remains
 before Xinbot.main, without networking or calculator runtime verification.

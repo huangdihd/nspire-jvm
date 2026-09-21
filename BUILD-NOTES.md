@@ -53,6 +53,7 @@ bash tools/build-local-sdk.sh
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 注解检查：4 项标准 Java 对照、1 项真实 Logback 阶段对照和 1 项不支持文本格式的明确失败检查，均通过普通构建和 ASan/UBSan/泄漏检测；记录见 `ANNOTATION-RESULTS.txt`。
 - 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
+- 输出流检查：5 项 Java 8 对照、1 项真实 Logback 控制台包装类对照和 1 项未实现文件构造器检查，均通过普通构建与 ASan/UBSan/泄漏检测。比较实际 stdout/stderr 字节；并发检查仅过滤 ASan 关于 ucontext 的那条固定提示，仍检查所有内存错误，见 `OUTPUT-SUPPORT.md`。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
@@ -65,6 +66,9 @@ bash tools/build-local-sdk.sh
 本次编译接口来自 Temurin 8u504-b01 的 Linux x64 JRE 压缩包，SHA-256：
 `52dcd578baca1d3e449ea86768a9129c0ee04d7b22565695498353cc66940c61`。
 该 JRE 仅是构建依赖；计算器执行的是本项目解释器和重新编译的补充类库。
+输出流测试也用该 JRE 作为 Java 8 行为对照，保留原始 FilterOutputStream 的
+双异常关闭顺序；原始 Xinbot/Logback 组件仍使用 Java 17 对照。基础示例现在也
+依赖运行库中的输出流父类，部署时需要 `dist/runtime.jar.tns` 和三行配置文件。
 
 当前 Ndless SDK 的 `_gettimeofday` 实现仅读取 RTC 秒数，微秒部分恒为零。
 计算器端定时等待和 `nanoTime` 的精度、单调性仍需要更换计时后端并做实机验证；

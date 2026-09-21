@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 205 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 211 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -28,8 +28,8 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is java/io/OutputStream during ConsoleTarget initialization while
-  creating Xinbot's JLineConsoleAppender, still before Xinbot.main.
+  failure is Class.getMethods during BeanDescriptionFactory property setup,
+  after creating Xinbot's JLineConsoleAppender, still before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -91,17 +91,27 @@ The current interpreter and passing sample programs do not achieve that objectiv
   reaches console appender construction during second-phase model processing.
 - Eight regex and supporting-runtime checks passed on ordinary and
   ASan/UBSan/leak-detection builds, alongside all existing regression suites.
-  Both host builds stop at the same missing OutputStream during actual Xinbot
-  startup, with no sanitizer errors in the instrumented run.
+- Imported original OutputStream, FilterOutputStream, BufferedOutputStream,
+  ByteArrayOutputStream, Flushable and InterruptedIOException. Implemented
+  PrintStream's native UTF-8 and console adapter with ordinary virtual dispatch,
+  callbacks, monitor ownership, close/error state, redirection and byte output.
+  Throwable suppressed lists support the original Java 8 filter close path.
+  The runtime JAR is now required even for the basic demo; its generated config
+  and the basic-test commands include the bootclasspath. See OUTPUT-SUPPORT.md.
+- Original Logback ConsoleTarget wrappers write the expected bytes and retain
+  their dynamic System.out/err lookup. Actual Xinbot advances to Class.getMethods.
+- Seven output checks and the complete existing regression suite passed on
+  ordinary and ASan/UBSan/leak-detection builds. Direct original-Xinbot runs of
+  both hosts stopped at Class.getMethods; the instrumented run had no sanitizer
+  errors. The output tests document the known ASan ucontext warning separately.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement actual output streams and console byte output. ConsoleTarget's
-   initializer defines wrappers around System.out/System.err, requiring
-   java.io.OutputStream. Inspect ConsoleTarget and its nested classes with
-   javap. Preserve write/flush/close behavior and encoding; silently discarding
-   log output does not implement the requested runtime.
+1. Implement real method reflection for Logback's BeanDescriptionFactory,
+   starting with Class.getMethods and inherited/overridden public methods.
+   Inspect the original factory and PropertySetter with javap, then add
+   descriptor/type/access metadata and actual invocation where required.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

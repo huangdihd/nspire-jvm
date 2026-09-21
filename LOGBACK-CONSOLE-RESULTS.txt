@@ -1,0 +1,7 @@
+PASS LogbackConsoleTest (Java 17 exact stdout and stderr bytes)
+[65, 0, -1, 10, 66]
+[69, 0, -2, 67]
+false
+false
+
+Component test only; full Xinbot startup is not verified.

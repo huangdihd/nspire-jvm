@@ -7,15 +7,13 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/io/OutputStream
-  at ch/qos/logback/core/joran/spi/ConsoleTarget.<clinit>()V pc=9
-  at ch/qos/logback/core/ConsoleAppender.<init>()V pc=5
-  at xin/bbtt/mcbot/jLine/JLineConsoleAppender.<init>()V pc=1
-  at ch/qos/logback/core/util/OptionHelper.instantiateByClassNameAndParameter(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/ClassLoader;Ljava/lang/Class;Ljava/lang/Object;)Ljava/lang/Object; pc=59
-  at ch/qos/logback/core/util/OptionHelper.instantiateByClassName(Ljava/lang/String;Ljava/lang/Class;Ljava/lang/ClassLoader;)Ljava/lang/Object; pc=5
-  at ch/qos/logback/core/util/OptionHelper.instantiateByClassName(Ljava/lang/String;Ljava/lang/Class;Lch/qos/logback/core/Context;)Ljava/lang/Object; pc=8
-  at ch/qos/logback/core/model/processor/AppenderModelHandler.handle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=100
+VM error: runtime method not implemented: java/lang/Class.getMethods()[Ljava/lang/reflect/Method;
+  at ch/qos/logback/core/joran/util/beans/BeanDescriptionFactory.create(Ljava/lang/Class;)Lch/qos/logback/core/joran/util/beans/BeanDescription; pc=26
+  at ch/qos/logback/core/joran/util/beans/BeanDescriptionCache.getBeanDescription(Ljava/lang/Class;)Lch/qos/logback/core/joran/util/beans/BeanDescription; pc=18
+  at ch/qos/logback/core/joran/util/PropertySetter.<init>(Lch/qos/logback/core/joran/util/beans/BeanDescriptionCache;Ljava/lang/Object;)V pc=23
+  at ch/qos/logback/core/model/processor/ImplicitModelHandler.handle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=40
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=61
+  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor$$Lambda$138.traverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=8
   at ch/qos/logback/core/model/processor/DefaultProcessor.traversalLoop(Lch/qos/logback/core/model/processor/DefaultProcessor$TraverseMethod;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;Ljava/lang/String;)V pc=16
@@ -52,9 +50,9 @@ SAX events are interpreted and the configuration model is built. Execution
 now reads the actual PhaseIndicator annotations and selects processing phases.
 It compiles Logback Duration's actual regex and substitutes configuration
 variables, including real native environment lookups. The second-phase
-traversal starts creating the application's JLineConsoleAppender and passes
-AtomicBoolean initialization. ConsoleTarget initialization next requires
-java/io/OutputStream, which is not yet provided.
+traversal creates the application's JLineConsoleAppender and passes
+AtomicBoolean and ConsoleTarget initialization. BeanDescriptionFactory then
+requires Class.getMethods while discovering properties for configuration.
 This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
@@ -67,6 +65,9 @@ does not mean that whole-application startup succeeds.
 The unchanged Duration class from the same Xinbot JAR also passed a separate
 component test of regex matching, numeric conversion, formatting and exception
 classes against standard Java (LOGBACK-DURATION-RESULTS.txt).
-OutputStream is the next missing path. Full reflection, additional
+The original ConsoleTarget wrappers also pass a separate standard-Java
+comparison of byte output, flush, close and dynamic System.out/err replacement
+(LOGBACK-CONSOLE-RESULTS.txt).
+Class.getMethods is the next missing path. Full method reflection, additional
 dynamic invocation, other I/O, networking and device verification
 remain. The application or its logging setup was not bypassed.

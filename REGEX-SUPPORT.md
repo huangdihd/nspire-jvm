@@ -85,7 +85,7 @@ not corrected or simplified, including its treatment of unusual input.
 All eight checks passed on ordinary and ASan/UBSan/leak-detection builds,
 alongside the existing regression suites.
 
-Whole Xinbot startup now reaches second-phase log configuration and begins
-constructing its own JLineConsoleAppender. It next fails loading
-java.io.OutputStream in ConsoleTarget initialization, before Xinbot.main.
+Whole Xinbot startup now reaches second-phase log configuration and constructs
+its own JLineConsoleAppender. It next fails at Class.getMethods in
+BeanDescriptionFactory during property setup, before Xinbot.main.
 Neither this component success nor ARM linking proves calculator execution.
