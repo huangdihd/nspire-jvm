@@ -1,6 +1,6 @@
 /* PrintStream adapter. Other output streams execute their OpenJDK bytecode.
- * UTF-8 is the supported text encoding. The console borrows the host/SDK FILE
- * handles: Java close ends that Java stream, without closing the VM's own UI. */
+ * UTF-8 is the supported text encoding. Standard streams now share the real
+ * Java FileDescriptor objects, with VM-local lifetime for host/SDK stdio. */
 enum { OUTPUT_ERROR=1,OUTPUT_AUTOFLUSH=2,OUTPUT_CLOSING=4 };
 static void printstream_class(VM *v,Class *c) {
     static const char *spec[]={
@@ -32,24 +32,18 @@ static void output_catch(VM *v,Object *self,int writing) {
     v->exception=NULL;
 }
 static int output_open(Object *self) {
-    if(self->closed||(!self->output_fd&&!obj(self->data[0]))){self->output_flags|=OUTPUT_ERROR;return 0;}return 1;
+    if(self->closed||!obj(self->data[0])){self->output_flags|=OUTPUT_ERROR;return 0;}return 1;
 }
 static void output_flush(VM *v,Object *self) {
     if(!output_open(self))return;
-    if(self->output_fd){if(fflush(self->output_fd==1?stdout:stderr))self->output_flags|=OUTPUT_ERROR;}
-    else {Value a=self->data[0];output_invoke(v,obj(a),"flush","()V",&a,1);}
+    Value a=self->data[0];output_invoke(v,obj(a),"flush","()V",&a,1);
 }
 static void output_bytes(VM *v,Object *self,Object *bytes,int32_t offset,int32_t length) {
     if(!output_open(self))return;
     if(!bytes){throwing(v,"java/lang/NullPointerException");return;}
     if(bytes->kind!='a'||strcmp(bytes->array_desc,"[B"))fail(v,"PrintStream.write requires byte[]");
     if(offset<0||length<0||(size_t)offset>bytes->count||(size_t)length>bytes->count-(size_t)offset){throwing(v,"java/lang/IndexOutOfBoundsException");return;}
-    if(self->output_fd) {
-        FILE *out=self->output_fd==1?stdout:stderr;unsigned char chunk[512];
-        for(int32_t i=0;i<length;) {int32_t n=length-i;if(n>(int32_t)sizeof chunk)n=(int32_t)sizeof chunk;
-            for(int32_t j=0;j<n;j++)chunk[j]=(unsigned char)integer(bytes->data[offset+i+j]);
-            if(fwrite(chunk,1,(size_t)n,out)!=(size_t)n){self->output_flags|=OUTPUT_ERROR;break;}i+=n;}
-    } else {Value a[]={self->data[0],rv(bytes),iv(offset),iv(length)};output_invoke(v,obj(a[0]),"write","([BII)V",a,4);}
+    Value a[]={self->data[0],rv(bytes),iv(offset),iv(length)};output_invoke(v,obj(a[0]),"write","([BII)V",a,4);
     if(!v->exception&&(self->output_flags&OUTPUT_AUTOFLUSH))output_flush(v,self);
 }
 static void output_text_byte(VM *v,ConcatBuffer *buffer,unsigned point) {
@@ -130,8 +124,7 @@ static Value printstream_native(VM *v,Object *self,const char *name,const char *
     } else if(!strcmp(name,"write")) {
         if(count==2) {
             if(output_open(self)) {
-                if(self->output_fd){if(fputc(integer(args[1])&255,self->output_fd==1?stdout:stderr)==EOF)self->output_flags|=OUTPUT_ERROR;}
-                else {Value a[]={self->data[0],args[1]};output_invoke(v,obj(a[0]),"write","(I)V",a,2);}
+                Value a[]={self->data[0],args[1]};output_invoke(v,obj(a[0]),"write","(I)V",a,2);
                 if(!v->exception&&integer(args[1])=='\n'&&(self->output_flags&OUTPUT_AUTOFLUSH))output_flush(v,self);
             }
         } else output_bytes(v,self,obj(args[1]),integer(args[2]),integer(args[3]));
@@ -143,7 +136,7 @@ static Value printstream_native(VM *v,Object *self,const char *name,const char *
             if(self->output_pending){self->output_pending=0;output_text(v,self,"?",0);}
             if(!v->exception)output_flush(v,self);
             output_catch(v,self,0);
-            if(!v->exception&&!self->output_fd){Value a=self->data[0];output_invoke(v,obj(a),"close","()V",&a,1);output_catch(v,self,0);}
+            if(!v->exception){Value a=self->data[0];output_invoke(v,obj(a),"close","()V",&a,1);output_catch(v,self,0);}
             self->closed=1;self->data[0]=rv(NULL);
         }
     } else if(!strcmp(name,"checkError")) {

@@ -46,9 +46,21 @@
       "upstream_path": "jdk/src/share/classes/java/io/File.java",
       "sha256": "2cd6451763c68ef6f7fe1bc4bdc3547055b158b22313071aba64bad07ffebb89"
     },
+    "java/io/FileDescriptor.java": {
+      "upstream_path": "jdk/src/solaris/classes/java/io/FileDescriptor.java",
+      "sha256": "d126f9ec03c61e5b616e721772726cee438c6c24ffbb02730c6ac6022d643c5e"
+    },
     "java/io/FileFilter.java": {
       "upstream_path": "jdk/src/share/classes/java/io/FileFilter.java",
       "sha256": "b70a88c87c0390b0e096b3ecde31bd7a0d5d54b395d3a769122809ef3c84dbd7"
+    },
+    "java/io/FileInputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FileInputStream.java",
+      "sha256": "90ff101244c17fbf7bdb7dfecbe4af1ee2d77cd93a430320b690030eb4fddb8b"
+    },
+    "java/io/FileOutputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FileOutputStream.java",
+      "sha256": "6bc3ac729cf4b2a8235a92a47a3dbc954637ab63b93ebb9ef9dabc983ddfea45"
     },
     "java/io/FileSystem.java": {
       "upstream_path": "jdk/src/share/classes/java/io/FileSystem.java",
@@ -97,6 +109,10 @@
     "java/io/StreamCorruptedException.java": {
       "upstream_path": "jdk/src/share/classes/java/io/StreamCorruptedException.java",
       "sha256": "0246ce8bf70e1ca0dd3032ecf4e1e1bca27ec16048796587aab65b57e2461de8"
+    },
+    "java/io/SyncFailedException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/SyncFailedException.java",
+      "sha256": "8742bfcee0daedaad7a941aa3a7c2559dd49f561e0a6e8440025e8e8cb15b577"
     },
     "java/io/UTFDataFormatException.java": {
       "upstream_path": "jdk/src/share/classes/java/io/UTFDataFormatException.java",
@@ -1389,6 +1405,10 @@
     "sun/misc/Contended.java": {
       "upstream_path": "jdk/src/share/classes/sun/misc/Contended.java",
       "sha256": "ecf600d32ca268101d6b349bb196aeb03e4c34d2bc1143cbcbe782157a410bf2"
+    },
+    "sun/misc/JavaIOFileDescriptorAccess.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/JavaIOFileDescriptorAccess.java",
+      "sha256": "db2bb94ed9b22fb118dfb322e0e7d93e0134d43c18a1c670c716791346578643"
     },
     "sun/nio/cs/ArrayDecoder.java": {
       "upstream_path": "jdk/src/share/classes/sun/nio/cs/ArrayDecoder.java",

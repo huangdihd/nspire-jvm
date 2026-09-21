@@ -1,6 +1,6 @@
 # Nspire JVM 0.1（实验版）
 
-> **时间库研发检查点。** 原始 Logback 日期组件已通过主机对照；完整 Xinbot 目前停在 Jansi 所需的 `java.io.FileDescriptor`。当前完成度见 [CHECKPOINT.md](CHECKPOINT.md)，时间接口边界见 [TIME-SUPPORT.md](TIME-SUPPORT.md)。
+> **控制台接口开发快照，尚未通过回归测试。** 最新源码已接入原始 OpenJDK FileDescriptor 和文件流，主机编译通过；文件流测试目前停在缺失的 `InputStream.markSupported()`。`dist/`、既有 RESULTS 文件和 `XINBOT-RUN.txt` 保留上一次通过验证的时间库检查点 `4e097f3`，不代表当前源码的验证结果。详见 [CHECKPOINT.md](CHECKPOINT.md) 和 [DESCRIPTOR-CHECKPOINT.txt](DESCRIPTOR-CHECKPOINT.txt)。
 
 面向已安装 Ndless 的 TI-Nspire CX II CAS 的 C 字节码解释器。
 
@@ -9,6 +9,8 @@
 主机对照测试与计算器实机测试是两回事：目前没有完成计算器实机验证。
 
 ## 已实现
+
+以下清单记录此前各阶段已验证的能力；当前控制台改动仍需重新验证，不能据此认定本开发快照全部通过。
 
 - 从多个 JAR/ZIP 或目录读取 `.class`，支持 `.jar.tns` 文件名和独立补充运行库。
 - 基础 `Class` 对象：类字面量、getClass、类名、父类、组件类型、直接接口列表、isAssignableFrom、isInstance、cast 和 forName；枚举常量、规范类名和声明类信息。
@@ -132,7 +134,7 @@ python3 tools/test-methods.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-charset.py --vm build/nspire-jvm --java /path/to/java8/bin/java --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 372 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 377 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
 当前有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、6 项文件系统/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。另有 8 项时间与日期组件检查；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 

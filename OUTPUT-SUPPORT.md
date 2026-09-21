@@ -1,5 +1,10 @@
 # Output streams and console integration
 
+**Development snapshot:** the results below belong to verified checkpoint
+`4e097f3`. Current source routes System.out/err through original Java file
+streams and shared FileDescriptor objects, and adds System.in. These changes
+have not passed the output regression suite or device testing; see CHECKPOINT.md.
+
 OutputStream, FilterOutputStream, BufferedOutputStream, ByteArrayOutputStream,
 Flushable and InterruptedIOException now execute unchanged OpenJDK 8 sources
 at the revision in `runtime/openjdk8/SOURCES.json`. Byte-array growth, buffer

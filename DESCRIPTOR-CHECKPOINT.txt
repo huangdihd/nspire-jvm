@@ -1,0 +1,38 @@
+FileDescriptor development snapshot (incomplete)
+
+Source changes:
+- Preserved original OpenJDK 8 FileDescriptor, FileInputStream,
+  FileOutputStream, SyncFailedException and JavaIOFileDescriptorAccess.
+- C descriptor bridge; System.in/out/err integration; descriptor GC roots and
+  owned-handle cleanup. Shared close callbacks remain original Java bytecode.
+- Host fsync binding; target synchronization explicitly reports unsupported.
+
+Observed validation:
+- Intrinsic API declarations regenerated: 1535 methods in 93 classes.
+- Runtime compilation succeeded: runtime.jar.tns was 2005776 bytes.
+- make host succeeded (existing vendor compiler warnings).
+- PASS FilePathTest (Linux Java 8 output and actual disk contents).
+- PASS FileMutationTest (Linux Java 8 output and actual disk contents).
+- FileStreamTest returned 1 after stdout: negative seek
+  VM error: runtime method not implemented: java/io/InputStream.markSupported()Z
+    at FileStreamTest.main([Ljava/lang/String;)V pc=284
+- The file test runner stopped at this failure; later tests did not run.
+- No full regression, sanitizer, new ARM build, complete Xinbot run or device
+  verification was performed for this snapshot.
+
+Reproduce from the repository in Linux/WSL:
+  python3 tools/generate-builtin-methods.py --rt-jar /path/to/java8/jre/lib/rt.jar --update
+  python3 tools/build-runtime.py --java8-home /path/to/java8-jdk --javac /path/to/java8-jdk/bin/javac
+  make host
+  python3 tools/test-files.py --java /path/to/java8/bin/java
+
+Artifact policy for this snapshot:
+  dist/ and DIST-MANIFEST.json retain the matching binaries from 4e097f3.
+  Existing RESULTS files and XINBOT-RUN.txt describe that earlier checkpoint.
+  Rebuild the runtime before testing current source; it requires the newly
+  imported FileDescriptor classes. The experimental runtime built above was
+  kept locally rather than pairing it with the older calculator executable.
+
+Remaining work includes the inherited InputStream methods, descriptor alias
+and close/error tests, regression and sanitizer runs, rebuilding the ARM pair,
+and continuing the unmodified Xinbot initialization path.

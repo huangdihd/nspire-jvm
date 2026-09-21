@@ -1,4 +1,23 @@
-# 时间库研发检查点
+# 控制台接口开发快照
+
+当前源码是未完成的 FileDescriptor/标准输入输出移植，保存于
+`wip/timezone-checkpoint` 分支。它导入原始 OpenJDK FileDescriptor、
+FileInputStream、FileOutputStream、SyncFailedException 和
+JavaIOFileDescriptorAccess，并将描述符读写、关闭及标准流接到 C 平台层。
+共享描述符关闭逻辑来自原始 Java 代码；此路径尚未完成对照验证。
+
+运行库编译和主机 C 构建通过。文件测试中 FilePathTest、FileMutationTest
+通过，FileStreamTest 因缺少 `java/io/InputStream.markSupported()Z` 停止；
+后续文件测试未执行。本次未重新验证完整 Xinbot、ASan 或 ARM 构建。
+完整记录与复现命令见 DESCRIPTOR-CHECKPOINT.txt。
+
+`dist/` 与 DIST-MANIFEST.json 保持提交 `4e097f3` 的配套二进制；
+既有 RESULTS 文件、TARGET-RESULTS.txt 和 XINBOT-RUN.txt 也属于该检查点。
+当前源码新增了标准流对原始 FileDescriptor 类的依赖，测试当前源码前须
+按 README 重建 runtime.jar.tns，不能与旧运行库混用。
+本开发快照仍不能认定已启动完整 Xinbot，尚无实机运行或联网成功记录。
+
+## 上一次通过验证的时间库检查点：4e097f3
 
 本检查点让原始 Xinbot 越过 Logback 日期转换器，推进到 Jansi 控制台初始化。
 当前实际失败为缺少 `java/io/FileDescriptor`，仍在 `Xinbot.main` 之前。

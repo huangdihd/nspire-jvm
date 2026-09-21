@@ -1,5 +1,13 @@
 # Files and native stream handles
 
+**Development snapshot:** this document describes the verified `4e097f3`
+checkpoint. Current source replaces the intrinsic file streams with original
+OpenJDK streams and a shared FileDescriptor bridge in `src/descriptors.inc`.
+Host compilation succeeds, but FileStreamTest stops at the missing inherited
+InputStream.markSupported method. Descriptor constructors, getFD, alias
+lifetime, standard input and synchronization are work in progress, not verified
+capabilities. See CHECKPOINT.md and DESCRIPTOR-CHECKPOINT.txt.
+
 File, FileSystem, UnixFileSystem, DefaultFileSystem, ExpiringCache, FileFilter
 and FilenameFilter are unchanged OpenJDK 8 sources at the revision recorded in
 runtime/openjdk8/SOURCES.json. Path normalization, parent/child resolution,

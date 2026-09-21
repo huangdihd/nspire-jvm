@@ -24,6 +24,7 @@
 #ifndef _TINSPIRE
 #include <sys/time.h>
 #include <sys/statvfs.h>
+#include <sys/ioctl.h>
 #endif
 
 #define MAX_CLASSES 2048
@@ -82,8 +83,8 @@ struct Object {
     Object *thread_target;
     Object *cause,*suppressed;
     unsigned cause_initialized;
-    unsigned output_flags,output_pending;int output_fd;
-    int file_fd,file_open;
+    unsigned output_flags,output_pending;
+    int file_fd,file_open,file_owned;
     unsigned char *buffer;size_t buffer_size,cursor,mark_cursor;
     int resource_path,resource_index,closed,pending,skip_lf;
     char *resource_name;
@@ -111,7 +112,7 @@ struct VM {
     ClassPath paths[32]; unsigned npaths,nbootpaths; uint64_t steps;
     VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;int fatal;
     Object *unsafe_instance,*runtime_instance;
-    Object *app_loader,*java_lang_access;
+    Object *app_loader,*java_lang_access,*java_io_descriptor_access;
     Object *integer_cache[256],*long_cache[256];
     Object *small_cache[3][256];
     Property *properties;
@@ -197,7 +198,7 @@ static void collect(VM *v) {
     Object *grey=NULL;
     mark(v->exception,&grey);
     mark(v->unsafe_instance,&grey);mark(v->runtime_instance,&grey);
-    mark(v->app_loader,&grey);mark(v->java_lang_access,&grey);
+    mark(v->app_loader,&grey);mark(v->java_lang_access,&grey);mark(v->java_io_descriptor_access,&grey);
     for(unsigned i=0;i<256;i++){mark(v->integer_cache[i],&grey);mark(v->long_cache[i],&grey);}
     for(unsigned i=0;i<3;i++)for(unsigned j=0;j<256;j++)mark(v->small_cache[i][j],&grey);
     for (unsigned i=0;i<v->nr;i++) mark(v->roots[i],&grey);
@@ -251,7 +252,7 @@ static void collect(VM *v) {
     while(*p) {
         Object *o=*p;
         if(o->mark) { o->mark=0; p=&o->next; }
-        else { *p=o->next; v->heap-=o->bytes; if(o->thread)o->thread->object=NULL; if(o->file_open)close(o->file_fd);free(o->data); free(o->text); free(o->array_desc); free(o->buffer);free(o->resource_name);free(o); }
+        else { *p=o->next; v->heap-=o->bytes; if(o->thread)o->thread->object=NULL; if(o->file_open&&o->file_owned)close(o->file_fd);free(o->data); free(o->text); free(o->array_desc); free(o->buffer);free(o->resource_name);free(o); }
     }
     VmThread **tp=&v->threads;
     while(*tp) {
@@ -303,7 +304,7 @@ static void initialize(VM *,Class *);
 static Value execute(VM *,Method *,Value *,unsigned);
 static Value native_call(VM *,Class *,const char *,const char *,Value *,unsigned,int);
 static void printstream_class(VM *,Class *);
-static void filestream_class(VM *,Class *);
+static void system_streams(VM *,Class *);
 static Object *array_new(VM *,const char *,int32_t);
 static void schedule(VM *);
 static int monitor_enter(VM *,Object *);
@@ -356,8 +357,6 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/ref/WeakReference"))return "java/lang/ref/Reference";
     if(!strcmp(n,"java/lang/Package"))return "java/lang/Object";
     if(!strcmp(n,"java/io/PrintStream"))return "java/io/FilterOutputStream";
-    if(!strcmp(n,"java/io/FileInputStream"))return "java/io/InputStream";
-    if(!strcmp(n,"java/io/FileOutputStream"))return "java/io/OutputStream";
     if(!strcmp(n,"java/lang/Object")) return "";
     if(!strcmp(n,"java/lang/AutoCloseable")||!strcmp(n,"java/io/Closeable")||!strcmp(n,"java/net/URLConnection"))return "java/lang/Object";
     if(!strcmp(n,"java/net/JarURLConnection")||!strcmp(n,"nspire/FileConnection"))return "java/net/URLConnection";
@@ -553,7 +552,6 @@ static Class *load(VM *v,const char *name) {
     if(base) {
         c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->slots=c->super?c->super->slots:0;c->loading=0;
         if(!strcmp(name,"java/io/PrintStream"))printstream_class(v,c);
-        if(!strcmp(name,"java/io/FileInputStream")||!strcmp(name,"java/io/FileOutputStream"))filestream_class(v,c);
         if(!strcmp(name,"java/lang/ref/Reference")) {
             c->access=0x401;c->slots=1;c->nf=1;c->fields=(Field *)alloc(v,sizeof(Field));
             c->fields[0].name="referent";c->fields[0].desc="Ljava/lang/Object;";c->fields[0].flags=2;c->fields[0].slot=0;
@@ -610,8 +608,8 @@ static Class *load(VM *v,const char *name) {
             if(boolean)for(unsigned i=2;i<4;i++){c->fields[i].name=i==2?"TRUE":"FALSE";c->fields[i].desc="Ljava/lang/Boolean;";c->fields[i].flags=STATIC|0x11;c->fields[i].value=rv(NULL);}
         }
         if(!strcmp(name,"java/lang/System")) {
-            c->nf=2; c->fields=(Field *)alloc(v,2*sizeof(Field));
-            for(unsigned i=0;i<2;i++) { c->fields[i].name=i?"err":"out"; c->fields[i].desc="Ljava/io/PrintStream;"; c->fields[i].flags=STATIC; c->fields[i].value=rv(NULL); }
+            c->nf=3; c->fields=(Field *)alloc(v,3*sizeof(Field));
+            for(unsigned i=0;i<3;i++) { c->fields[i].name=i==2?"in":i?"err":"out"; c->fields[i].desc=i==2?"Ljava/io/InputStream;":"Ljava/io/PrintStream;"; c->fields[i].flags=STATIC; c->fields[i].value=rv(NULL); }
         }
         return c;
     }
@@ -703,10 +701,7 @@ static void initialize(VM *v,Class *c) {
     if(!(c->access&0x200))for(unsigned i=0;i<c->ni&&!v->exception;i++)initialize_default_interfaces(v,c->interfaces[i]);
     if(v->exception) { c->init=3; return; }
     if(!strcmp(c->name,"java/lang/System")) {
-        Class *ps=load(v,"java/io/PrintStream");
-        for(unsigned i=0;i<2;i++) {
-            Object *out=new_object(v,ps,'P',ps->slots);out->output_fd=(int)i+1;out->output_flags=2;out->data[0]=rv(NULL);c->fields[i].value=rv(out);
-        }
+        system_streams(v,c);if(v->exception){c->init=3;return;}
     }
     const char *primitive=wrapper_primitive(c->name);
     if(primitive)c->fields[0].value=rv(class_mirror(v,load(v,primitive)));
@@ -898,6 +893,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     if(isstatic&&!strcmp(cl,"sun/misc/SharedSecrets")&&!strcmp(n,"getJavaLangAccess")&&!strcmp(d,"()Lsun/misc/JavaLangAccess;")) {
         if(!v->java_lang_access)v->java_lang_access=new_object(v,load(v,"nspire/JavaLangAccess"),'o',0);
         return rv(v->java_lang_access);
+    }
+    if(isstatic&&!strcmp(cl,"sun/misc/SharedSecrets")) {
+        if(!strcmp(n,"setJavaIOFileDescriptorAccess")&&!strcmp(d,"(Lsun/misc/JavaIOFileDescriptorAccess;)V")){v->java_io_descriptor_access=obj(a[0]);return none;}
+        if(!strcmp(n,"getJavaIOFileDescriptorAccess")&&!strcmp(d,"()Lsun/misc/JavaIOFileDescriptorAccess;")) {
+            if(!v->java_io_descriptor_access)initialize(v,load(v,"java/io/FileDescriptor"));
+            return rv(v->exception?NULL:v->java_io_descriptor_access);
+        }
     }
     if(!isstatic&&(!strcmp(cl,"sun/misc/JavaLangAccess")||!strcmp(cl,"nspire/JavaLangAccess"))&&!strcmp(n,"getEnumConstantsShared")&&!strcmp(d,"(Ljava/lang/Class;)[Ljava/lang/Enum;")) {
         Object *mirror=nonnull(v,a[1]);if(!mirror)return none;
@@ -1127,7 +1129,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!subtype(self->cls,load(v,"java/lang/Cloneable"))||subtype(self->cls,load(v,"java/lang/Thread"))){throwing(v,"java/lang/CloneNotSupportedException");return none;}
             Object *o=self->kind=='a'?array_new(v,self->array_desc,(int32_t)self->count):new_object(v,self->cls,self->kind,self->count);
             root(v,o);memcpy(o->data,self->data,self->count*sizeof(Value));o->cause=self->cause;o->suppressed=self->suppressed;o->cause_initialized=self->cause_initialized;
-            o->output_flags=self->output_flags;o->output_pending=self->output_pending;o->output_fd=self->output_fd;
+            o->output_flags=self->output_flags;o->output_pending=self->output_pending;
             if(self->text)set_text(v,o,self->text);
             if(self->buffer){stream_buffer(v,o,self->buffer_size);memcpy(o->buffer,self->buffer,self->buffer_size);}
             else o->buffer_size=self->buffer_size;
@@ -1371,6 +1373,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return rv(string(v,self->text?self->text:""));
     }
     if(!strcmp(cl,"java/lang/System")&&isstatic) {
+        if(!strcmp(n,"setIn")&&!strcmp(d,"(Ljava/io/InputStream;)V")){c->fields[2].value=a[0];return none;}
         if((!strcmp(n,"setOut")||!strcmp(n,"setErr"))&&!strcmp(d,"(Ljava/io/PrintStream;)V")){c->fields[!strcmp(n,"setErr")].value=a[0];return none;}
         if(!strcmp(n,"getenv")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;"))return rv(environment_get(v,obj(a[0])));
         if(!strcmp(n,"getSecurityManager")&&!strcmp(d,"()Ljava/lang/SecurityManager;"))return rv(NULL);
@@ -1848,6 +1851,6 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
     while(v->xml_mem)xml_free(v->xml_mem+1);
     while(v->directories)directory_close(v,v->directories);
     for(unsigned i=0;i<v->npaths;i++)if(v->paths[i].is_zip)mz_zip_reader_end(&v->paths[i].zip);
-    while(v->objects){Object *o=v->objects;v->objects=o->next;if(o->file_open)close(o->file_fd);free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
+    while(v->objects){Object *o=v->objects;v->objects=o->next;if(o->file_open&&o->file_owned)close(o->file_fd);free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
     while(v->mem){Mem *m=v->mem;v->mem=m->next;free(m);}free(v);return status;
 }
