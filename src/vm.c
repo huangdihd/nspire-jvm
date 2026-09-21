@@ -170,6 +170,11 @@ static void init_properties(VM *v) {
     for(unsigned i=0;pairs[i];i+=2){Property *p=property(v,pairs[i],1);p->value=copy(v,pairs[i+1]);p->initial=copy(v,pairs[i+1]);}
     const uint16_t endian_probe=1;const char *endian=*(const unsigned char *)&endian_probe?"little":"big";
     Property *p=property(v,"sun.cpu.endian",1);p->value=copy(v,endian);p->initial=copy(v,endian);
+    const char *zone=v->opt.timezone;
+#ifdef _TINSPIRE
+    if(!zone)zone="UTC";
+#endif
+    if(zone){p=property(v,"user.timezone",1);p->value=copy(v,zone);p->initial=copy(v,zone);}
 }
 static Value val(uint64_t x, int t) { Value a; a.bits=x; a.tag=(unsigned char)t; return a; }
 static Value iv(int32_t x) { return val((uint32_t)x,INT); }
@@ -378,7 +383,7 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"sun/misc/Unsafe")||!strcmp(n,"sun/misc/VM")||!strcmp(n,"java/lang/Runtime")||!strcmp(n,"java/lang/reflect/Field")||!strcmp(n,"java/lang/reflect/Array"))return "java/lang/Object";
     if(!strcmp(n,"java/lang/ThreadLocal"))return "java/lang/Object";
     if(!strcmp(n,"java/lang/InheritableThreadLocal"))return "java/lang/ThreadLocal";
-    const char *plain[]={"java/lang/Thread","java/lang/Runnable","java/lang/Class","java/lang/Cloneable","java/io/Serializable","java/lang/String","java/lang/StringBuilder","java/lang/System","java/io/PrintStream","java/lang/Math","java/lang/Number","java/lang/Boolean","java/lang/Character","java/lang/Void","java/lang/Throwable",NULL};
+    const char *plain[]={"java/lang/Thread","java/lang/Runnable","java/lang/Class","java/lang/Cloneable","java/io/Serializable","java/lang/String","java/lang/StringBuilder","java/lang/System","java/io/PrintStream","java/lang/Number","java/lang/Boolean","java/lang/Character","java/lang/Void","java/lang/Throwable",NULL};
     for(int i=0;plain[i];i++) if(!strcmp(n,plain[i])) return "java/lang/Object";
     if(wrapper_primitive(n))return "java/lang/Number";
     if(!strcmp(n,"java/lang/ClassNotFoundException"))return "java/lang/ReflectiveOperationException";
@@ -854,6 +859,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "boxing.inc"
 #include "charset.inc"
 #include "filesystem.inc"
+#include "time.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -868,6 +874,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     loaded=charset_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     loaded=filesystem_native(v,c,n,d,a,&handled);if(handled)return loaded;
     loaded=filestream_native(v,c,n,d,a,na,&handled);if(handled)return loaded;
+    loaded=time_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
@@ -1549,7 +1556,7 @@ static void stackop(VM *v,Frame *f,unsigned op) {
     }
 }
 static Value execute(VM *v,Method *m,Value *args,unsigned count) {
-    if(m->owner->builtin||((m->flags&NATIVE)&&!strcmp(m->owner->name,"java/io/UnixFileSystem"))) {
+    if(m->owner->builtin||platform_native_bound(m)) {
         if(++v->depth>MAX_DEPTH)fail(v,"maximum native call depth exceeded");
         unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
         Value result=native_call(v,m->owner,m->name,m->desc,args,count,!!(m->flags&STATIC));v->nr=saved;v->depth--;return result;
@@ -1695,7 +1702,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
                 if(target->flags&NATIVE) {
-                    if(target->owner->annotation_type||target->owner->builtin||!strcmp(target->owner->name,"java/io/UnixFileSystem"))res=execute(v,target,aa,na);
+                    if(target->owner->annotation_type||target->owner->builtin||platform_native_bound(target))res=execute(v,target,aa,na);
                     else if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
                     else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
                     else fail(v,"unbound native method: %s.%s%s",c->name,n,d);

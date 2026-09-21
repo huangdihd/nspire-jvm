@@ -2,6 +2,10 @@
   "repository": "https://github.com/openjdk/jdk8u",
   "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
   "files": {
+    "java/io/BufferedInputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/BufferedInputStream.java",
+      "sha256": "dedde0f24705d4e30994f9fb45da5b3a01c6af095a9339d6cf87a37abd3f47c7"
+    },
     "java/io/BufferedOutputStream.java": {
       "upstream_path": "jdk/src/share/classes/java/io/BufferedOutputStream.java",
       "sha256": "a8ccca0cf334be5d11d840a3d46dd45346fe9be2600b4cb0bdf8d949baf25c4f"
@@ -10,13 +14,33 @@
       "upstream_path": "jdk/src/share/classes/java/io/ByteArrayOutputStream.java",
       "sha256": "97f991d6e95f6c7dc531fc57484c6b86ce6c66ad9077809dd46e7053bb9ca0e7"
     },
+    "java/io/DataInput.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/DataInput.java",
+      "sha256": "6fbe1625efe2dc6799ce0e7e8a072bfd9b41453367af5380b094be6c50736ad9"
+    },
+    "java/io/DataInputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/DataInputStream.java",
+      "sha256": "3641595b5de9e86990ed589fc355e140758d147f40c9463e299a7f576327c3c4"
+    },
+    "java/io/DataOutput.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/DataOutput.java",
+      "sha256": "ac4c619317c56bea617bd815b52d195c89fa4b104cd42c2500f8b0986bf8538e"
+    },
     "java/io/DefaultFileSystem.java": {
       "upstream_path": "jdk/src/solaris/classes/java/io/DefaultFileSystem.java",
       "sha256": "a88b9c2973d426b64c7eb52fc3cd9bcda10ffca949d77f23848d88ae4266a0fc"
     },
+    "java/io/EOFException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/EOFException.java",
+      "sha256": "9e7534d55529a9edcee4da3e0c38f5ec63d0c7ce9eefab90224ca83ad8176664"
+    },
     "java/io/ExpiringCache.java": {
       "upstream_path": "jdk/src/share/classes/java/io/ExpiringCache.java",
       "sha256": "426d9bd173b3f13df73051171b71d4e9d742c52cc31129c72707c87419f749c1"
+    },
+    "java/io/Externalizable.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/Externalizable.java",
+      "sha256": "0e0a37671c561e07153681a90acce32a2601dd5c042eac38b42abacabda2969c"
     },
     "java/io/File.java": {
       "upstream_path": "jdk/src/share/classes/java/io/File.java",
@@ -34,6 +58,10 @@
       "upstream_path": "jdk/src/share/classes/java/io/FilenameFilter.java",
       "sha256": "665e22a22ec691495820826fb99509e0eb1d474f0438479211555db6d714093a"
     },
+    "java/io/FilterInputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FilterInputStream.java",
+      "sha256": "8455ac15a2b2afb18815e2d5e07c41d8366c5bc7bc01c023ef23a8a4de90a25a"
+    },
     "java/io/FilterOutputStream.java": {
       "upstream_path": "jdk/src/share/classes/java/io/FilterOutputStream.java",
       "sha256": "553b087a00a85d337e403deac3f86ed97495040d91bead9bd4b3676d7c95f945"
@@ -46,6 +74,18 @@
       "upstream_path": "jdk/src/share/classes/java/io/InterruptedIOException.java",
       "sha256": "e0701c5850763cf84f4578293a58fa804217f1f705dfee89cfa5312c9f457b8f"
     },
+    "java/io/ObjectInput.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ObjectInput.java",
+      "sha256": "abf83c3a9be1e62bda80cd42fe9d03775e80d48bab61a4c0b9224e3f136e9def"
+    },
+    "java/io/ObjectOutput.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ObjectOutput.java",
+      "sha256": "4c186f7796573d57dcd37d9deebb38a61f0773efcc485dc4504868b55c983b3a"
+    },
+    "java/io/ObjectStreamException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ObjectStreamException.java",
+      "sha256": "8fcabf3e944214c1913f71abcd7001ba012d0a30a03d2bfb4b58faa4c00cde8a"
+    },
     "java/io/ObjectStreamField.java": {
       "upstream_path": "jdk/src/share/classes/java/io/ObjectStreamField.java",
       "sha256": "1e973cc45621856fb8c997a437d1986110ee2ca2a282ddc3cb6f3851ca568153"
@@ -53,6 +93,14 @@
     "java/io/OutputStream.java": {
       "upstream_path": "jdk/src/share/classes/java/io/OutputStream.java",
       "sha256": "7e1f7f258e781cc951af58c3151e7071321c21b1125042d962ea6cd5271452e6"
+    },
+    "java/io/StreamCorruptedException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/StreamCorruptedException.java",
+      "sha256": "0246ce8bf70e1ca0dd3032ecf4e1e1bca27ec16048796587aab65b57e2461de8"
+    },
+    "java/io/UTFDataFormatException.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/UTFDataFormatException.java",
+      "sha256": "3c5f9b17fd7cb7abc15fb10d369229c2f78843fb1a70a62f40c5782f96d6fb79"
     },
     "java/io/UnixFileSystem.java": {
       "upstream_path": "jdk/src/solaris/classes/java/io/UnixFileSystem.java",
@@ -86,9 +134,17 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Iterable.java",
       "sha256": "9d5216a4214a4b497faf47bfcdae81acc82f26222e5c04fe7a8702f95cafac1d"
     },
+    "java/lang/Math.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Math.java",
+      "sha256": "1b6208ed693a75fae6dded58724006793f7d50e966b84ebabd1f25031c6f3fbe"
+    },
     "java/lang/Readable.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Readable.java",
       "sha256": "3730c0c53c49e8aaeb3d449d9c72ab5b1f7275d17b0967468959a7644ea9c0bf"
+    },
+    "java/lang/StrictMath.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/StrictMath.java",
+      "sha256": "7c187cfc98fc1d62e0071aa98c009100208afc93697ccf90d0bade301ee9ea39"
     },
     "java/lang/StringBuffer.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/StringBuffer.java",
@@ -142,6 +198,34 @@
       "upstream_path": "jdk/src/share/classes/java/lang/annotation/Target.java",
       "sha256": "2653863ca379960c66d6d43e3a9a1cc61b7b385950d32771db28b9d4f8727964"
     },
+    "java/math/BigDecimal.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/BigDecimal.java",
+      "sha256": "0f2841a42b20c24021f5e024263cd886286e3adb953c318ebe69fc9c336a49a1"
+    },
+    "java/math/BigInteger.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/BigInteger.java",
+      "sha256": "0e4688c295f6ee95d9e88217a06c70017acf3ff5db230c9438a977f0e89fbaaf"
+    },
+    "java/math/BitSieve.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/BitSieve.java",
+      "sha256": "4fe2375dcd70afd6d1497908673bd8ea255544bd44fc32630a57e6a58a476cbc"
+    },
+    "java/math/MathContext.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/MathContext.java",
+      "sha256": "2488832894ff41ca8f685f547e4f242215a044400b776649bace0b5b9b55e614"
+    },
+    "java/math/MutableBigInteger.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/MutableBigInteger.java",
+      "sha256": "d21f1ec95210322633711bca6227a18f8883985b09185f0f5726d1fc84c58a7a"
+    },
+    "java/math/RoundingMode.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/RoundingMode.java",
+      "sha256": "5bb030143316378c2d360ac05b7b3f25fba6810e74b2f4175ed52efc7a33410d"
+    },
+    "java/math/SignedMutableBigInteger.java": {
+      "upstream_path": "jdk/src/share/classes/java/math/SignedMutableBigInteger.java",
+      "sha256": "64c18702afe2b904344dd9afd93dadfb076f851cc2db80c0db6de96a0419b037"
+    },
     "java/nio/Buffer.java": {
       "upstream_path": "jdk/src/share/classes/java/nio/Buffer.java",
       "sha256": "57a69d05807ababdb22e6960173e836a49d60239f5c188b704d208a4dcd71315"
@@ -193,6 +277,334 @@
     "java/security/PrivilegedAction.java": {
       "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",
       "sha256": "4781bfec1d395eb7f042c3a8123b89065d359cb7ecf848d40b436989b76483b6"
+    },
+    "java/text/ParsePosition.java": {
+      "upstream_path": "jdk/src/share/classes/java/text/ParsePosition.java",
+      "sha256": "2f7a027f2863ce3ce5f98fc6fb29c277c00d1fa9553095de78e70ec1496f5d0f"
+    },
+    "java/time/Clock.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Clock.java",
+      "sha256": "e8c10bed67884a142067f61fa9315eaf2541083df6eac02b8908e3f8513887c7"
+    },
+    "java/time/DateTimeException.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/DateTimeException.java",
+      "sha256": "117c0d17f15361a41b28d2d9e52efed8c5926d7e40f1cacb9b000bb14b571ce8"
+    },
+    "java/time/DayOfWeek.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/DayOfWeek.java",
+      "sha256": "2cab81e43e63d1dc2b858b0594b17e2a25668e8b8bcfc8894cf86c35a9bddc04"
+    },
+    "java/time/Duration.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Duration.java",
+      "sha256": "18159810122141c1ce5b1a77e86b7ebc0e9943e0edcd9c917882c70b0dfdad8b"
+    },
+    "java/time/Instant.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Instant.java",
+      "sha256": "eb5a667b747f59c8fe74142023e4b0010eea702a2caa02d0758b75624903e5ae"
+    },
+    "java/time/LocalDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/LocalDate.java",
+      "sha256": "40bb4b8240d012df515cde9a2fb2f66bb44a5e15c75a87218fb810e69d600838"
+    },
+    "java/time/LocalDateTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/LocalDateTime.java",
+      "sha256": "623e01a37898ecc675fc1b0a35151642c0659f793aacdc12efd86aa46af01106"
+    },
+    "java/time/LocalTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/LocalTime.java",
+      "sha256": "bc8492fc06d9d324d584baeb357bacc99ef87dd33dd949fb9e7219464cea6314"
+    },
+    "java/time/Month.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Month.java",
+      "sha256": "eb773bdbb64f87cbd3a717b976348c0ea84b0b27f1b4aec6cf7b0929355f9acc"
+    },
+    "java/time/MonthDay.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/MonthDay.java",
+      "sha256": "dd433b5fad67088d20027090a4731c399defeb57e839687febe9d1d8dfe1d578"
+    },
+    "java/time/OffsetDateTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/OffsetDateTime.java",
+      "sha256": "9b810881ee1bbfb9adf74ab76e7da40ee59d78cd59bfbbb9a8263b6e5b5212c7"
+    },
+    "java/time/OffsetTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/OffsetTime.java",
+      "sha256": "77989731cbec51a35db69b14dc9f15bc704475a38616c9f31dbfdee4a51f7f4f"
+    },
+    "java/time/Period.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Period.java",
+      "sha256": "949a7689c7a5fb8f8cccf1058e82275b36366730908dae8923099088e0a54625"
+    },
+    "java/time/Ser.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Ser.java",
+      "sha256": "a9cc0b9d38b7a13e61d145de18149e6e07a987a4a484b085d6d63e16585391ce"
+    },
+    "java/time/Year.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/Year.java",
+      "sha256": "8d83b7e835ee7ff012bee83c8b5946fee87705e59b9e92d5fcef9ac15b2e1117"
+    },
+    "java/time/YearMonth.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/YearMonth.java",
+      "sha256": "14c1d918d1efff40f557d4079f3a77f757c939ec1b48952ad144355d09dbd50e"
+    },
+    "java/time/ZoneId.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/ZoneId.java",
+      "sha256": "0fce1e234ee8255645f446b3ab400e0227e6f75d0d51acd5a7f63eba60920021"
+    },
+    "java/time/ZoneOffset.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/ZoneOffset.java",
+      "sha256": "1d3830161aa2f300a761eec2bdbcfff52dc14d2bf5c6e442cdb565b904a9cb9c"
+    },
+    "java/time/ZoneRegion.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/ZoneRegion.java",
+      "sha256": "58c0b7c3db128a0d5297b771b618b5b3a0b2a3d2d3045814335c2e72b0528e87"
+    },
+    "java/time/ZonedDateTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/ZonedDateTime.java",
+      "sha256": "080fd90ed16ed0e0932f56bdc54fcf24b6a6ea1703c103cf550c23ba5600d7f7"
+    },
+    "java/time/chrono/AbstractChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/AbstractChronology.java",
+      "sha256": "17b639581e9ca147f769d0a8e7b14b0f5383e778adb4c890571cd0c6d48a9a39"
+    },
+    "java/time/chrono/ChronoLocalDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoLocalDate.java",
+      "sha256": "9dcc0947770b4b1d7b8e423deca800f44cfa4b2f7b8c9edfd1efc075384fe9eb"
+    },
+    "java/time/chrono/ChronoLocalDateImpl.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoLocalDateImpl.java",
+      "sha256": "41afabba0b78c997bd2e3c0e6e5080c8f64a80cc6e8b1065aedd5965c3efb97d"
+    },
+    "java/time/chrono/ChronoLocalDateTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoLocalDateTime.java",
+      "sha256": "7d4748bd28d30c83f50f675902d6e0a86f699298a7c0f897694b975993636dd0"
+    },
+    "java/time/chrono/ChronoLocalDateTimeImpl.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoLocalDateTimeImpl.java",
+      "sha256": "9357f9b24177207f6064d0b0e8a95c2161ec4dd5b6da9bb8703dbd012ca06220"
+    },
+    "java/time/chrono/ChronoPeriod.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoPeriod.java",
+      "sha256": "6ee15d627ef61aba74e250e1e16cd56f95c49feb2ba0d94c69b5b011ba548c7c"
+    },
+    "java/time/chrono/ChronoPeriodImpl.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoPeriodImpl.java",
+      "sha256": "63fe462f437ba291164f45380d041dc5a8e3ecc0320d6335305f39bd1b278fd6"
+    },
+    "java/time/chrono/ChronoZonedDateTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoZonedDateTime.java",
+      "sha256": "61705f27d40dbf34f6fc48a58d374d8eb89314febd12b8f66790ad7fc5eeec99"
+    },
+    "java/time/chrono/ChronoZonedDateTimeImpl.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ChronoZonedDateTimeImpl.java",
+      "sha256": "f68e120205af3ba032a7a4ef60d23c8c5fa5c531763e15aca3cb4b0873d5b970"
+    },
+    "java/time/chrono/Chronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/Chronology.java",
+      "sha256": "241c512649067986dc5c4cd02017be14b52c013bb587f34f61c998e32238e2c8"
+    },
+    "java/time/chrono/Era.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/Era.java",
+      "sha256": "23bec65439d9f9cd99b4994fc24c54449aa5f1253ef9565ed39f4fb15d488d79"
+    },
+    "java/time/chrono/HijrahChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/HijrahChronology.java",
+      "sha256": "ee9f888cc7556cb533ffbdceb76a39d756a13b2fa2befa9594fed4247f04a792"
+    },
+    "java/time/chrono/HijrahDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/HijrahDate.java",
+      "sha256": "24fe7f25c16f58f66b52387823c17aca16ea65f31bf33d097cfdd961db44af97"
+    },
+    "java/time/chrono/HijrahEra.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/HijrahEra.java",
+      "sha256": "208f66340c62c4d4f36e13c4d0ba5cbe82e719316d60124cbbf9c9f4110906e3"
+    },
+    "java/time/chrono/IsoChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/IsoChronology.java",
+      "sha256": "51aed29b9eaf40ff7dee3f240bdea219660cbb3ecd380f774261ebb8b2ac8c0d"
+    },
+    "java/time/chrono/IsoEra.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/IsoEra.java",
+      "sha256": "9dc725cbae3091ab8930d60a5f52eb4fc3bad517340e2d29e00e3a39b1a654c6"
+    },
+    "java/time/chrono/JapaneseChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/JapaneseChronology.java",
+      "sha256": "4d5ce7ecc74c046da0c3e35458d69a933b86a2172d25ea6625d6418501183e0e"
+    },
+    "java/time/chrono/JapaneseDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/JapaneseDate.java",
+      "sha256": "467245c79130a7248493c924e791365e1f8092efc53f32b70dac3ed8bccefb17"
+    },
+    "java/time/chrono/JapaneseEra.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/JapaneseEra.java",
+      "sha256": "942a0f660aabed5e05ad11d37d17c10ff6d57d8c66fd1f3551a11da539bb4dd8"
+    },
+    "java/time/chrono/MinguoChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/MinguoChronology.java",
+      "sha256": "cea3d184ff3c25264496f446c6699149abf08870f51aa3867573149f521ddb2e"
+    },
+    "java/time/chrono/MinguoDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/MinguoDate.java",
+      "sha256": "5f9d4e405f5adb5790d723bcf247bb3603be6f900c3357aee811bcbb52270149"
+    },
+    "java/time/chrono/MinguoEra.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/MinguoEra.java",
+      "sha256": "b7b54acdd3c01590ac40f8f2368d8120ff02bed648b7840ea6caffe52c6e53dc"
+    },
+    "java/time/chrono/Ser.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/Ser.java",
+      "sha256": "bc9d55db4f36b18d673ddf185766e276e6776b2face74df5527238a6b8128c64"
+    },
+    "java/time/chrono/ThaiBuddhistChronology.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ThaiBuddhistChronology.java",
+      "sha256": "e1fcee1465ee1ebd3a139c1571660ae059622e5c1a0f070e258718761a895883"
+    },
+    "java/time/chrono/ThaiBuddhistDate.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ThaiBuddhistDate.java",
+      "sha256": "42c8e81c1ef9008fc9ab903e8c5c6b6a5a8881e1467a3daec26f14c079041ef0"
+    },
+    "java/time/chrono/ThaiBuddhistEra.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/chrono/ThaiBuddhistEra.java",
+      "sha256": "f96282b4cb763f52c026fbda868fb40cefe566b63f9fe8c048c66060352708fd"
+    },
+    "java/time/format/DateTimeFormatter.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimeFormatter.java",
+      "sha256": "3cccf2bfb789a92457cae486d2869760184fdd3960b47d6866fad47ff6ebbf69"
+    },
+    "java/time/format/DateTimeFormatterBuilder.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimeFormatterBuilder.java",
+      "sha256": "09e290fa5fac4648c92cf11cb2ae7e20b2c3f66c2d69d6fc59c8347d02c15d9e"
+    },
+    "java/time/format/DateTimeParseContext.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimeParseContext.java",
+      "sha256": "b63c29823b2e5b7edbe8b8a0db5a29aeab9d475dc55cad5fc79ee29f4551e7b3"
+    },
+    "java/time/format/DateTimeParseException.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimeParseException.java",
+      "sha256": "878865e355a5c588d2d16f6e6c59fb5d47163f92a36c26d54571e3d4716c58a4"
+    },
+    "java/time/format/DateTimePrintContext.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimePrintContext.java",
+      "sha256": "dc68a48c64b9093746b560418a664e477a73690658559223a9e5b53ed6233042"
+    },
+    "java/time/format/DateTimeTextProvider.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DateTimeTextProvider.java",
+      "sha256": "e17fd0a7330026ecf82f28f582e3f09c8815bdcf698ed16a4f52befae43161c0"
+    },
+    "java/time/format/DecimalStyle.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/DecimalStyle.java",
+      "sha256": "cb60140482385ce74ec42fab5c1350f26cc4805a187f0aab28d7bfc75ad3ed19"
+    },
+    "java/time/format/FormatStyle.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/FormatStyle.java",
+      "sha256": "0e9bddd2f931ce40533f63539c729f3d2e063e0526fb35392af12f846992167b"
+    },
+    "java/time/format/Parsed.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/Parsed.java",
+      "sha256": "a97a9c419c3ebc2da9448edd8fcec84d230e99d9ca3385142e481a2f2561d024"
+    },
+    "java/time/format/ResolverStyle.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/ResolverStyle.java",
+      "sha256": "b593654c4697172391c8df3001413465826edea60751a20a36dbc8c98796ce4b"
+    },
+    "java/time/format/SignStyle.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/SignStyle.java",
+      "sha256": "e3ec9901f2cc3994ea1db601cc36f14959b7791ba12064da1f7a50a5b693b40b"
+    },
+    "java/time/format/TextStyle.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/TextStyle.java",
+      "sha256": "0b739ef8310881fbd1de1fabfc27454acb3856e889ce304401fbc0831cd6e40e"
+    },
+    "java/time/format/ZoneName.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/format/ZoneName.java",
+      "sha256": "2af819362d4c50e3fd55037dab51a2ac5c28fb9d5bbca168edc42540271f0690"
+    },
+    "java/time/temporal/ChronoField.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/ChronoField.java",
+      "sha256": "820c4acd44deb7bb42bbfaefb7bada9b8b739e02f66b9d2dde2d14886624b80e"
+    },
+    "java/time/temporal/ChronoUnit.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/ChronoUnit.java",
+      "sha256": "d6c8f2e8fcf775757b7b76b7a07cddd18e9f4a9b7f239e89708f78ceb0f3706e"
+    },
+    "java/time/temporal/IsoFields.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/IsoFields.java",
+      "sha256": "226e1cb0838fff559d022a30ee2ea288d65df63f896a0ecbd4057cda2ba15301"
+    },
+    "java/time/temporal/JulianFields.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/JulianFields.java",
+      "sha256": "f79d7f4049f5e46ba22187ea8db7ad42d2683d5aadeb72b2e3b0d2a578672589"
+    },
+    "java/time/temporal/Temporal.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/Temporal.java",
+      "sha256": "105a692f31761d215898c0d14fc19399f1d52e85df03113aff03bedff57af0d2"
+    },
+    "java/time/temporal/TemporalAccessor.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalAccessor.java",
+      "sha256": "7b8ac1243f0f194a6c15a30fce89539ebe6545cd0ebe26e85f27563bb811f11d"
+    },
+    "java/time/temporal/TemporalAdjuster.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalAdjuster.java",
+      "sha256": "c58e4b7db1127ef63632b9ee9f67c1565cefdf8e16ce410f370338a339ddbef7"
+    },
+    "java/time/temporal/TemporalAdjusters.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalAdjusters.java",
+      "sha256": "0c70047a9733c8697106a33af3d061dc1956c76cf93d8f2755463bab0cdba4ec"
+    },
+    "java/time/temporal/TemporalAmount.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalAmount.java",
+      "sha256": "d605bd7088b7685da69b2089f37a432984b580df6786de8de6605de03599fe1d"
+    },
+    "java/time/temporal/TemporalField.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalField.java",
+      "sha256": "8fbf6044a48ac364d13f836af18b5118e3c88b2600dd7c99d3c3922decfeb5f9"
+    },
+    "java/time/temporal/TemporalQueries.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalQueries.java",
+      "sha256": "cd25c5905fe5719ae728701feb1db61741454b1f5d4131e9f499c3f622147b40"
+    },
+    "java/time/temporal/TemporalQuery.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalQuery.java",
+      "sha256": "39785b46bc5e5af3c79055a42ed73725c90722f5e23e8e98345cf89605bfbb95"
+    },
+    "java/time/temporal/TemporalUnit.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/TemporalUnit.java",
+      "sha256": "358363d09503e1bd0e6e998badc733c684618d3f493fa80f52ddb87d37299abd"
+    },
+    "java/time/temporal/UnsupportedTemporalTypeException.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/UnsupportedTemporalTypeException.java",
+      "sha256": "ee6f2a0fd93a91b10a92755828fb491339cbffcc7e2943bb0e58932f79a5df4b"
+    },
+    "java/time/temporal/ValueRange.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/ValueRange.java",
+      "sha256": "3048887a75a6814f9fb7a8ea6908ad4134d9b8f8bac504141cc2178362be7322"
+    },
+    "java/time/temporal/WeekFields.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/temporal/WeekFields.java",
+      "sha256": "8a359ff47c8f1e0bdb37d208ac72ea025e0402a726b3410f3acf1a2118edb847"
+    },
+    "java/time/zone/Ser.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/Ser.java",
+      "sha256": "cf2cf8a27f061b53995392c4c1a90d80e46ff052e6b8fd57030af1ff9950d87e"
+    },
+    "java/time/zone/ZoneOffsetTransition.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/ZoneOffsetTransition.java",
+      "sha256": "dbc759a23a395da7f318807e4ed75ba9733d0877aa6f1c4562c948fc4c27fe61"
+    },
+    "java/time/zone/ZoneOffsetTransitionRule.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/ZoneOffsetTransitionRule.java",
+      "sha256": "4303c91fcf90723724a40f126d9c3253203a81b6af4806d28bc3dfadca1e2f38"
+    },
+    "java/time/zone/ZoneRules.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/ZoneRules.java",
+      "sha256": "9f966ce0d4ff35871d6be480aace640d0c6c100f09214181b131ceb20ec52b95"
+    },
+    "java/time/zone/ZoneRulesException.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/ZoneRulesException.java",
+      "sha256": "4ebbe2d49e93f2697055038ef33fe56ac8f76614d3ddbd4312b720847656fdeb"
+    },
+    "java/time/zone/ZoneRulesProvider.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/ZoneRulesProvider.java",
+      "sha256": "70df6abedfe3e051c81a2d572d76a301b95b39ff470a5765b540245fd36b2491"
     },
     "java/util/AbstractCollection.java": {
       "upstream_path": "jdk/src/share/classes/java/util/AbstractCollection.java",
@@ -249,6 +661,10 @@
     "java/util/ConcurrentModificationException.java": {
       "upstream_path": "jdk/src/share/classes/java/util/ConcurrentModificationException.java",
       "sha256": "70010a838f6289bc1310ca6cc085a98da5109294f5d8d1c3587d1e12e6282cd8"
+    },
+    "java/util/Date.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Date.java",
+      "sha256": "ae8ca5ac81ea7e937a11690b12556c0839aa6ce7d46ef82e77cb753e98f297de"
     },
     "java/util/Deque.java": {
       "upstream_path": "jdk/src/share/classes/java/util/Deque.java",
@@ -398,6 +814,10 @@
       "upstream_path": "jdk/src/share/classes/java/util/Set.java",
       "sha256": "e6e876a4a82dc266d35baa15c4705ce614b13e06f5a5989dd14daec712267eba"
     },
+    "java/util/SimpleTimeZone.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/SimpleTimeZone.java",
+      "sha256": "292acae7ae66aa72043e3864c013a2f743ea3c74e7786c8264eef517876028e9"
+    },
     "java/util/SortedMap.java": {
       "upstream_path": "jdk/src/share/classes/java/util/SortedMap.java",
       "sha256": "4fbb1b87168e63bca6a4c1c3bce83d370d21465784b4bf7c5248058f7e54012d"
@@ -425,6 +845,10 @@
     "java/util/TimSort.java": {
       "upstream_path": "jdk/src/share/classes/java/util/TimSort.java",
       "sha256": "073e5e10bbb58ad9fa6799195d18ee4cc393c0ab904deeae2636eddca6c3f1e2"
+    },
+    "java/util/TimeZone.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/TimeZone.java",
+      "sha256": "4a7e3fd82a806f40ccc52499c00119b93ead47a9d6c655c3678eb6ec9706fe64"
     },
     "java/util/TreeMap.java": {
       "upstream_path": "jdk/src/share/classes/java/util/TreeMap.java",
@@ -846,6 +1270,14 @@
       "upstream_path": "jdk/src/share/classes/java/util/stream/Tripwire.java",
       "sha256": "af0a4ca9de809a8cda16ac4399da3fa4a3be84d07d1268570fafd773cd081beb"
     },
+    "java/util/zip/CRC32.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/zip/CRC32.java",
+      "sha256": "c2ca657ba14077a0583cf2442b172f3320588c36f90c279ba4de77ad2fbed58d"
+    },
+    "java/util/zip/Checksum.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/zip/Checksum.java",
+      "sha256": "24ba50a6519ffa5bb90645867e9271eb0e2fb538ca774cc607cb3eea1bf08967"
+    },
     "javax/xml/parsers/FactoryConfigurationError.java": {
       "upstream_path": "jaxp/src/javax/xml/parsers/FactoryConfigurationError.java",
       "sha256": "ba9d455ec327be8bc3a790cf2b281380c5f1aa9f9ebf85fab384617bc1cb4802"
@@ -1005,6 +1437,46 @@
     "sun/security/action/GetPropertyAction.java": {
       "upstream_path": "jdk/src/share/classes/sun/security/action/GetPropertyAction.java",
       "sha256": "9d4a0f22c32f09dfd33414833d0c324423184305f517daa5ee06e5ffd3afbedf"
+    },
+    "sun/util/calendar/AbstractCalendar.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/AbstractCalendar.java",
+      "sha256": "5265a105e653ecf3f2263e03b417512a9ee9d97fd5593d29a46ba71a5c1acf85"
+    },
+    "sun/util/calendar/BaseCalendar.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/BaseCalendar.java",
+      "sha256": "46fc074365a0ee893cd2b6bd232ab668fd1ab40866098000eb7d0ecf3cf30d19"
+    },
+    "sun/util/calendar/CalendarDate.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/CalendarDate.java",
+      "sha256": "e35b0c202833c0f9eea8e23ecc2e92fb8b8670ab3f49c667b182f833352b7faa"
+    },
+    "sun/util/calendar/CalendarSystem.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/CalendarSystem.java",
+      "sha256": "19e8e6a8cab271ea29613b3d196898936c0a0913e26e01cf89682961968f70f1"
+    },
+    "sun/util/calendar/CalendarUtils.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/CalendarUtils.java",
+      "sha256": "a791363df14b91966122a9059b44e4d4856cf793aeff919755e1091ea9991e8b"
+    },
+    "sun/util/calendar/Era.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/Era.java",
+      "sha256": "ea60ce8c6b37719c1955cfdfa66c25385bbf97e7a40f74ecee0270b3eb101fe1"
+    },
+    "sun/util/calendar/Gregorian.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/Gregorian.java",
+      "sha256": "35d6e8f6c68d1222cc774656759c386af2fb6128cbbf407b8d0b89f5d1ff810c"
+    },
+    "sun/util/calendar/ImmutableGregorianDate.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/ImmutableGregorianDate.java",
+      "sha256": "1bd8a71d7b4558f0f21f8120b785164bb6e2f030cdabdb9977c45a6f8eac7729"
+    },
+    "sun/util/calendar/LocalGregorianCalendar.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/LocalGregorianCalendar.java",
+      "sha256": "368d9beb0d52735c349b527d093d962ca3aa76569ae9184f5b5cd3913778e911"
+    },
+    "sun/util/calendar/ZoneInfo.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/ZoneInfo.java",
+      "sha256": "025db9448c0d2bbe23deeee4fc24bb82eb940b1e00cab9fe49a2cc39c8c9d21b"
     }
   }
 }

@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 251 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 369 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -49,6 +49,17 @@ The SAX sources also preserve their historical SAX notices. The OpenJDK source
 headers and root license files remain intact. The additional Java adapter and
 provider selector and Locale subset in `runtime/nspire/` are original MIT-licensed project code,
 compiled into the same supplemental JAR with their own license and source hashes.
+
+Exceptions in `runtime/nspire/` are `java/time/zone/TzdbZoneRulesProvider.java`
+and `sun/util/calendar/ZoneInfoFile.java`: these are adapted OpenJDK files,
+retain GPLv2 with the Classpath exception, and are not relicensed under MIT.
+Only database loading was changed to the packaged `nspire/time/tzdb.dat`
+resource. `vendor/openjdk8-time/upstream/` preserves their exact originals
+from the pinned OpenJDK revision. The accompanying TZDB 2026b database comes
+from the Temurin 8u504-b01 JRE; SOURCES.json records its download URL,
+archive hash and individual file hashes. All source and data notices are
+preserved in `vendor/openjdk8-time/` and embedded in the supplemental JAR.
+The new `nspire.time.ZoneData` resource bridge is original MIT project code.
 
 Intrinsic reflection API declarations are preserved in `vendor/openjdk8-api/`.
 They are generated from the pinned Temurin 8u504-b01 build-time rt.jar and contain

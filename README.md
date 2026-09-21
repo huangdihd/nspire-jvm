@@ -1,5 +1,7 @@
 # Nspire JVM 0.1（实验版）
 
+> **开发快照：时间/时区支持尚未完成。** 本分支保存当前研发成果；新增时间测试停在未绑定的 `StrictMath.log(D)D`。`dist/runtime.jar.tns` 已更新，但 `dist/nspire-jvm.tns` 仍来自 `23f3c70`，两者不是本分支验证过的配套发行文件。当前状态、复现命令及测试边界见 [CHECKPOINT.md](CHECKPOINT.md)。历史检查点位于 `main`。
+
 面向已安装 Ndless 的 TI-Nspire CX II CAS 的 C 字节码解释器。
 
 **目前不能启动完整 Xinbot，也不是 Java SE 17 兼容运行环境。**
@@ -45,7 +47,7 @@
 - 原始 OpenJDK 顺序 Stream 管道：对象和 int/long/double 流、短路匹配、筛选、排序、去重、归约和部分收集器；支持边界见 `STREAM-SUPPORT.md`。
 - EnumMap/EnumSet、共享枚举常量缓存和 Enum.valueOf；StringBuilder 的 CharSequence 追加、charAt 和 setLength。
 - 运行库所需的字段句柄、原子 CAS/更新、park/unpark 和系统属性；不提供任意本机地址访问。
-- 很小的内建运行库：部分 Object、String、StringBuilder、System、PrintStream、Math 方法。
+- 很小的内建运行库：部分 Object、String、StringBuilder、System、PrintStream 方法；本开发分支已改为导入原始 Math/StrictMath，部分本机数学函数尚缺。
 - 执行指令预算和 Ndless 下的 ESC 中断检查。
 
 `tests/` 中的 Java 程序使用真实 `javac` 编译；测试工具逐项比较标准 Java 和本解释器的输出。
@@ -101,10 +103,10 @@ python3 tools/test.py --vm build/nspire-jvm
 在 WSL 没有 Linux JDK 时，脚本也会查找 `/mnt/c/Program Files/Java/*/bin/` 下的 Windows JDK。
 本次实际使用的工具链与兼容修改记录在 `BUILD-NOTES.md`。
 
-重建 `dist/runtime.jar.tns` 需要额外准备一个 Java 8 JRE/JDK，其 `rt.jar` 仅用来提供编译接口：
+重建本分支的 `dist/runtime.jar.tns` 需要 Java 8 JDK 编译器，其 `rt.jar` 仅用来提供编译接口：
 
 ```sh
-python3 tools/build-runtime.py --java8-home /path/to/java8
+python3 tools/build-runtime.py --java8-home /path/to/java8-jdk --javac /path/to/java8-jdk/bin/javac
 python3 tools/test-runtime.py --vm build/nspire-jvm
 python3 tools/test-loader.py --vm build/nspire-jvm
 python3 tools/test-xml.py --vm build/nspire-jvm
@@ -127,8 +129,8 @@ python3 tools/test-methods.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-charset.py --vm build/nspire-jvm --java /path/to/java8/bin/java --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 251 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`runtime/nspire/` 包含本项目编写的适配层。
-本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、6 项文件系统/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 369 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
+历史检查点 `23f3c70` 有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、6 项文件系统/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。这些历史记录尚未针对本开发快照重新验证，也不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -152,7 +154,7 @@ jar cf myapp.jar.tns -C classes .
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
 - 并行 Stream 的 CountedCompleter/ForkJoinPool 后端，以及 Java 8 之后新增的流接口；Double 对象的 Java 精确文本转换。已补入基本 suppressed-exception 列表，但完整 Throwable 构造器、堆栈与序列化接口仍不完整。
-- Locale 的服务提供者、语言标签和分类默认值；泰语字典词边界（影响该 Locale 下的希腊词尾 sigma）。
+- Locale 的服务提供者、语言标签；泰语字典词边界（影响该 Locale 下的希腊词尾 sigma）。分类默认值已加入本开发分支。
 - 旧式 `jsr/ret` 指令及完整的类初始化错误语义。
 
 不支持的功能会报错；不会用空线程、假的网络成功或跳过字节码来冒充兼容。
@@ -175,7 +177,7 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 ./build/nspire-jvm -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
 ```
 
-当前实际结果：
+历史检查点 `23f3c70` 的实际结果（本开发快照尚未重跑完整 Xinbot）：
 
 ```text
 VM error: class not found: java/time/ZoneId

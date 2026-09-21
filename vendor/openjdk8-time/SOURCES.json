@@ -1,0 +1,34 @@
+{
+  "repository": "https://github.com/openjdk/jdk8u",
+  "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
+  "files": {
+    "upstream/java/time/zone/TzdbZoneRulesProvider.java": {
+      "upstream_path": "jdk/src/share/classes/java/time/zone/TzdbZoneRulesProvider.java",
+      "sha256": "e71765dd96992a74b47e40b4ee117792929c0685cdfa1d7b6832f5c4874cbe37"
+    },
+    "upstream/sun/util/calendar/ZoneInfoFile.java": {
+      "upstream_path": "jdk/src/share/classes/sun/util/calendar/ZoneInfoFile.java",
+      "sha256": "f4ceebe3ea027854e55948fb7ed4956e5e15e8db0182ec89f446cef9e268a473"
+    },
+    "tzdb.dat": {
+      "sha256": "8bf59121570827d89fd173cf6552300dcf2902b5aa61c818d63fb3f151fd031f"
+    },
+    "LICENSE": {
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    "ASSEMBLY_EXCEPTION": {
+      "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb"
+    },
+    "THIRD_PARTY_README": {
+      "sha256": "ded88776c93aaf687a6d6ff7a8faa94532f1d2c00f315814820a8cea36f83d91"
+    }
+  },
+  "tzdb": {
+    "source": "Temurin 8u504-b01 Linux x64 JRE lib/tzdb.dat",
+    "archive_url": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jre_x64_linux_hotspot_8u504b01.tar.gz",
+    "archive_sha256": "52dcd578baca1d3e449ea86768a9129c0ee04d7b22565695498353cc66940c61",
+    "versions": [
+      "2026b"
+    ]
+  }
+}

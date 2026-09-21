@@ -3,6 +3,7 @@
 package java.util;
 
 public final class Locale implements Cloneable, java.io.Serializable {
+    public enum Category { DISPLAY, FORMAT }
     private final String language, country, variant;
     public static final Locale ROOT = new Locale("", "");
     public static final Locale ENGLISH = new Locale("en", "");
@@ -30,6 +31,7 @@ public final class Locale implements Cloneable, java.io.Serializable {
         System.getProperty("user.language", "en"),
         System.getProperty("user.country", ""),
         System.getProperty("user.variant", ""));
+    private static Locale displayLocale,formatLocale;
 
     private static String asciiCase(String s, boolean upper) {
         if (s == null) throw new NullPointerException();
@@ -53,9 +55,25 @@ public final class Locale implements Cloneable, java.io.Serializable {
         this.language = lang; this.country = asciiCase(country, true); this.variant = variant;
     }
     public static Locale getDefault() { return defaultLocale; }
+    public static synchronized Locale getDefault(Category category) {
+        if(category==null)throw new NullPointerException();
+        Locale current=category==Category.DISPLAY?displayLocale:formatLocale;
+        if(current==null){
+            String suffix=category==Category.DISPLAY?".display":".format";
+            current=new Locale(System.getProperty("user.language"+suffix,defaultLocale.language),
+                System.getProperty("user.country"+suffix,defaultLocale.country),
+                System.getProperty("user.variant"+suffix,defaultLocale.variant));
+            if(category==Category.DISPLAY)displayLocale=current;else formatLocale=current;
+        }
+        return current;
+    }
     public static synchronized void setDefault(Locale locale) {
         if (locale == null) throw new NullPointerException();
-        defaultLocale = locale;
+        defaultLocale = displayLocale = formatLocale = locale;
+    }
+    public static synchronized void setDefault(Category category,Locale locale) {
+        if(category==null||locale==null)throw new NullPointerException();
+        if(category==Category.DISPLAY)displayLocale=locale;else formatLocale=locale;
     }
     public String getLanguage() { return language; }
     public String getCountry() { return country; }

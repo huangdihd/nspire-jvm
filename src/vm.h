@@ -9,6 +9,7 @@ typedef struct {
     unsigned long long instruction_limit; /* zero = no limit */
     int (*cancelled)(void);
     const char *bootclasspath; /* Supplemental runtime classes, searched first. */
+    const char *timezone; /* Explicit region/offset; target defaults to UTC. */
 } VmOptions;
 int vm_run(const VmOptions *options, int argc, const char **argv);
 #endif
