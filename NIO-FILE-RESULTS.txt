@@ -1,0 +1,7 @@
+PASS NioPathTest (Linux Java 8 output and actual disk contents)
+PASS NioCopyTest (Linux Java 8 output and actual disk contents)
+PASS NioChannelTest (Linux Java 8 output and actual disk contents)
+PASS NIO descriptor GC under 64-handle limit
+PASS NIO descriptor GC under 64-handle limit and fatal exit
+PASS NIO descriptor counts across six normal/fatal VM runs and console close
+Host filesystem only; Ndless execution and unsupported operations are not verified.

@@ -3,10 +3,10 @@
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
 The current interpreter and passing sample programs do not achieve that objective.
 
-Current checkpoint: native linkage errors, library-name mapping and temporary
-directory configuration are implemented. Original Xinbot reaches File.toPath in
-Jansi extraction and stops at missing java.nio.file.FileSystems, before main.
-Dynamic JNI loading is not implemented. See
+Current checkpoint: original NIO Files and real platform streams/channels now
+extract Jansi's 18,976-byte Linux x86_64 library, identical to the JAR entry.
+Xinbot next stops at missing java.io.DeleteOnExitHook, before main. Dynamic JNI
+loading, target filesystem gaps and device execution remain incomplete. See
 CHECKPOINT.md and XINBOT-RUN.txt for the latest evidence and remaining work.
 
 Development history (earlier stopping points below are historical):

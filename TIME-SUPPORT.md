@@ -3,11 +3,11 @@
 The interpreter executes preserved OpenJDK 8 java.time and calendar bytecode.
 It does not substitute formatted timestamps or skip Xinbot's logging setup.
 The complete application still fails in Jansi extraction at the missing
-`java.nio.file.FileSystems`, before `Xinbot.main` (see XINBOT-RUN.txt).
+`java.io.DeleteOnExitHook`, before `Xinbot.main` (see XINBOT-RUN.txt).
 
 ## Sources and platform bridges
 
-- `runtime/openjdk8/` preserves 379 original Java files from OpenJDK revision
+- `runtime/openjdk8/` preserves 438 original Java files from OpenJDK revision
   `f826be1da079fb8d44055a0d86021d13748f9c36`, including time, calendar, Math,
   StrictMath, big-number helpers and SerializedLambda dependencies.
 - TZDB 2026b is packaged as `/nspire/time/tzdb.dat`. The two adapted Java

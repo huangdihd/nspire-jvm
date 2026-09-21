@@ -1,26 +1,23 @@
-# 本机链接异常与临时目录检查点
+# NIO 路径与文件复制检查点
 
-目标依然是在 TI-Nspire CX II CAS 上通过 Ndless 本地运行原始 Xinbot。
-完整启动、联网及实机执行尚未完成。
+目标仍是在 TI-Nspire CX II CAS 上通过 Ndless 本地运行原始 Xinbot。
+当前完整启动、联网及实机执行均未完成。
 
-未绑定的 native 方法现在抛出原始 OpenJDK UnsatisfiedLinkError，普通调用、
-反射和 lambda 共用异常路径。System.mapLibraryName 支持库名映射与边界检查；
-System/Runtime.load 系列报告实际的链接失败，动态 JNI 加载仍未实现。
-新增 java.io.tmpdir、主机 --tmpdir、计算器配置第五行，以及整数二/八/十六进制转换。
+新增原始 OpenJDK FileSystems、Paths、Files、URI 和通道流适配，运行库包含
+438 份原始 Java 源文件及 80 份按上游规则生成的源码。NspirePath 保留原始
+Unix 路径算法，平台提供者接入实际文件描述符、目录和基本属性。
+流复制、独占创建、覆盖失败、部分复制、寻址、追加、截断和关闭均有主机对照。
 
-原始 Xinbot 已进入 Jansi 的库文件提取流程，File.toPath 当前缺少
-java.nio.file.FileSystems，尚未执行 Files.copy，也未进入 Xinbot.main。
-普通及 ASan/UBSan/泄漏检测构建均复现该停止点，无 sanitizer 错误。
-临时目录使用独立测试目录；完整实际堆栈见 XINBOT-RUN.txt。
+原始 Xinbot 实际提取出了 18,976 字节的 Jansi Linux x86_64 库，字节与
+原始 JAR 完全一致。当前停止在 File.deleteOnExit 缺少 java.io.DeleteOnExitHook。
+普通及 ASan/UBSan/泄漏检测构建均复现，未进入 Xinbot.main，也未加载 JNI 库。
+命令、SHA-256 和堆栈见 XINBOT-RUN.txt。
 
-现有主机回归套件及新增 6 项本机链接/临时目录/整数转换对照检查通过普通
-构建和 ASan/UBSan/泄漏检测。文件生命周期检查包含共享描述符、GC、异常退出
-和同进程多次 VM 运行。命令与边界见 NATIVE-SUPPORT.md 和 FILE-SUPPORT.md。
-这些测试不能等同于完整 Java SE 兼容性或计算器实机验证。
+完整既有回归及 6 项 NIO 检查通过普通和 ASan/UBSan/泄漏检测构建。
+NIO 检查包含与 Linux Java 8 的输出和磁盘内容对照、64 句柄限制下的 GC
+和异常退出，以及同进程多次 VM 运行的描述符计数。见 NIO-FILE-RESULTS.txt。
+计算器产物已重建，ARM/ELF/Zehn 结构记录见 TARGET-RESULTS.txt；这不证明实机运行。
 
-dist/ 中的计算器程序和运行库已同步重建，运行库包含 379 份未修改的上游
-Java 源文件。TARGET-RESULTS.txt 记录 ARM/ELF/Zehn 结构检查；
-DIST-MANIFEST.json 记录发行文件大小和 SHA-256。
-
-下一步继续实现实际 NIO 文件路径和复制接口，推进 Jansi 与原始应用执行。
-JNI、更多标准库接口、网络传输和实机验证仍未完成。
+Ndless 独占创建、部分文件选项与属性操作尚缺；Path-to-Path 复制、move、
+映射/锁/异步通道、watch、网络传输及动态 JNI 也未完成。详细边界见
+NIO-FILE-SUPPORT.md。下一步继续退出清理与原始应用的实际执行路径。

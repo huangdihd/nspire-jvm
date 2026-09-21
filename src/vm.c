@@ -155,7 +155,7 @@ static Property *property(VM *v,const char *key,int create) {
 static void init_properties(VM *v) {
     const char *pairs[]={"java.vm.name","Nspire JVM","java.vm.version","0.1",
         "java.vm.vendor","Nspire JVM contributors","java.class.version","61.0",
-        "file.separator","/","path.separator",";","line.separator","\n","file.encoding","UTF-8",
+        "file.separator","/","path.separator",";","line.separator","\n","file.encoding","UTF-8","sun.jnu.encoding","UTF-8",
         "user.language","en","user.country","",
         "sun.io.useCanonCaches","false","sun.io.useCanonPrefixCache","false",
 #ifdef _TINSPIRE
@@ -859,6 +859,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "boxing.inc"
 #include "charset.inc"
 #include "filesystem.inc"
+#include "nio_files.inc"
 #include "linkage.inc"
 #include "time.inc"
 #include "xml.inc"
@@ -875,6 +876,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     loaded=charset_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     loaded=filesystem_native(v,c,n,d,a,&handled);if(handled)return loaded;
     loaded=filestream_native(v,c,n,d,a,na,&handled);if(handled)return loaded;
+    loaded=nio_native(v,c,n,d,a,&handled);if(handled)return loaded;
     loaded=time_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
@@ -1091,6 +1093,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if((!strcmp(cl,"java/lang/Object")||!strcmp(cl,"java/lang/Number"))&&!strcmp(d,"()V")) return none;
         if((!strcmp(cl,"java/lang/StringBuilder")||subtype(c,load(v,"java/lang/Throwable"))) &&
            (!strcmp(d,"()V")||!strcmp(d,"(Ljava/lang/String;)V"))) {
+            if(na==2&&!strcmp(cl,"java/lang/StringBuilder")&&!obj(a[1])){throwing(v,"java/lang/NullPointerException");return none;}
             if(na==2&&obj(a[1])) set_text(v,self,obj(a[1])->text?obj(a[1])->text:"");
             else if(!strcmp(cl,"java/lang/StringBuilder")) set_text(v,self,"");
             return none;

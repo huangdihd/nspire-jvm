@@ -7,9 +7,9 @@ Command (temporary directory is created before execution and removed afterward):
 
 Exit status: 1
 stderr:
-VM error: class not found: java/nio/file/FileSystems
-  at java/io/File.toPath()Ljava/nio/file/Path; pc=22
-  at org/fusesource/jansi/internal/JansiLoader.extractAndLoadLibraryFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z pc=133
+VM error: class not found: java/io/DeleteOnExitHook
+  at java/io/File.deleteOnExit()V pc=28
+  at org/fusesource/jansi/internal/JansiLoader.extractAndLoadLibraryFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z pc=192
   at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=247
   at org/fusesource/jansi/internal/JansiLoader.initialize()Z pc=35
   at org/fusesource/jansi/internal/CLibrary.<clinit>()V pc=0
@@ -42,22 +42,26 @@ VM error: class not found: java/nio/file/FileSystems
   at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
-The original application discovers its SLF4J provider and processes its Logback
-XML, annotations, reflection, charset and date converter initialization. Its
-unchanged withJansi=true configuration invokes AnsiConsole.systemInstall.
-Library-name mapping, a real temporary-directory property and unsigned long
-formatting now let Jansi enter extractAndLoadLibraryFile. File.toPath fails
-because java.nio.file.FileSystems is missing, before Files.copy can copy the
-embedded native library. No successful JNI library load is claimed.
+The original application discovers SLF4J/Logback, processes its unchanged XML,
+annotations, reflection, charset and date converter initialization, then enables
+Jansi through its original withJansi=true configuration. File.toPath and the
+preserved Files.copy now execute the actual native-library extraction.
 
-The same stopping point was verified on ordinary and ASan/UBSan/leak-detection
-builds, with no sanitizer error or null temporary-directory exception. Each
-attempt used its own disposable directory; application cleanup saw only that
-fixture. The earlier Method.getParameters path depended on a caught temporary-
-directory NullPointerException and is not evidence of Jansi initialization.
+Extracted entry:
+  org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so
+  Bytes: 18976
+  SHA-256: 249095f2a73e3d2ab348d9f1de659947d253c18cf6a2049f75296b5a0d6ee079
+The disk file matches that unchanged JAR entry byte for byte. A zero-byte lock
+file is also created by Jansi. It next calls File.deleteOnExit and stops because
+java.io.DeleteOnExitHook is missing. Each run uses a disposable task directory.
+
+Both ordinary and ASan/UBSan/leak-detection builds reproduce this result, with
+no sanitizer error or null temporary-directory exception. The extracted library
+is a Linux x86_64 library, NOT an ARM Ndless library, and has NOT been loaded.
+Dynamic JNI loading is still not implemented.
 
 This is still before Xinbot.main. Complete startup has NOT succeeded.
 No Minecraft connection was made and no account credentials were used.
-Calculator/firmware-emulator execution is NOT verified. NIO file operations,
-Jansi platform/native dependencies, further JDK paths, real network transport
-and device execution remain to be implemented and verified.
+Calculator/firmware-emulator execution is NOT verified. Shutdown/delete-on-exit,
+target filesystem gaps, Jansi platform/native dependencies, further JDK paths,
+real network transport and device execution remain incomplete.

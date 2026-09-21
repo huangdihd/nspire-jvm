@@ -66,6 +66,10 @@
     },
     "THIRD_PARTY_README": {
       "sha256": "ded88776c93aaf687a6d6ff7a8faa94532f1d2c00f315814820a8cea36f83d91"
+    },
+    "jdk/src/share/classes/java/nio/channels/exceptions": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/exceptions",
+      "sha256": "1ce36e88c3c06d3875caf8e021cb6130e03ad05b1c048d299a0558f6acd0e2aa"
     }
   },
   "generated": {
@@ -215,6 +219,81 @@
     },
     "generated/java/nio/ShortBuffer.java": {
       "sha256": "5fd8d84653da8ffab2a6d175112b3be96683e12e45a6aef55747072e43ad2d4e"
+    },
+    "generated/java/nio/channels/AcceptPendingException.java": {
+      "sha256": "fd6ea733ebaad102e3d10a35419231895d2d0a134bead9ece1cfd8d2f094d488"
+    },
+    "generated/java/nio/channels/AlreadyBoundException.java": {
+      "sha256": "0414a192adaa413e0031dc9d6f4588ca3fc96e4a425e6a391a1cd6ea2e8aafa4"
+    },
+    "generated/java/nio/channels/AlreadyConnectedException.java": {
+      "sha256": "625c13ba493665304e5ae4684afa0e538adbe537a2158ee892787dfb08489413"
+    },
+    "generated/java/nio/channels/AsynchronousCloseException.java": {
+      "sha256": "06acbdd152e370bbad6cb99192c853ede1f44a90163ed806aead30f738201fcc"
+    },
+    "generated/java/nio/channels/CancelledKeyException.java": {
+      "sha256": "6fd29c90296de209660e6294f6270f8bdbf6fba07bcd8291f96ed8d8412d540d"
+    },
+    "generated/java/nio/channels/ClosedByInterruptException.java": {
+      "sha256": "5d6bed00b1dbbca598202f80bd13587d07b7e5d6ef2219e16cc66ae008ecfeb8"
+    },
+    "generated/java/nio/channels/ClosedChannelException.java": {
+      "sha256": "f2ca456887e7ad731a54d99c3216bd0c5f6f96e77e7c8dd2810eceaab5271efe"
+    },
+    "generated/java/nio/channels/ClosedSelectorException.java": {
+      "sha256": "6ff48467ddb47955a1a06096a982a4df92b7502d341f9e11722982d32afb47bc"
+    },
+    "generated/java/nio/channels/ConnectionPendingException.java": {
+      "sha256": "3197633306148261dfed848eabc83790839e24a68485db8710d3823c5346538c"
+    },
+    "generated/java/nio/channels/FileLockInterruptionException.java": {
+      "sha256": "06ef84ed9778add22d06bf10c31431279a8a6a80a6711a3f83a91d5e1943147c"
+    },
+    "generated/java/nio/channels/IllegalBlockingModeException.java": {
+      "sha256": "6bbbb24188655b688c2a941ffb11a4eb837636d4e9869e30fc0e3a597423395e"
+    },
+    "generated/java/nio/channels/IllegalChannelGroupException.java": {
+      "sha256": "6f9d46931121b9f7ae69645669c4c726f14d1ff457ffe8f8dcfc3ddda862d26d"
+    },
+    "generated/java/nio/channels/IllegalSelectorException.java": {
+      "sha256": "1008066f56bb0d7a8d3fd122edf81bf3d22bc0b4ca73c3c3e631d033bd07273a"
+    },
+    "generated/java/nio/channels/InterruptedByTimeoutException.java": {
+      "sha256": "d372f3a9343dc6b7e13d3fc51d391bc129883b3ae9609c3f367224491b2d7927"
+    },
+    "generated/java/nio/channels/NoConnectionPendingException.java": {
+      "sha256": "8c72e58f385c0e6da1a539a20e14d175403d11a4d42912fd06f6b09c395ef922"
+    },
+    "generated/java/nio/channels/NonReadableChannelException.java": {
+      "sha256": "4eb4f26144a859b76cd194d37e4ff34f19d0bf8a6f892b3b9d5a54576cec1f1e"
+    },
+    "generated/java/nio/channels/NonWritableChannelException.java": {
+      "sha256": "616430c12cbdd7a698d60336f87424ae5a721b89f41d97df2812cd5899e50392"
+    },
+    "generated/java/nio/channels/NotYetBoundException.java": {
+      "sha256": "41da0f0342c7039c402aa656bfe51c069a2d0726f10097627c511af48158cc0e"
+    },
+    "generated/java/nio/channels/NotYetConnectedException.java": {
+      "sha256": "15734b41bd74db7d8a0470a45b3181ff6417d1180cce84ba7114c2caad4c763d"
+    },
+    "generated/java/nio/channels/OverlappingFileLockException.java": {
+      "sha256": "728ffd0126cf785721bee35bee888cf19f39fbc2b96921a2692398421763da6a"
+    },
+    "generated/java/nio/channels/ReadPendingException.java": {
+      "sha256": "c65a3fe10ac470dcc1afcca38259ce0a7bbc9679abcccee48b317e8dd92b1582"
+    },
+    "generated/java/nio/channels/ShutdownChannelGroupException.java": {
+      "sha256": "55b266499c8ee8461f0d6256976a545891f7f5cfdbd19242a887986784b2b26e"
+    },
+    "generated/java/nio/channels/UnresolvedAddressException.java": {
+      "sha256": "be86de168c7aa6fcce184b0caf8c405304e6a8444551e7a8e4a4e9687dae02dd"
+    },
+    "generated/java/nio/channels/UnsupportedAddressTypeException.java": {
+      "sha256": "33aa7546d20e72662b7409afcff9a3a622188288efbfa53da3c07e4ce18a270c"
+    },
+    "generated/java/nio/channels/WritePendingException.java": {
+      "sha256": "9463f3e47deef9e330cc87890070a5bb6f4b5aee70a0412e66a48ab440389ca1"
     },
     "generated/java/nio/charset/CharacterCodingException.java": {
       "sha256": "dcc0315c99ca0c377becc0484713be6d1e2dd7b0ab8b518dc2251cae781bb6af"

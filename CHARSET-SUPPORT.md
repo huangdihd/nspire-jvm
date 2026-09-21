@@ -31,7 +31,7 @@ ReferenceQueue registration, SoftReference, PhantomReference and finalization
 are not implemented. Unsupported reference constructors still fail explicitly.
 
 The original Java sources are pinned in runtime/openjdk8/SOURCES.json. Templates,
-make rules, Spp, exception-generation scripts, alias data, licenses and 55 generated
+make rules, Spp, exception-generation scripts, alias data, licenses and 80 generated
 Java files are preserved in vendor/openjdk8-nio. Reproduction runs the upstream
 generators and checks input/output SHA-256:
 

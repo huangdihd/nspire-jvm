@@ -8,6 +8,7 @@ def main():
     ap.add_argument('--java8-home', required=True, type=Path,
                     help='JDK/JRE 8 directory; rt.jar supplies build-time signatures only')
     ap.add_argument('--javac',help='Compiler executable; Java 8 javac is required for the preserved time sources')
+    ap.add_argument('--scratch-dir',type=Path,help='Existing directory for disposable compiler output (e.g. /tmp for faster WSL builds)')
     ns = ap.parse_args()
     candidates = [ns.java8_home / 'jre/lib/rt.jar', ns.java8_home / 'lib/rt.jar']
     rt = next((p for p in candidates if p.is_file()), None)
@@ -33,6 +34,10 @@ def main():
     for path, record in {**nio_manifest['files'], **nio_manifest['generated']}.items():
         assert hashlib.sha256((nio / path).read_bytes()).hexdigest() == record['sha256'], path
     manifest = json.loads((source / 'SOURCES.json').read_text())
+    path_sources = ROOT / 'vendor/openjdk8-path'
+    path_manifest = json.loads((path_sources / 'SOURCES.json').read_text())
+    for path, record in path_manifest['files'].items():
+        assert hashlib.sha256((path_sources / path).read_bytes()).hexdigest() == record['sha256'], path
     assert {p.relative_to(source).as_posix() for p in files} == set(manifest['files']), 'Source manifest does not match input files'
     for path, record in manifest['files'].items():
         if hashlib.sha256((source / path).read_bytes()).hexdigest() != record['sha256']:
@@ -43,7 +48,7 @@ def main():
     archive.parent.mkdir(parents=True, exist_ok=True)
     # A fresh output directory prevents removed sources leaving stale classes
     # in the distributed JAR. TemporaryDirectory cleans only its own directory.
-    with tempfile.TemporaryDirectory(prefix='runtime-', dir=build) as temp:
+    with tempfile.TemporaryDirectory(prefix='nspire-runtime-', dir=ns.scratch_dir or build) as temp:
         output = Path(temp)
         cmd = [javac, '-J-Duser.language=en', '-source', '8', '-target', '8',
                '-bootclasspath', path_for(javac, rt), '-XDignore.symbol.file',
@@ -66,6 +71,8 @@ def main():
             for name in ('LICENSE', 'ASSEMBLY_EXCEPTION', 'THIRD_PARTY_README', 'SOURCES.json'):
                 z.write(nio / name, 'META-INF/openjdk8-nio/' + name)
             z.writestr('META-INF/nspire/SOURCES.json', json.dumps({p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in local}, indent=2))
+            for name in ('LICENSE', 'ASSEMBLY_EXCEPTION', 'THIRD_PARTY_README', 'SOURCES.json'):
+                z.write(path_sources / name, 'META-INF/openjdk8-path/' + name)
     print(f'Built {archive.name}: {archive.stat().st_size} bytes')
 
 if __name__ == '__main__': main()

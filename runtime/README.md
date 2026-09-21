@@ -40,3 +40,9 @@ Original InputStream, FileDescriptor and file streams are now included. Rebuild
 the supplemental runtime when rebuilding the native VM: standard console
 initialization depends on those classes. File/console limits, alias lifetime
 and host-versus-calculator behavior are described in FILE-SUPPORT.md.
+
+
+NIO paths, stream copying and a platform seekable channel are described in
+NIO-FILE-SUPPORT.md. The runtime preserves the original Files API and channel
+stream adapters; unsupported FileChannel, selector, watch and attribute paths
+remain incomplete. NspirePath is adapted OpenJDK code with its original license.

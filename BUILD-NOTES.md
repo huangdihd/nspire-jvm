@@ -80,7 +80,7 @@ bash tools/build-local-sdk.sh
 这些声明不代表所有内建方法均可执行；缺失实现仍明确报错。
 
 `vendor/openjdk8-nio/` 保留同一固定 OpenJDK 8 版本的生成工具、模板、别名数据与
-55 个生成源码。`tools/generate-nio.py --java /path/to/java8/bin/java` 在 Linux/WSL
+80 个生成源码。`tools/generate-nio.py --java /path/to/java8/bin/java` 在 Linux/WSL
 调用原始 Spp、make 规则和异常类生成脚本，校验输入及输出哈希；本次复现通过。
 运行库构建会校验这些文件并嵌入其授权和清单。字符集与缓冲区按 Java 8 行为对照，
 包含它与 Java 17 在部分 UTF-16 非法输入上的差异；不据此声称 Java 17 完整兼容。
@@ -139,9 +139,21 @@ ThreadPriorityTest 对照 Java 的接口行为，ThreadPriorityScheduleTest 单�
 
 ## 本机链接异常与临时目录
 
-运行库新增未修改的 OpenJDK UnsatisfiedLinkError，共 379 份原始 Java 源文件。
+运行库新增未修改的 OpenJDK UnsatisfiedLinkError，当前共 438 份原始 Java 源文件。
 未绑定 native 方法现在沿普通 Java 异常路径传播，反射和 lambda 使用相同入口。
 System/Runtime.load 系列明确抛出链接失败；尚未提供动态 JNI 加载器。
 库名映射、临时目录和 Integer/Long 进制转换的验证见 NATIVE-SUPPORT.md。
 主机可用 --tmpdir，计算器使用配置第五行；目录必须由调用方准备。
 原始 Xinbot 的临时目录测试使用独立目录，记录见 XINBOT-RUN.txt。
+
+
+## NIO 文件系统
+
+原始 Files/FileSystems/Paths 与通道流适配执行 Java 字节码，NspirePath 保留
+UnixPath 的路径算法并替换平台调用。原始文件、修改范围及许可见
+vendor/openjdk8-path 和 NIO-FILE-SUPPORT.md。生成器新增官方 channels 异常
+定义，现有 80 份生成源码；它们的存在不代表网络/异步通道已实现。
+运行库仍从完整源码重新编译。WSL 可加 --scratch-dir /tmp，把临时编译输出
+放入任务专属临时目录，结束时自动清理；最终 JAR 仍写入 dist/。
+Ndless SDK 的 O_EXCL 判断错误已记录，目标端尚未提供原子 CREATE_NEW；
+不会用截断替代独占创建。目标平台缺口与主机对照范围见 NIO-FILE-SUPPORT.md。

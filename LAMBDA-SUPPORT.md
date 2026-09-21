@@ -69,4 +69,4 @@ Unbound application native methods now throw catchable UnsatisfiedLinkError,
 including through lambda bridges; see NATIVE-SUPPORT.md. Fatal cleanup tests
 use unsupported numeric String.format on main/child stacks. Real Xinbot passes
 its time formatter's internal serializable lambdas; the current whole-startup
-failure is missing java.nio.file.FileSystems during Jansi extraction.
+failure is missing java.io.DeleteOnExitHook after actual Jansi extraction.

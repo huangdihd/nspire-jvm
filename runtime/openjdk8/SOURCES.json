@@ -162,6 +162,10 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Readable.java",
       "sha256": "3730c0c53c49e8aaeb3d449d9c72ab5b1f7275d17b0967468959a7644ea9c0bf"
     },
+    "java/lang/SecurityException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/SecurityException.java",
+      "sha256": "6eb6381dd8006529120e3b2ea72f9c3f956cbfc9f6ace13bbde4d52651100512"
+    },
     "java/lang/StrictMath.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/StrictMath.java",
       "sha256": "7c187cfc98fc1d62e0071aa98c009100208afc93697ccf90d0bade301ee9ea39"
@@ -254,6 +258,14 @@
       "upstream_path": "jdk/src/share/classes/java/math/SignedMutableBigInteger.java",
       "sha256": "64c18702afe2b904344dd9afd93dadfb076f851cc2db80c0db6de96a0419b037"
     },
+    "java/net/URI.java": {
+      "upstream_path": "jdk/src/share/classes/java/net/URI.java",
+      "sha256": "cfa5f24a62a7c5090c94813a1feaf2bdf2dd3e20fc603a7c126f926305b104b9"
+    },
+    "java/net/URISyntaxException.java": {
+      "upstream_path": "jdk/src/share/classes/java/net/URISyntaxException.java",
+      "sha256": "f9f2e9804b88e2d303e6caddc7343b729b4255834017647797b3ee94493eb1b6"
+    },
     "java/nio/Buffer.java": {
       "upstream_path": "jdk/src/share/classes/java/nio/Buffer.java",
       "sha256": "57a69d05807ababdb22e6960173e836a49d60239f5c188b704d208a4dcd71315"
@@ -269,6 +281,42 @@
     "java/nio/StringCharBuffer.java": {
       "upstream_path": "jdk/src/share/classes/java/nio/StringCharBuffer.java",
       "sha256": "0ea4bed9323be3731ff698baab2c432b6342fdf2a99284424423c1b0a043561a"
+    },
+    "java/nio/channels/ByteChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/ByteChannel.java",
+      "sha256": "abc0d5b7a23741aae556597d80986053e42a57ea50ec5a4c513e45bbef7b6a3b"
+    },
+    "java/nio/channels/Channel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/Channel.java",
+      "sha256": "638b7d8851b8b7810ca6bb93496c06726b3755663fef78a7dbd34b08b63e4b6b"
+    },
+    "java/nio/channels/Channels.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/Channels.java",
+      "sha256": "7c39a0de2a4d032aa7ed40ba225ff93efe0724a1a00e228d03f4adc462fab7dd"
+    },
+    "java/nio/channels/InterruptibleChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/InterruptibleChannel.java",
+      "sha256": "5394af7eeea8e22281090455e47ba1b79bec16eb264cf44133ff5ca40dca251e"
+    },
+    "java/nio/channels/ReadableByteChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/ReadableByteChannel.java",
+      "sha256": "e543ea485cbae9edbd8423e28d193fea8f8ff2c412b0ceec317c3417b144cd9d"
+    },
+    "java/nio/channels/SeekableByteChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/SeekableByteChannel.java",
+      "sha256": "81f9d12b86c540115ddb10919bf1b887a6ad969d739e0a1051eccc87aba9644b"
+    },
+    "java/nio/channels/SelectableChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/SelectableChannel.java",
+      "sha256": "98433558627e2c481344cf90af8f84d44b78459a327b27bfdfcb52b405f62649"
+    },
+    "java/nio/channels/WritableByteChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/WritableByteChannel.java",
+      "sha256": "9d46da2a5410dc1e8d7bfe4bd2eaa1f9e4675a422556c9e1d0f7452c078d58cd"
+    },
+    "java/nio/channels/spi/AbstractInterruptibleChannel.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/channels/spi/AbstractInterruptibleChannel.java",
+      "sha256": "9f5dfb5fa7b687063e84f42a57d51742ecc1c7804caddc2bf8e1e634d5ded628"
     },
     "java/nio/charset/Charset.java": {
       "upstream_path": "jdk/src/share/classes/java/nio/charset/Charset.java",
@@ -301,6 +349,178 @@
     "java/nio/charset/spi/CharsetProvider.java": {
       "upstream_path": "jdk/src/share/classes/java/nio/charset/spi/CharsetProvider.java",
       "sha256": "011fa88c852811ff3c9552672938f27e2fcc5617ce35fb1113a07cf223b0297b"
+    },
+    "java/nio/file/AccessDeniedException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/AccessDeniedException.java",
+      "sha256": "96a0718bdb46c42d7c23c2ac7c041db455561ed1edb33f12e2ced262806fdcdd"
+    },
+    "java/nio/file/AccessMode.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/AccessMode.java",
+      "sha256": "6e937d8ecf9ab55bb3e33203e42513e3a5328ff2b9c0af3623af072b7da23a6d"
+    },
+    "java/nio/file/ClosedDirectoryStreamException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/ClosedDirectoryStreamException.java",
+      "sha256": "def5108fe28cc06cb2ea37423f062f2bfab5083986060c106fcec88f3d79813d"
+    },
+    "java/nio/file/CopyOption.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/CopyOption.java",
+      "sha256": "e1a8ff84e6cd0cf9c7dc368d7a6ddc24f193955d817fd3a01f998182279fe6ef"
+    },
+    "java/nio/file/DirectoryIteratorException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/DirectoryIteratorException.java",
+      "sha256": "bd47cee65ac892e113a492bdf13008f73bde362f8c17eacb27b8155ec888cd46"
+    },
+    "java/nio/file/DirectoryNotEmptyException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/DirectoryNotEmptyException.java",
+      "sha256": "810d5162517dee99910998bf7b35d45d54b783525f41be7d5f8a30ece74e04d5"
+    },
+    "java/nio/file/DirectoryStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/DirectoryStream.java",
+      "sha256": "fc3574129a3ad99f357dfc1978689ba6538d82ec186fdc85ec7347a88e1515f0"
+    },
+    "java/nio/file/FileAlreadyExistsException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileAlreadyExistsException.java",
+      "sha256": "7a2a8da16dd81e8d786741a5407ca6e789f451b9df2b612e83a9b156c96196d5"
+    },
+    "java/nio/file/FileStore.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileStore.java",
+      "sha256": "596ea942a41031d3f8cf88005523ef2f786874e19398ed69f39f4f34bcd0c9b6"
+    },
+    "java/nio/file/FileSystem.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystem.java",
+      "sha256": "23c9c1481206273e75f92d2a9093f65889f22c000dd9cdea08dda6d2ffe56e13"
+    },
+    "java/nio/file/FileSystemAlreadyExistsException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystemAlreadyExistsException.java",
+      "sha256": "3d6162066deff5851ed49f0d70fb5cf413786c37d467590d0ee4bdde9efc60a3"
+    },
+    "java/nio/file/FileSystemException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystemException.java",
+      "sha256": "c468d991576923ae7b387f40afc0ea45f763ad4d42e761d48ab6de9ab20a1187"
+    },
+    "java/nio/file/FileSystemLoopException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystemLoopException.java",
+      "sha256": "bc613448f8e88f32548118f7fdeb8a9583db2c214bbef2cb5ec3765873f863bd"
+    },
+    "java/nio/file/FileSystemNotFoundException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystemNotFoundException.java",
+      "sha256": "1a4fb233302483db05828d99c1568bce30c500b7b35a66f331a327380ac723e2"
+    },
+    "java/nio/file/FileSystems.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/FileSystems.java",
+      "sha256": "b3d6e0ea51838c8f9f51ff4afe34a4f4f4867123134e308855a595b75aa1ca2f"
+    },
+    "java/nio/file/Files.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/Files.java",
+      "sha256": "50cf1477641b7a262da8384897a5305b7a450e9239201574350190222e4ef037"
+    },
+    "java/nio/file/InvalidPathException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/InvalidPathException.java",
+      "sha256": "5d9d117a2fa92f0bf594a2a6e5af06ddaeb3b8b26650059491e748eba7ded494"
+    },
+    "java/nio/file/LinkOption.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/LinkOption.java",
+      "sha256": "8c02489da4aaff024121ab08f025ef750e66c3b1aca3b438964669548ff50182"
+    },
+    "java/nio/file/NoSuchFileException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/NoSuchFileException.java",
+      "sha256": "ae4c32bd7ee5b1954b7c3fa8e2374510df930d58713454776523f2680fa021a7"
+    },
+    "java/nio/file/NotDirectoryException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/NotDirectoryException.java",
+      "sha256": "0e84ae960e6da2a13e7daa6015362dbc0647ff3c07b9e98ceb7e1e2a1a8ce657"
+    },
+    "java/nio/file/OpenOption.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/OpenOption.java",
+      "sha256": "24b461e86841726fa6f5d46ea1615b5dd100e686f906451faf7011b8e62ee10d"
+    },
+    "java/nio/file/Path.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/Path.java",
+      "sha256": "f4da3a187eba4fc5bff7b5b431a024de6cd8db7ec9163fd06e4049817bb33fe2"
+    },
+    "java/nio/file/PathMatcher.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/PathMatcher.java",
+      "sha256": "41ecc4657de9c7d20568813cb88d5f6cf1f6138876d25bb60cb45d1bb0f29466"
+    },
+    "java/nio/file/Paths.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/Paths.java",
+      "sha256": "6ed6af3be20139dc46fa39355486e994e4d05d399a99eb3a2a0aff8cfaaa5590"
+    },
+    "java/nio/file/ProviderMismatchException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/ProviderMismatchException.java",
+      "sha256": "daf12ff518de3eb6a4dbd4f1df5d4dde3d2682a7024b7ad33e172d546839d671"
+    },
+    "java/nio/file/ProviderNotFoundException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/ProviderNotFoundException.java",
+      "sha256": "1b2cbe5292b9f20212c7affe272f2972345f852b38b4f4dac8156d81983e2a02"
+    },
+    "java/nio/file/StandardCopyOption.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/StandardCopyOption.java",
+      "sha256": "8b8d362dbf013ffe68eef0640613c3a5c4d69b0f3df0c6a66e5516b21de4c0b4"
+    },
+    "java/nio/file/StandardOpenOption.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/StandardOpenOption.java",
+      "sha256": "a70872336f3eaa121dcbd34d31df80eb9dbcc857f3d490a6a760ba66829db703"
+    },
+    "java/nio/file/WatchEvent.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/WatchEvent.java",
+      "sha256": "753ae26036886e268e8adaed85d974b576565e381896a8669eca863a41382ddf"
+    },
+    "java/nio/file/WatchKey.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/WatchKey.java",
+      "sha256": "38e17939371a0e851a6fabf0314b08d0ba2a2a5b073d2a18ef25955e004ba03f"
+    },
+    "java/nio/file/WatchService.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/WatchService.java",
+      "sha256": "50638fca295a1fc6b3eea2d4542ba93612fdd1774f5df5b1b1167297fd4ab018"
+    },
+    "java/nio/file/Watchable.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/Watchable.java",
+      "sha256": "c111532009d1515c31b71b3fabe08a00a56b136063b6ad0130ffe086ab5ce555"
+    },
+    "java/nio/file/attribute/AttributeView.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/AttributeView.java",
+      "sha256": "29cd083493532c19e2479e9e375d1120dfef05a55707869b45db19426caba811"
+    },
+    "java/nio/file/attribute/BasicFileAttributeView.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/BasicFileAttributeView.java",
+      "sha256": "1b1bc3f4249401194e164508b0274add85791832e307c031c5aa0eece5a3450b"
+    },
+    "java/nio/file/attribute/BasicFileAttributes.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/BasicFileAttributes.java",
+      "sha256": "a0da1fc262359bc4f010c825f06e742db7f8b8e4ec1eb87ff6e70fd2774121c7"
+    },
+    "java/nio/file/attribute/FileAttribute.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/FileAttribute.java",
+      "sha256": "ff0ef9eb3d5b0effe22b38c0dbf9b91bf374a7512ca4fe886beaa3baa2dc466f"
+    },
+    "java/nio/file/attribute/FileAttributeView.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/FileAttributeView.java",
+      "sha256": "4a9946141194b0b6e1aecfc589b5f92b13c17a893a1269d2303930e7875322a5"
+    },
+    "java/nio/file/attribute/FileStoreAttributeView.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/FileStoreAttributeView.java",
+      "sha256": "78b812b48a5bfcc97294e4d81a275277f5c518a7fb44e86b3ef445521c572994"
+    },
+    "java/nio/file/attribute/FileTime.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/FileTime.java",
+      "sha256": "c049498a813b0bc2eb0ebf95309799365817ad58b421849163183ba8827c0fd6"
+    },
+    "java/nio/file/attribute/GroupPrincipal.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/GroupPrincipal.java",
+      "sha256": "b26f832b3dd040f328b9105a46dc98235f788a8e562772950856460d369043d2"
+    },
+    "java/nio/file/attribute/UserPrincipal.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/UserPrincipal.java",
+      "sha256": "6a5995a8dc30b9e28018f63185b76cbcb2adada941669e1ab3ef9694688f79d0"
+    },
+    "java/nio/file/attribute/UserPrincipalLookupService.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/attribute/UserPrincipalLookupService.java",
+      "sha256": "3f7c400bd72b9d548a1164ef83065399ea86d2f9e486b7c729a78b306797fbe0"
+    },
+    "java/nio/file/spi/FileSystemProvider.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/file/spi/FileSystemProvider.java",
+      "sha256": "f317182df0f9de9c0b4b93cf38149be5267895ecb2024dd70c600c7dfd1e3faf"
     },
     "java/security/PrivilegedAction.java": {
       "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",
@@ -1418,6 +1638,10 @@
       "upstream_path": "jdk/src/share/classes/sun/misc/JavaIOFileDescriptorAccess.java",
       "sha256": "db2bb94ed9b22fb118dfb322e0e7d93e0134d43c18a1c670c716791346578643"
     },
+    "sun/nio/ch/ChannelInputStream.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/ch/ChannelInputStream.java",
+      "sha256": "5e8bcda2ac489ad2488436238ca0b463b8c97d6ea22391120bebd4fd29aade4f"
+    },
     "sun/nio/cs/ArrayDecoder.java": {
       "upstream_path": "jdk/src/share/classes/sun/nio/cs/ArrayDecoder.java",
       "sha256": "b0a624ad6319a694f7f6da2fec61c5670fd81e1e19a1ea20e02f6d61e5e3d5ee"
@@ -1469,6 +1693,18 @@
     "sun/nio/cs/UnicodeEncoder.java": {
       "upstream_path": "jdk/src/share/classes/sun/nio/cs/UnicodeEncoder.java",
       "sha256": "e4ee228de2a853f0feeac93dea154ff27cbb3ab975db4dfeb536152952d613a0"
+    },
+    "sun/nio/fs/AbstractPath.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/fs/AbstractPath.java",
+      "sha256": "e479808d180377efa4247fd1b8d3de8e33f7d08067de0813074295587d159571"
+    },
+    "sun/nio/fs/Globs.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/fs/Globs.java",
+      "sha256": "a4967a69c8435570cef65b5d60944b508baeb5376d023d3c4728e36d71e15f99"
+    },
+    "sun/nio/fs/Util.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/fs/Util.java",
+      "sha256": "0362bf58c03587a3f0310079ddcdc83db04d85f01f926469c7a829ac47332add"
     },
     "sun/security/action/GetBooleanAction.java": {
       "upstream_path": "jdk/src/share/classes/sun/security/action/GetBooleanAction.java",

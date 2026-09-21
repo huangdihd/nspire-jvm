@@ -13,6 +13,7 @@ all: host
 host: build/nspire-jvm
 build/nspire-jvm build/ndless/src/vm.o: src/filesystem.inc src/descriptors.inc src/linkage.inc src/canonical.h src/time.inc
 build/nspire-jvm build/ndless/src/vm.o: src/parse_number.inc
+build/nspire-jvm build/ndless/src/vm.o: src/nio_files.inc
 build/nspire-jvm build/ndless/src/vm.o: src/strictmath.h
 build/nspire-jvm build/ndless/src/strictmath_log.o build/ndless/src/strictmath_sqrt.o: src/fdlibm_config.h src/strictmath.h $(wildcard vendor/openjdk8-fdlibm/upstream/*.h) vendor/openjdk8-fdlibm/upstream/e_log.c vendor/openjdk8-fdlibm/generated/e_sqrt.c
 build/nspire-jvm build/ndless/src/canonical.o: src/canonical.h vendor/openjdk8-file/canonicalize_md.c

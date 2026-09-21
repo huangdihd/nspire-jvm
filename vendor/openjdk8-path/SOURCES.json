@@ -1,0 +1,19 @@
+{
+  "repository": "https://github.com/openjdk/jdk8u",
+  "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
+  "files": {
+    "UnixPath.java": {
+      "sha256": "c91d093572ac7f3b54353fe79fc88212f0de43b339084586f6ae133ad819061f",
+      "upstream_path": "jdk/src/solaris/classes/sun/nio/fs/UnixPath.java"
+    },
+    "LICENSE": {
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    "ASSEMBLY_EXCEPTION": {
+      "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb"
+    },
+    "THIRD_PARTY_README": {
+      "sha256": "ded88776c93aaf687a6d6ff7a8faa94532f1d2c00f315814820a8cea36f83d91"
+    }
+  }
+}

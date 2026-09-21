@@ -66,8 +66,9 @@ checks do not exercise a successfully loaded native library or calculator I/O.
 
 The original Xinbot attempt now gets past mapLibraryName and the missing
 temporary-directory property, and enters Jansi's normal resource extraction.
-The current failure is missing java.nio.file.FileSystems in File.toPath,
-before Files.copy can copy the embedded library. See XINBOT-RUN.txt. The
+NIO FileSystems and the original Files.copy now extract the actual library
+with bytes matching the JAR entry. The next missing class is java.io.DeleteOnExitHook.
+See NIO-FILE-SUPPORT.md and XINBOT-RUN.txt. The
 earlier Method.getParameters stopping point occurred only because the missing
 temp-directory property caused a caught NullPointerException; it is not used
 as evidence of successful Jansi initialization.

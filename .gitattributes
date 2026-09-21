@@ -21,3 +21,4 @@ vendor/openjdk8-nio/** -text
 vendor/openjdk8-file/** -text
 vendor/openjdk8-time/** -text
 vendor/openjdk8-fdlibm/** -text
+vendor/openjdk8-path/** -text

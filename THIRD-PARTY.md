@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 379 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 438 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -31,7 +31,7 @@ this repository and the source ZIP. A separate Java 8 rt.jar is used only for
 compile-time API signatures and is not redistributed or copied into the JAR.
 
 `vendor/openjdk8-nio/` preserves templates, make rules, Spp, exception scripts,
-charset alias data and 55 generated Java sources from that same fixed revision.
+charset alias data and 80 generated Java sources from that same fixed revision.
 SOURCES.json records original and generated hashes. tools/generate-nio.py runs
 the upstream generators; the compiled runtime embeds their notices and manifest.
 These sources retain GPLv2 with the Classpath exception. Project charset-provider,
@@ -50,7 +50,12 @@ headers and root license files remain intact. The additional Java adapter and
 provider selector and Locale subset in `runtime/nspire/` are original MIT-licensed project code,
 compiled into the same supplemental JAR with their own license and source hashes.
 
-Exceptions in `runtime/nspire/` are `java/time/zone/TzdbZoneRulesProvider.java`
+The adapted `runtime/nspire/sun/nio/fs/NspirePath.java` also retains GPLv2 with
+the Classpath exception. Its exact UnixPath original and notices are preserved
+in `vendor/openjdk8-path/`, with pinned source hashes embedded in the runtime.
+The NIO provider, native bridge and channel adapter are original MIT project code.
+
+Other exceptions in `runtime/nspire/` are `java/time/zone/TzdbZoneRulesProvider.java`
 and `sun/util/calendar/ZoneInfoFile.java`: these are adapted OpenJDK files,
 retain GPLv2 with the Classpath exception, and are not relicensed under MIT.
 Only database loading was changed to the packaged `nspire/time/tzdb.dat`

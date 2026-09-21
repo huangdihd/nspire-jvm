@@ -36,7 +36,7 @@ TOOL_SPP := '''+shlex.join([str(Path(ns.java).resolve()),'-cp',str(classes),'bui
 include $(JDK_TOPDIR)/make/gensrc/GensrcBuffer.gmk
 include $(JDK_TOPDIR)/make/gensrc/GensrcCharsetCoder.gmk
 include $(JDK_TOPDIR)/make/gensrc/GensrcExceptions.gmk
-all: $(filter-out $(GENSRC_BUFFER_DST)/Direct%,$(GENSRC_BUFFER)) $(GENSRC_CHARSETCODER) $(GENSRC_EXCEPTIONS_DST)/_the.. $(GENSRC_EXCEPTIONS_DST)/_the.charset
+all: $(filter-out $(GENSRC_BUFFER_DST)/Direct%,$(GENSRC_BUFFER)) $(GENSRC_CHARSETCODER) $(GENSRC_EXCEPTIONS_DST)/_the.. $(GENSRC_EXCEPTIONS_DST)/_the.charset $(GENSRC_EXCEPTIONS_DST)/_the.channels
 ''')
  subprocess.run(['make','--silent','-f',str(wrapper)],check=True)
  # The provider is project code; aliases below are preserved upstream data.
