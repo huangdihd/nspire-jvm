@@ -72,9 +72,10 @@ stat check and does not provide atomic exclusive creation. Correct native
 implementations and device verification remain necessary. Ordinary fopen is
 not claimed to implement Java's atomic createNewFile contract.
 
-Other missing dependencies include createTempFile/SecureRandom, deleteOnExit/
-shutdown hooks, URI/NIO Path integration and serialization. Source availability
-does not establish full java.io compatibility.
+Other missing dependencies include createTempFile/SecureRandom and serialization.
+URI/NIO paths are described in NIO-FILE-SUPPORT.md; deleteOnExit and shutdown
+hooks in SHUTDOWN-SUPPORT.md. Source availability does not establish full
+java.io compatibility.
 
 ## Verification
 
@@ -103,8 +104,9 @@ Original Logback headerBytes now returns bytes matching Java 17 with the same
 configured line separator. Class.getInterfaces returns a fresh array of direct
 interfaces; a separate oracle test covers source order, inherited-only
 interfaces, arrays, primitives, annotations and reflective calls. Whole Xinbot
-now extracts Jansi's library through actual NIO copying, then reaches missing
-java.io.DeleteOnExitHook before Xinbot.main. See NIO-FILE-SUPPORT.md. Temporary-
+now extracts Jansi's library through actual NIO copying, registers deletion and
+handles the JNI load failure, then reaches Method.getParameters before
+Xinbot.main. See SHUTDOWN-SUPPORT.md and NIO-FILE-SUPPORT.md. Temporary-
 directory configuration is described in NATIVE-SUPPORT.md.
 No full application or calculator run has completed. The unmodified JNI files
 beside the canonicalizer are references and are not compiled.

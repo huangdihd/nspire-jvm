@@ -67,8 +67,9 @@ checks do not exercise a successfully loaded native library or calculator I/O.
 The original Xinbot attempt now gets past mapLibraryName and the missing
 temporary-directory property, and enters Jansi's normal resource extraction.
 NIO FileSystems and the original Files.copy now extract the actual library
-with bytes matching the JAR entry. The next missing class is java.io.DeleteOnExitHook.
-See NIO-FILE-SUPPORT.md and XINBOT-RUN.txt. The
-earlier Method.getParameters stopping point occurred only because the missing
-temp-directory property caused a caught NullPointerException; it is not used
-as evidence of successful Jansi initialization.
+with bytes matching the JAR entry. deleteOnExit and String.join now execute,
+and Jansi catches the actual UnsatisfiedLinkError. The next missing operation
+is Method.getParameters. See SHUTDOWN-SUPPORT.md and XINBOT-RUN.txt. This
+new attempt reaches that operation after the real extraction/load-failure path;
+the historical attempt reached it via a missing-property NullPointerException.
+Neither attempt establishes successful Jansi initialization.

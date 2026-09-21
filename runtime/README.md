@@ -46,3 +46,9 @@ NIO paths, stream copying and a platform seekable channel are described in
 NIO-FILE-SUPPORT.md. The runtime preserves the original Files API and channel
 stream adapters; unsupported FileChannel, selector, watch and attribute paths
 remain incomplete. NspirePath is adapted OpenJDK code with its original license.
+
+
+Preserved OpenJDK shutdown hooks and delete-on-exit now execute in the VM.
+The runtime includes IdentityHashMap and ThreadDeath dependencies; native
+lifetime integration and host verification are described in SHUTDOWN-SUPPORT.md.
+StringOperations.join delegates both overloads to the original StringJoiner.

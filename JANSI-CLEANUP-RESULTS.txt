@@ -1,0 +1,3 @@
+PASS original Jansi extraction, exact library bytes, caught JNI failure, hook-before-deletion and natural shutdown
+PASS original Jansi extraction, exact library bytes, caught JNI failure, hook-before-deletion and System.exit(17)
+Host component check only; native loading, full Xinbot startup and Ndless execution are not verified.

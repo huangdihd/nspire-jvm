@@ -30,6 +30,10 @@
       "upstream_path": "jdk/src/solaris/classes/java/io/DefaultFileSystem.java",
       "sha256": "a88b9c2973d426b64c7eb52fc3cd9bcda10ffca949d77f23848d88ae4266a0fc"
     },
+    "java/io/DeleteOnExitHook.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/DeleteOnExitHook.java",
+      "sha256": "ffa366f4192b4410fe7c17e5cb963e4c0fce03f9eb35f02aea757b31c0be80f4"
+    },
     "java/io/EOFException.java": {
       "upstream_path": "jdk/src/share/classes/java/io/EOFException.java",
       "sha256": "9e7534d55529a9edcee4da3e0c38f5ec63d0c7ce9eefab90224ca83ad8176664"
@@ -134,6 +138,10 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Appendable.java",
       "sha256": "cf925f4607b4c40430cbaed3ad19c753d5dfe24068644c990f400f934e82241d"
     },
+    "java/lang/ApplicationShutdownHooks.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/ApplicationShutdownHooks.java",
+      "sha256": "366b7b1bb749f950eceae09e9332a627898f0f923cc1f141a69796c9a3396892"
+    },
     "java/lang/Comparable.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Comparable.java",
       "sha256": "fa36a5187e874680520eb22bba1cd52657d1a3206ab050df0e3b986a19853c15"
@@ -166,6 +174,10 @@
       "upstream_path": "jdk/src/share/classes/java/lang/SecurityException.java",
       "sha256": "6eb6381dd8006529120e3b2ea72f9c3f956cbfc9f6ace13bbde4d52651100512"
     },
+    "java/lang/Shutdown.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Shutdown.java",
+      "sha256": "eec5b1339962abeb131e75cd47f288507889ba084234cab8699178efef85694d"
+    },
     "java/lang/StrictMath.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/StrictMath.java",
       "sha256": "7c187cfc98fc1d62e0071aa98c009100208afc93697ccf90d0bade301ee9ea39"
@@ -173,6 +185,10 @@
     "java/lang/StringBuffer.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/StringBuffer.java",
       "sha256": "e5c14887ce9895987c88ce33bd7fda9b627bbc8d74e5eb555e8f0bbf30058d26"
+    },
+    "java/lang/ThreadDeath.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/ThreadDeath.java",
+      "sha256": "778ce3d95099c7f8e5dfe59a297af5bef6cf38d11a86e4458223479a5a57d5cb"
     },
     "java/lang/TypeNotPresentException.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/TypeNotPresentException.java",
@@ -965,6 +981,10 @@
     "java/util/Hashtable.java": {
       "upstream_path": "jdk/src/share/classes/java/util/Hashtable.java",
       "sha256": "79827ff4e3ac1cacef94545bcaa59e8cf264129458b0d47f4e33c0dfee6cec0b"
+    },
+    "java/util/IdentityHashMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/IdentityHashMap.java",
+      "sha256": "85cba871315d49aab5601e85f7f96e4aebc2f5a34489fea91644f57d0f124040"
     },
     "java/util/IntSummaryStatistics.java": {
       "upstream_path": "jdk/src/share/classes/java/util/IntSummaryStatistics.java",

@@ -1,0 +1,15 @@
+PASS natural status, hook execution and disk contents match Linux Java 8
+PASS uncaught status, hook execution and disk contents match Linux Java 8
+PASS exception-hook status, hook execution and disk contents match Linux Java 8
+PASS late-delete status, hook execution and disk contents match Linux Java 8
+PASS exit status, hook execution and disk contents match Linux Java 8
+PASS runtime-exit status, hook execution and disk contents match Linux Java 8
+PASS worker-exit status, hook execution and disk contents match Linux Java 8
+PASS halt status, hook execution and disk contents match Linux Java 8
+PASS worker-halt status, hook execution and disk contents match Linux Java 8
+PASS halt-hook status, hook execution and disk contents match Linux Java 8
+PASS fatal abort status and no false successful shutdown
+PASS fatal-hook abort status and no false successful shutdown
+PASS fatal-worker abort status and no false successful shutdown
+PASS twenty embedded shutdowns, exit/halt status, fiber teardown and descriptor count
+Host execution only; Ndless hardware, signals, finalizers and ThreadGroup exception dispatch are not verified.

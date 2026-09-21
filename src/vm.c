@@ -110,7 +110,7 @@ struct VM {
     Object *objects, *exception; size_t heap, threshold; Frame *frame;
     Object *roots[256]; unsigned nr;
     ClassPath paths[32]; unsigned npaths,nbootpaths; uint64_t steps;
-    VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;int fatal;
+    VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;int stopped,status;
     Object *unsafe_instance,*runtime_instance;
     Object *app_loader,*java_lang_access,*java_io_descriptor_access;
     Object *integer_cache[256],*long_cache[256];
@@ -121,6 +121,7 @@ struct VM {
 };
 static void abort_vm(VM *v);
 static void fail(VM *v, const char *fmt, ...) {
+    v->status=1;
     va_list a; va_start(a, fmt); fputs("VM error: ", stderr); vfprintf(stderr, fmt, a);
     va_end(a); fputc('\n', stderr);
     for (Frame *f=v->frame; f; f=f->prev)
@@ -863,6 +864,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "linkage.inc"
 #include "time.inc"
 #include "xml.inc"
+#include "shutdown.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
     return (s[0]=='t'||s[0]=='T')&&(s[1]=='r'||s[1]=='R')&&(s[2]=='u'||s[2]=='U')&&(s[3]=='e'||s[3]=='E');
@@ -870,6 +872,8 @@ static int parse_boolean(Object *o) {
 static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,unsigned na,int isstatic) {
     const char *cl=c->name; Value none=iv(0); Object *self=NULL;
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
+    int shutdown_handled;Value shutdown_result=shutdown_native(v,c,n,d,a,isstatic,&shutdown_handled);
+    if(shutdown_handled)return shutdown_result;
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=method_reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=small_box_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
@@ -1216,6 +1220,12 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
     }
     if(!strcmp(cl,"java/lang/String")) {
+        if(isstatic&&!strcmp(n,"join")&&
+           (!strcmp(d,"(Ljava/lang/CharSequence;[Ljava/lang/CharSequence;)Ljava/lang/String;")||
+            !strcmp(d,"(Ljava/lang/CharSequence;Ljava/lang/Iterable;)Ljava/lang/String;"))) {
+            Class *ops=load(v,"nspire/text/StringOperations");initialize(v,ops);if(v->exception)return none;
+            Method *join=method(ops,n,d);if(!join)fail(v,"String.join bridge is missing");return execute(v,join,a,2);
+        }
         if(!isstatic&&!strcmp(n,"toCharArray")&&!strcmp(d,"()[C")) {
             int length=0;const unsigned char *p=(const unsigned char *)self->text;while(*p){utf_unit(&p);length++;}
             Object *out=array_new(v,"[C",length);string_get_chars(v,self,0,length,out,0);return rv(out);
@@ -1838,7 +1848,7 @@ done:
 }
 int vm_run(const VmOptions *opt,int argc,const char **argv) {
     VM *v=(VM *)calloc(1,sizeof(VM));if(!v){fputs("Cannot allocate VM\n",stderr);return 1;}
-    v->opt=*opt;v->threshold=65536;int status=1;
+    v->opt=*opt;v->threshold=65536;v->status=1;
     if(!setjmp(v->abort)) {
         if(opt->heap_limit<4096||opt->heap_limit>128U*1024U*1024U)fail(v,"heap must be 4096..134217728 bytes");
         init_properties(v);
@@ -1861,9 +1871,11 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
             Value a=rv(args);execute(v,m,&a,1);v->nr--;
         }
         if(v->exception)fprintf(stderr,"Uncaught Java exception: %s\n",v->exception->cls->name);
-        else status=0;
+        else v->status=0;
+        v->exception=NULL;
         clear_locals(v,v->main_thread);v->main_thread->finished=1;v->live_threads--;
         if(workers_alive(v)){v->main_thread->state=T_DRAIN;schedule(v);}
+        shutdown_natural(v);
     }
     while(v->xml_parsers)xml_destroy(v,v->xml_parsers);
     /* A fatal longjmp can leave Expat's callback-depth guard set. Its public
@@ -1873,5 +1885,5 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
     while(v->directories)directory_close(v,v->directories);
     for(unsigned i=0;i<v->npaths;i++)if(v->paths[i].is_zip)mz_zip_reader_end(&v->paths[i].zip);
     while(v->objects){Object *o=v->objects;v->objects=o->next;if(o->file_open&&o->file_owned)close(o->file_fd);free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
-    while(v->mem){Mem *m=v->mem;v->mem=m->next;free(m);}free(v);return status;
+    while(v->mem){Mem *m=v->mem;v->mem=m->next;free(m);}int status=v->status;free(v);return status;
 }

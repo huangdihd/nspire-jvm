@@ -139,7 +139,7 @@ ThreadPriorityTest 对照 Java 的接口行为，ThreadPriorityScheduleTest 单�
 
 ## 本机链接异常与临时目录
 
-运行库新增未修改的 OpenJDK UnsatisfiedLinkError，当前共 438 份原始 Java 源文件。
+运行库新增未修改的 OpenJDK UnsatisfiedLinkError，当前共 443 份原始 Java 源文件。
 未绑定 native 方法现在沿普通 Java 异常路径传播，反射和 lambda 使用相同入口。
 System/Runtime.load 系列明确抛出链接失败；尚未提供动态 JNI 加载器。
 库名映射、临时目录和 Integer/Long 进制转换的验证见 NATIVE-SUPPORT.md。
@@ -157,3 +157,11 @@ vendor/openjdk8-path 和 NIO-FILE-SUPPORT.md。生成器新增官方 channels �
 放入任务专属临时目录，结束时自动清理；最终 JAR 仍写入 dist/。
 Ndless SDK 的 O_EXCL 判断错误已记录，目标端尚未提供原子 CREATE_NEW；
 不会用截断替代独占创建。目标平台缺口与主机对照范围见 NIO-FILE-SUPPORT.md。
+
+
+## 退出生命周期
+
+原始 Java 退出状态机接入 src/shutdown.inc，halt0 返回 vm_run 调用方。
+退出码保存在 VM 中，避免跨 longjmp 后 C 局部值不确定；工作线程先切回
+根 C 栈再退出。自然退出使用独立线程身份，保留原始 main 的终止语义。
+构建和验证命令、14 项检查及 String.join 对照见 SHUTDOWN-SUPPORT.md。

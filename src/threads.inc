@@ -21,7 +21,7 @@ static void restore_thread(VM *v,VmThread *t) {
 static void abort_vm(VM *v) {
     /* Never longjmp across fiber stacks: return to the saved main C stack first. */
     if(v->current&&v->main_thread&&v->current!=v->main_thread) {
-        VmThread *old=v->current;v->fatal=1;save_thread(v,old);
+        VmThread *old=v->current;v->stopped=1;save_thread(v,old);
         restore_thread(v,v->main_thread);
         vm_context_switch(&old->context,&v->main_thread->context);
         abort();
@@ -57,7 +57,7 @@ static void schedule(VM *v) {
                 if(next==old)return;
                 save_thread(v,old);restore_thread(v,next);
                 vm_context_switch(&old->context,&next->context);
-                if(v->fatal)longjmp(v->abort,1);
+                if(v->stopped)longjmp(v->abort,1);
                 return;
             }
             next=next->next?next->next:v->threads;

@@ -14,6 +14,7 @@ host: build/nspire-jvm
 build/nspire-jvm build/ndless/src/vm.o: src/filesystem.inc src/descriptors.inc src/linkage.inc src/canonical.h src/time.inc
 build/nspire-jvm build/ndless/src/vm.o: src/parse_number.inc
 build/nspire-jvm build/ndless/src/vm.o: src/nio_files.inc
+build/nspire-jvm build/ndless/src/vm.o: src/shutdown.inc
 build/nspire-jvm build/ndless/src/vm.o: src/strictmath.h
 build/nspire-jvm build/ndless/src/strictmath_log.o build/ndless/src/strictmath_sqrt.o: src/fdlibm_config.h src/strictmath.h $(wildcard vendor/openjdk8-fdlibm/upstream/*.h) vendor/openjdk8-fdlibm/upstream/e_log.c vendor/openjdk8-fdlibm/generated/e_sqrt.c
 build/nspire-jvm build/ndless/src/canonical.o: src/canonical.h vendor/openjdk8-file/canonicalize_md.c
@@ -33,6 +34,14 @@ build/file-lifetime: file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCE
 build/file-lifetime-asan: file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) $(HOST_HEADERS) Makefile
 	mkdir -p build
 	$(CC) $(COMMON) $(WARN) -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) -lm -o $@
+
+build/shutdown-lifetime: shutdown-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) $(HOST_HEADERS) Makefile
+	mkdir -p build
+	$(CC) $(COMMON) $(WARN) $(CFLAGS) shutdown-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) -lm -o $@
+
+build/shutdown-lifetime-asan: shutdown-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) $(HOST_HEADERS) Makefile
+	mkdir -p build
+	$(CC) $(COMMON) $(WARN) -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer shutdown-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) -lm -o $@
 
 ndless: dist/nspire-jvm.tns
 build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/case.inc vendor/openjdk17-casing/data.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/search.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) Makefile
