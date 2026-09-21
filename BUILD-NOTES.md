@@ -56,6 +56,7 @@ bash tools/build-local-sdk.sh
 - 输出流检查：5 项 Java 8 对照、1 项真实 Logback 控制台包装类对照和 1 项未实现文件构造器检查，均通过普通构建与 ASan/UBSan/泄漏检测。比较实际 stdout/stderr 字节；并发检查仅过滤 ASan 关于 ucontext 的那条固定提示，仍检查所有内存错误，见 `OUTPUT-SUPPORT.md`。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - 方法反射与包查询：9 项检查包含标准 Java 对照、原始 Logback 属性发现和真实 setter/getter 调用，以及未实现内建方法的明确失败；全部通过普通构建与 ASan/UBSan/泄漏检测，见 `METHOD-SUPPORT.md`。
+- 字符集：6 项 Java 8 对照、1 项原始 Logback 正文编码的 Java 17 对照、1 项原始日志头缺少 File 的明确失败检查，均通过普通构建与 ASan/UBSan/泄漏检测；见 `CHARSET-SUPPORT.md`。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
 `dist/` 中的示例用于第一次实机验证；即使它通过，也不能据此声称完整 Xinbot 已经兼容。
@@ -75,6 +76,12 @@ bash tools/build-local-sdk.sh
 声明异常，不含可执行字节码。用 `python3 tools/generate-builtin-methods.py --rt-jar /path/to/java8/lib/rt.jar`
 复现；生成器校验输入和输出哈希，授权及来源见 `vendor/openjdk8-api/`。
 这些声明不代表所有内建方法均可执行；缺失实现仍明确报错。
+
+`vendor/openjdk8-nio/` 保留同一固定 OpenJDK 8 版本的生成工具、模板、别名数据与
+55 个生成源码。`tools/generate-nio.py --java /path/to/java8/bin/java` 在 Linux/WSL
+调用原始 Spp、make 规则和异常类生成脚本，校验输入及输出哈希；本次复现通过。
+运行库构建会校验这些文件并嵌入其授权和清单。字符集与缓冲区按 Java 8 行为对照，
+包含它与 Java 17 在部分 UTF-16 非法输入上的差异；不据此声称 Java 17 完整兼容。
 
 当前 Ndless SDK 的 `_gettimeofday` 实现仅读取 RTC 秒数，微秒部分恒为零。
 计算器端定时等待和 `nanoTime` 的精度、单调性仍需要更换计时后端并做实机验证；

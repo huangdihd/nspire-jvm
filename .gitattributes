@@ -17,3 +17,4 @@ runtime/openjdk8/** -text
 vendor/expat/** -text
 vendor/openjdk17-casing/** -text
 vendor/openjdk8-api/** -text
+vendor/openjdk8-nio/** -text

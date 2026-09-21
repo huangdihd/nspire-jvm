@@ -62,5 +62,5 @@ and callback exceptions, not multiple stream-close failures.
 The existing class-count, metadata, stack and Java-heap budgets apply. Host
 success does not verify the ARM context switch, device timing or calculator
 memory use. Full Xinbot startup passes annotation phase selection and still
-fails later at missing Charset after console appender creation and bean discovery;
+fails later at missing File after console appender creation and bean discovery;
 see XINBOT-RUN.txt.

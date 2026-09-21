@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 211 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 244 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -29,6 +29,14 @@ path and SHA-256. These files are not relicensed under this project's MIT licens
 it embeds the notices and source manifest. The corresponding sources are in
 this repository and the source ZIP. A separate Java 8 rt.jar is used only for
 compile-time API signatures and is not redistributed or copied into the JAR.
+
+`vendor/openjdk8-nio/` preserves templates, make rules, Spp, exception scripts,
+charset alias data and 55 generated Java sources from that same fixed revision.
+SOURCES.json records original and generated hashes. tools/generate-nio.py runs
+the upstream generators; the compiled runtime embeds their notices and manifest.
+These sources retain GPLv2 with the Classpath exception. Project charset-provider,
+Unicode-containment, heap-Bits and StringCoding adapters in runtime/nspire are
+separate MIT code. The imported Unicode codecs remain unmodified.
 
 The SAX sources also preserve their historical SAX notices. The OpenJDK source
 headers and root license files remain intact. The additional Java adapter and

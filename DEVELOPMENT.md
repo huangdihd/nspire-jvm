@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 211 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 244 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -28,7 +28,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is missing Charset during StringToObjectConverter property analysis,
+  failure is missing File during CoreConstants initialization for property substitution,
   after appender creation and bean discovery, still before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
@@ -102,7 +102,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   their dynamic System.out/err lookup. Actual Xinbot passes this console setup.
 - Seven output checks and the complete existing regression suite passed on
   ordinary and ASan/UBSan/leak-detection builds. Direct original-Xinbot runs of
-  both hosts stopped at missing Charset; the instrumented run had no sanitizer
+  both hosts stopped at missing File; the instrumented run had no sanitizer
   errors. The output tests document the known ASan ucontext warning separately.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
@@ -114,12 +114,23 @@ The current interpreter and passing sample programs do not achieve that objectiv
   provenance and licenses. This metadata does not implement unavailable APIs.
 - Nine method/package checks pass on ordinary and ASan/UBSan/leak builds,
   alongside all existing suites. Actual Logback bean discovery and real setter
-  calls match standard Java. Whole Xinbot now reaches missing Charset.
+  calls match standard Java. Whole Xinbot passes the earlier missing Charset.
+- Added original Java 8 charset/coder/Unicode implementations, generated heap
+  buffers and byte-order views, and String byte-array encoding/decoding. Six
+  standard charsets plus real application service providers are supported.
+  Native unqueued WeakReferences keep coder caches weak. See CHARSET-SUPPORT.md.
+- Preserved original NIO templates, generators, licenses and 55 generated Java
+  sources. Reproduction checks pass; runtime compilation validates their hashes.
+- Eight charset checks pass on ordinary and ASan/UBSan/leak builds, alongside
+  all prior suites. Original Logback charset conversion and body encoding match
+  Java 17; header generation and full Xinbot still stop at missing File.
 
 Next work:
-1. Implement real Charset support for Logback's StringToObjectConverter and
-   encoding paths, using the original bytecode to identify required conversion
-   and buffer behavior. Do not substitute an empty class or skip configuration.
+1. Implement actual File/path/filesystem support, starting from CoreConstants
+   and the real subsequent I/O paths. Inspect original File/FileSystem code and
+   the Ndless filesystem interfaces; do not substitute an empty class or bypass
+   initialization. The Logback header pending test must become positive once
+   the required filesystem path works.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

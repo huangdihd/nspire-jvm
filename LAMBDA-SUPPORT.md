@@ -51,4 +51,4 @@ is covered by the new positive tests. Real Xinbot now passes its initial lambda
 bootstrap, XML parsing, sequential stream matching and annotation-based phase
 selection. It also compiles the real Duration regex and passes property
 substitution and creates the application's JLineConsoleAppender. Bean discovery
-also passes; the next failure is missing Charset during property conversion.
+also passes; Charset is supplied and the next failure is missing File during property substitution.

@@ -67,5 +67,5 @@ Limits:
 Actual Xinbot now passes annotation-based configuration phase selection and
 starts creating configuration handlers. Regex compilation and property
 substitution also pass. It constructs Xinbot's JLineConsoleAppender, completes
-bean discovery and next needs `java.nio.charset.Charset`. This remains
+bean discovery and next needs `java.io.File` in property substitution. This remains
 before Xinbot.main, without networking or calculator runtime verification.

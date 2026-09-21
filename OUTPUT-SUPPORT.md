@@ -63,13 +63,13 @@ what sanitizer results can establish about the host context-switch mechanism.
 Known limits include file-backed streams, Charset-object constructors and
 non-UTF-8 encodings, the complete Formatter API, PrintWriter and general writers.
 Existing float/double print conversion still uses libc formatting rather than
-Java's exact numeric-to-text algorithm. ByteArrayOutputStream's String-decoding
-overloads still require missing byte-based String constructors. Native text
+Java's exact numeric-to-text algorithm. Byte-based String constructors now use
+the actual Java codecs described in CHARSET-SUPPORT.md. Native text
 chunks are bounded independently of OpenJDK's encoder buffer size; callback
 chunk boundaries for long text are not identical. The full Throwable stack,
 suppression-disabled constructors and serialization remain incomplete.
 
 The actual application now creates its JLineConsoleAppender, completes bean
-discovery and next stops at missing Charset during property configuration. This
+discovery and next stops at missing File during property configuration. This
 is before Xinbot.main. No calculator or firmware-emulator execution is proven;
 host byte output does not establish the Ndless console's glyph rendering.

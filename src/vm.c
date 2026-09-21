@@ -156,6 +156,8 @@ static void init_properties(VM *v) {
 #endif
         NULL};
     for(unsigned i=0;pairs[i];i+=2){Property *p=property(v,pairs[i],1);p->value=copy(v,pairs[i+1]);p->initial=copy(v,pairs[i+1]);}
+    const uint16_t endian_probe=1;const char *endian=*(const unsigned char *)&endian_probe?"little":"big";
+    Property *p=property(v,"sun.cpu.endian",1);p->value=copy(v,endian);p->initial=copy(v,endian);
 }
 static Value val(uint64_t x, int t) { Value a; a.bits=x; a.tag=(unsigned char)t; return a; }
 static Value iv(int32_t x) { return val((uint32_t)x,INT); }
@@ -217,7 +219,7 @@ static void collect(VM *v) {
         mark(o->suppressed,&grey);
         if(o->thread)mark(o->thread->context_loader,&grey);
         if(o->thread)for(LocalEntry *e=o->thread->locals_map;e;e=e->next)mark(e->value,&grey);
-        for(size_t i=0;i<o->count;i++) if(o->data[i].tag==REF) mark(obj(o->data[i]),&grey);
+        for(size_t i=0;i<o->count;i++) if(o->data[i].tag==REF&&!(o->kind=='W'&&i==0)) mark(obj(o->data[i]),&grey);
     }
     /* ThreadLocal keys are weak. Retain values for reachable Thread objects,
      * then discard stale entries before their key objects are freed. */
@@ -225,6 +227,8 @@ static void collect(VM *v) {
         LocalEntry **entry=&t->locals_map;
         while(*entry){LocalEntry *e=*entry;if(!e->key->mark){*entry=e->next;release(v,e);}else entry=&e->next;}
     }
+    /* Reachable unqueued WeakReferences do not keep their referents alive. */
+    for(Object *o=v->objects;o;o=o->next)if(o->mark&&o->kind=='W'&&obj(o->data[0])&&!obj(o->data[0])->mark)o->data[0]=rv(NULL);
     Object **p=&v->objects;
     while(*p) {
         Object *o=*p;
@@ -329,6 +333,8 @@ static const char *wrapper_primitive(const char *name) {
     return NULL;
 }
 static const char *builtin_super(const char *n) {
+    if(!strcmp(n,"java/lang/ref/Reference"))return "java/lang/Object";
+    if(!strcmp(n,"java/lang/ref/WeakReference"))return "java/lang/ref/Reference";
     if(!strcmp(n,"java/lang/Package"))return "java/lang/Object";
     if(!strcmp(n,"java/io/PrintStream"))return "java/io/FilterOutputStream";
     if(!strcmp(n,"java/lang/Object")) return "";
@@ -526,6 +532,10 @@ static Class *load(VM *v,const char *name) {
     if(base) {
         c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->slots=c->super?c->super->slots:0;c->loading=0;
         if(!strcmp(name,"java/io/PrintStream"))printstream_class(v,c);
+        if(!strcmp(name,"java/lang/ref/Reference")) {
+            c->access=0x401;c->slots=1;c->nf=1;c->fields=(Field *)alloc(v,sizeof(Field));
+            c->fields[0].name="referent";c->fields[0].desc="Ljava/lang/Object;";c->fields[0].flags=2;c->fields[0].slot=0;
+        }
         if(!strcmp(name,"java/lang/AutoCloseable")||!strcmp(name,"java/io/Closeable"))c->access=0x601;
         if(!strcmp(name,"java/io/Closeable")||!strcmp(name,"java/io/InputStream")||!strcmp(name,"java/io/Reader")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,!strcmp(name,"java/io/Closeable")?"java/lang/AutoCloseable":"java/io/Closeable");
@@ -826,6 +836,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "annotations.inc"
 #include "methods.inc"
 #include "boxing.inc"
+#include "charset.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -837,6 +848,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=method_reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=small_box_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
+    loaded=charset_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
@@ -883,6 +895,16 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         goto missing;
     }
     if(!strcmp(cl,"sun/misc/Unsafe"))return unsafe_call(v,n,d,a,isstatic);
+    if(!strcmp(cl,"sun/misc/VM")&&isstatic&&!strcmp(n,"isBooted")&&!strcmp(d,"()Z"))return iv(1);
+    if(!strcmp(cl,"java/lang/ref/Reference")||!strcmp(cl,"java/lang/ref/WeakReference")) {
+        if(!isstatic) {
+            if(!strcmp(n,"<init>")&&!strcmp(d,"(Ljava/lang/Object;)V")){self->kind='W';self->data[0]=a[1];return none;}
+            if(!strcmp(n,"get")&&!strcmp(d,"()Ljava/lang/Object;"))return self->data[0];
+            if(!strcmp(n,"clear")&&!strcmp(d,"()V")){self->data[0]=rv(NULL);return none;}
+            if((!strcmp(n,"enqueue")||!strcmp(n,"isEnqueued"))&&!strcmp(d,"()Z"))return iv(0);
+        }
+        goto missing;
+    }
     if(!strcmp(cl,"sun/misc/VM")&&isstatic&&!strcmp(n,"getSavedProperty")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;")) {
         Object *key=nonnull(v,a[0]);if(!key)return none;Property *p=property(v,key->text,0);
         return rv(p&&p->initial?string(v,p->initial):NULL);

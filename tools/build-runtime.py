@@ -17,6 +17,12 @@ def main():
     build.mkdir(parents=True, exist_ok=True)
     files = sorted(source.rglob('*.java'))
     local = sorted((ROOT / 'runtime' / 'nspire').rglob('*.java'))
+    nio = ROOT / 'vendor' / 'openjdk8-nio'
+    nio_manifest = json.loads((nio / 'SOURCES.json').read_text())
+    generated = sorted((nio / 'generated').rglob('*.java'))
+    assert {p.relative_to(nio).as_posix() for p in generated} == set(nio_manifest['generated'])
+    for path, record in {**nio_manifest['files'], **nio_manifest['generated']}.items():
+        assert hashlib.sha256((nio / path).read_bytes()).hexdigest() == record['sha256'], path
     manifest = json.loads((source / 'SOURCES.json').read_text())
     assert {p.relative_to(source).as_posix() for p in files} == set(manifest['files']), 'Source manifest does not match input files'
     for path, record in manifest['files'].items():
@@ -34,7 +40,7 @@ def main():
                '-bootclasspath', path_for(javac, rt), '-XDignore.symbol.file',
                '-encoding', 'UTF-8', '-d', path_for(javac, output)]
         args = output / 'sources.txt'
-        args.write_text('\n'.join('"' + path_for(javac, p).replace('\\', '/') + '"' for p in files + local))
+        args.write_text('\n'.join('"' + path_for(javac, p).replace('\\', '/') + '"' for p in files + generated + local))
         subprocess.run(cmd + ['@' + path_for(javac, args)], check=True)
         with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
             for p in sorted(output.rglob('*.class')):
@@ -42,6 +48,8 @@ def main():
             for name in ('LICENSE', 'ASSEMBLY_EXCEPTION', 'THIRD_PARTY_README', 'SOURCES.json'):
                 z.write(source / name, 'META-INF/openjdk8/' + name)
             z.write(ROOT / 'LICENSE', 'META-INF/nspire/LICENSE')
+            for name in ('LICENSE', 'ASSEMBLY_EXCEPTION', 'THIRD_PARTY_README', 'SOURCES.json'):
+                z.write(nio / name, 'META-INF/openjdk8-nio/' + name)
             z.writestr('META-INF/nspire/SOURCES.json', json.dumps({p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest() for p in local}, indent=2))
     print(f'Built {archive.name}: {archive.stat().st_size} bytes')
 

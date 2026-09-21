@@ -87,5 +87,5 @@ alongside the existing regression suites.
 
 Whole Xinbot startup now reaches second-phase log configuration and constructs
 its own JLineConsoleAppender. Bean discovery passes; it next fails at missing
-Charset in StringToObjectConverter during property setup, before Xinbot.main.
+File in CoreConstants during property setup, before Xinbot.main.
 Neither this component success nor ARM linking proves calculator execution.

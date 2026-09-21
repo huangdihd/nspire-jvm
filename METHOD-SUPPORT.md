@@ -30,7 +30,7 @@ comparison and formatting coverage of these classes remains partial. Float
 object text formatting fails explicitly, as Double formatting already does.
 
 Intrinsic classes get reflection declarations from
-`vendor/openjdk8-api/methods.inc`: 1,604 method records for 92 names referenced by
+`vendor/openjdk8-api/methods.inc`: 1,610 method records for 94 names referenced by
 the intrinsic registry and its parent mappings. Names, descriptors, modifiers
 and checked exceptions come from the pinned Temurin 8u504-b01 rt.jar. The table
 does not copy implementation bytecode or add implementations for those APIs.
@@ -72,7 +72,8 @@ virtual/private/static calls, synchronization, initialization ordering, exceptio
 wrapping, method annotations and repeated GC on a 256 KiB Java heap.
 All nine checks and the existing full host regression suite pass on ordinary
 and ASan/UBSan builds with leak detection. Direct original-Xinbot runs on both
-builds reach the same missing Charset class without sanitizer errors.
+builds reached the missing Charset class at this checkpoint. The subsequent
+charset implementation and its current stopping point are in CHARSET-SUPPORT.md.
 
 The Logback check runs its original BeanDescriptionCache/Factory against the
 actual JLineConsoleAppender, compares all getter/setter/adder mappings, then
@@ -89,6 +90,6 @@ but still lack implementations. Reflection observes the VM's existing class,
 metadata, depth, instruction and heap limits; it does not make this a verifier
 or an untrusted-code security boundary.
 
-Actual Xinbot now completes appender bean discovery and package lookup. Its
-property converter next needs java.nio.charset.Charset, before Xinbot.main.
+Actual Xinbot completes appender bean discovery and package lookup. Charset is
+now supplied; it next needs java.io.File in property substitution, before Xinbot.main.
 No calculator or firmware-emulator execution is established by these host tests.

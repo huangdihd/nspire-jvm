@@ -1,0 +1,238 @@
+{
+  "repository": "https://github.com/openjdk/jdk8u",
+  "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
+  "files": {
+    "jdk/src/share/classes/java/nio/X-Buffer.java.template": {
+      "upstream_path": "jdk/src/share/classes/java/nio/X-Buffer.java.template",
+      "sha256": "a0bd0e9d8cb086adb5f70c521fb2b0a2c0739bfb0b7d4138bea051cf7fa46200"
+    },
+    "jdk/src/share/classes/java/nio/X-Buffer-bin.java.template": {
+      "upstream_path": "jdk/src/share/classes/java/nio/X-Buffer-bin.java.template",
+      "sha256": "95ffc21b32cd5bbf82223e9e03253dacc581728529023757f31b6ec4260bff77"
+    },
+    "jdk/src/share/classes/java/nio/Heap-X-Buffer.java.template": {
+      "upstream_path": "jdk/src/share/classes/java/nio/Heap-X-Buffer.java.template",
+      "sha256": "b4a11b178575401a2f116a4b73fff25376e7622cb88ed7685f154a9de2836b92"
+    },
+    "jdk/src/share/classes/java/nio/ByteBufferAs-X-Buffer.java.template": {
+      "upstream_path": "jdk/src/share/classes/java/nio/ByteBufferAs-X-Buffer.java.template",
+      "sha256": "6d5f82f4cb9c6e29be2d675def815b78505777be2e138f1b1123108b4f0b4f0f"
+    },
+    "jdk/src/share/classes/java/nio/charset/Charset-X-Coder.java.template": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/Charset-X-Coder.java.template",
+      "sha256": "9a059b7eb83bb91f0d73aeed09d0313ee50a065145513a0ead5d769549ead2c5"
+    },
+    "jdk/make/gensrc/GensrcBuffer.gmk": {
+      "upstream_path": "jdk/make/gensrc/GensrcBuffer.gmk",
+      "sha256": "0c79aa0a22d052c046282eac93b525badd8fd68039cec16a00ce37a82201352c"
+    },
+    "jdk/make/gensrc/GensrcCharsetCoder.gmk": {
+      "upstream_path": "jdk/make/gensrc/GensrcCharsetCoder.gmk",
+      "sha256": "74cb21b8758e33abd9fcc9f6267925233323771103c6a531b47f592144ff6325"
+    },
+    "jdk/make/gensrc/GensrcExceptions.gmk": {
+      "upstream_path": "jdk/make/gensrc/GensrcExceptions.gmk",
+      "sha256": "774ebab31a6a40c553a527dbb14b1301af4691b8f64338f2820ee5e74008e2fc"
+    },
+    "jdk/make/src/classes/build/tools/spp/Spp.java": {
+      "upstream_path": "jdk/make/src/classes/build/tools/spp/Spp.java",
+      "sha256": "7266ed6636d2828784d643eee3f324cc89086904593e1d517586d93f5567ad5b"
+    },
+    "jdk/src/share/classes/java/nio/exceptions": {
+      "upstream_path": "jdk/src/share/classes/java/nio/exceptions",
+      "sha256": "32b1a503ef3a749fa3abbaa9f828e9b260c84f7cbeb32ce794c4aa26e13e61f9"
+    },
+    "jdk/src/share/classes/java/nio/charset/exceptions": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/exceptions",
+      "sha256": "611f50ea54b745e115fdf82c8c6fe31596fc022b42c2be9bb84cee2554f9855c"
+    },
+    "jdk/make/scripts/genExceptions.sh": {
+      "upstream_path": "jdk/make/scripts/genExceptions.sh",
+      "sha256": "d76458375a2df16969aead66f7879f5ba583c86f201eb2ee307cd769993793df"
+    },
+    "jdk/make/scripts/addNotices.sh": {
+      "upstream_path": "jdk/make/scripts/addNotices.sh",
+      "sha256": "14b7f6b581463737f6be9bb1297e64649697896a368adc222b272be2724c8c10"
+    },
+    "jdk/src/share/classes/sun/nio/cs/standard-charsets": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/standard-charsets",
+      "sha256": "65a87983fe737082aee0cc83bd92e42396f7e444bc01c6464979868c996c4d19"
+    },
+    "LICENSE": {
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    "ASSEMBLY_EXCEPTION": {
+      "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb"
+    },
+    "THIRD_PARTY_README": {
+      "sha256": "ded88776c93aaf687a6d6ff7a8faa94532f1d2c00f315814820a8cea36f83d91"
+    }
+  },
+  "generated": {
+    "generated/java/nio/BufferOverflowException.java": {
+      "sha256": "c51da200686b9184f64ff5ad8adbd28e283b0ade421fa84ac19db2f65b0cd496"
+    },
+    "generated/java/nio/BufferUnderflowException.java": {
+      "sha256": "8105417f8b296125be0d526d9525474ae47d28d821976f893c429048b7ca4374"
+    },
+    "generated/java/nio/ByteBuffer.java": {
+      "sha256": "768e8aa4c8df204b608ad55fe11f9987446258b35dd8f0f5e67ca692c857a4c1"
+    },
+    "generated/java/nio/ByteBufferAsCharBufferB.java": {
+      "sha256": "510d394382b17806716d3072bc796e573a5c95d070c0967d49cb5bc6d519347a"
+    },
+    "generated/java/nio/ByteBufferAsCharBufferL.java": {
+      "sha256": "bb6baefe78accb9ab95fbe051b98d4666e98d201db412fdff95112c6c5920e25"
+    },
+    "generated/java/nio/ByteBufferAsCharBufferRB.java": {
+      "sha256": "272dfb4521ddf41196c586fe1393c09ca1ed33d02d201ed785a0c38f4d446587"
+    },
+    "generated/java/nio/ByteBufferAsCharBufferRL.java": {
+      "sha256": "4af18b7024788af807a2c3c5345827201affda2632073cc63610c9a2dd08f456"
+    },
+    "generated/java/nio/ByteBufferAsDoubleBufferB.java": {
+      "sha256": "bf06dd4a30689127e1fd45310a7d26195346d5dfe6d14dd253e2e701da6d7ed5"
+    },
+    "generated/java/nio/ByteBufferAsDoubleBufferL.java": {
+      "sha256": "eaabe52581875d25fc84535b650ec651cd34f0cb7458bb056caf18a0d244fe8e"
+    },
+    "generated/java/nio/ByteBufferAsDoubleBufferRB.java": {
+      "sha256": "9f8083e9a3c9f5ca87910c0daf2c37c92d66b21f403a3b3b0e3deddbfdd00f39"
+    },
+    "generated/java/nio/ByteBufferAsDoubleBufferRL.java": {
+      "sha256": "e54ee927808391537b1e7cfe10479777aabcb9028aff0a54c1d51fd1eb7f9574"
+    },
+    "generated/java/nio/ByteBufferAsFloatBufferB.java": {
+      "sha256": "5f389107376e1aff919d2c2b2e8fffde75944adc7e2de1f1a4d4724fb71f5867"
+    },
+    "generated/java/nio/ByteBufferAsFloatBufferL.java": {
+      "sha256": "eba475caf85bb898e7b50c4deee01db4ea494bf6d418305c506eddb3539f0d82"
+    },
+    "generated/java/nio/ByteBufferAsFloatBufferRB.java": {
+      "sha256": "8799a12a4ef2d59863d83f5f0c91d4e0b6a9643d62305534cf00b40a98e1bd66"
+    },
+    "generated/java/nio/ByteBufferAsFloatBufferRL.java": {
+      "sha256": "231f215304eddc57617ea5c5fa57393b232871a647a4b108f4b63e7d0f022f9c"
+    },
+    "generated/java/nio/ByteBufferAsIntBufferB.java": {
+      "sha256": "6a7fa607a1aa47230e57b5950c9fd6a1331b1c11edf5bcc03db9bc9b943f831b"
+    },
+    "generated/java/nio/ByteBufferAsIntBufferL.java": {
+      "sha256": "cce1b96a821cd157e033f49af8feeac79c802b217d48e24a87008157f6564aa3"
+    },
+    "generated/java/nio/ByteBufferAsIntBufferRB.java": {
+      "sha256": "b6b3534efa4d8e0d13f1c967485b4eee2b796ce6ad9e6a3143842e3f2bbf8653"
+    },
+    "generated/java/nio/ByteBufferAsIntBufferRL.java": {
+      "sha256": "829685e2fd1102907712e1032523dad5aabb1c7cf58e9213d69121b448fb6962"
+    },
+    "generated/java/nio/ByteBufferAsLongBufferB.java": {
+      "sha256": "774c5108538305713ab6d356563b335da9d22babeb6026fe0c6724af446dacd0"
+    },
+    "generated/java/nio/ByteBufferAsLongBufferL.java": {
+      "sha256": "5c04a13d93213d7ad4b4f3a886f4cd753fe29c1c05bff81e2a9c1433653b32b7"
+    },
+    "generated/java/nio/ByteBufferAsLongBufferRB.java": {
+      "sha256": "3c6a9662a7ba7321bc2ecaf91202e06b4412454e47a00b04b68291b43c97094b"
+    },
+    "generated/java/nio/ByteBufferAsLongBufferRL.java": {
+      "sha256": "e2919766db0d705b48996d976f314d88828dc55f1673cdf5c82d08c979d7b758"
+    },
+    "generated/java/nio/ByteBufferAsShortBufferB.java": {
+      "sha256": "244ce32bfa57a59ac4f60b318b5b36ec11293c051906ed9a29bec99983af4b37"
+    },
+    "generated/java/nio/ByteBufferAsShortBufferL.java": {
+      "sha256": "b95c09f23a08d5cb99d4a88c82f4d897c002d2639fb1d20293047b254d91540b"
+    },
+    "generated/java/nio/ByteBufferAsShortBufferRB.java": {
+      "sha256": "acc5200df6ea49e05f8c6675c1cc0aafc12a0872010219f6664dde70805cfe32"
+    },
+    "generated/java/nio/ByteBufferAsShortBufferRL.java": {
+      "sha256": "89988656304dc5e56d2cc23cddef1f3e0e782b9d78d6aefd5f0873d935b331d9"
+    },
+    "generated/java/nio/CharBuffer.java": {
+      "sha256": "5b146cb6fbbcb2c1fb53b98f4e0dc683ba42839c474df436275934863737f64d"
+    },
+    "generated/java/nio/DoubleBuffer.java": {
+      "sha256": "2c307c5ed0c130ea31b63b71b12e0eb70ef8e37e00e2ac4db12ecad450afa81d"
+    },
+    "generated/java/nio/FloatBuffer.java": {
+      "sha256": "6e1d84e07bf05755eda94a5ad3c392a3719ffe9dc81e2e2e8f0f5417f8947247"
+    },
+    "generated/java/nio/HeapByteBuffer.java": {
+      "sha256": "14ba10e9e96c7867cecf7773415cbb5a929cc674acb6861fe1dd0aebb0fdb96a"
+    },
+    "generated/java/nio/HeapByteBufferR.java": {
+      "sha256": "3cf8c76c015cdd0c071652a468e4a6193377a95b76a7618fe01d181883674cf8"
+    },
+    "generated/java/nio/HeapCharBuffer.java": {
+      "sha256": "cae14836067d5b0d5813ea471fa8601e90e0a001bf04da1b76a87a7bd4bc8e59"
+    },
+    "generated/java/nio/HeapCharBufferR.java": {
+      "sha256": "50992ae14fe0b1feb9292691567c4baf781328e4fd4f72f1d594cf8577db5a9e"
+    },
+    "generated/java/nio/HeapDoubleBuffer.java": {
+      "sha256": "6c14eb524f8c328ac60a6ce3a27d41df2db347b1de407e21bb4cbda3a4ebbccf"
+    },
+    "generated/java/nio/HeapDoubleBufferR.java": {
+      "sha256": "f3f4016c30e7cb1cbf11e0923c324819924c7e16cad4a08c8baed7b596bb2c37"
+    },
+    "generated/java/nio/HeapFloatBuffer.java": {
+      "sha256": "1b1859f18ba31f2900eff30524ba8464f46ec70bb7c52dc08270df7647d9d27e"
+    },
+    "generated/java/nio/HeapFloatBufferR.java": {
+      "sha256": "235feaffc01f08982f5a896d05da1479183c46f3d57cd26f14d8e976211a2c24"
+    },
+    "generated/java/nio/HeapIntBuffer.java": {
+      "sha256": "03d139f592f9bdf2dfa5e6cfc6829d3f5b6caf203f5a94f1a9db4ca4a3985137"
+    },
+    "generated/java/nio/HeapIntBufferR.java": {
+      "sha256": "6410bb1b0bce44d66250e9804073e4ab953b991bba2c6eec8ef975537253de24"
+    },
+    "generated/java/nio/HeapLongBuffer.java": {
+      "sha256": "f4a8f1e267e9c810154981d93e0693761a9dfcbb58d002b51e09a0e676fb4d06"
+    },
+    "generated/java/nio/HeapLongBufferR.java": {
+      "sha256": "2f5dd363f87b06deb9426dda831cc4902f06adffd3794670eb99e6eedaae1eac"
+    },
+    "generated/java/nio/HeapShortBuffer.java": {
+      "sha256": "c6a789a44601b0f716ff0753cefd8717044cc2e7bfc5407403b53900246f4458"
+    },
+    "generated/java/nio/HeapShortBufferR.java": {
+      "sha256": "8338a9cebb6da46458c9a79ea9d48b9913b2ad3cda0a641bf4c39730d211440a"
+    },
+    "generated/java/nio/IntBuffer.java": {
+      "sha256": "c619f5f496af735ce9e2e75205f4212c1af166960d9b9dd8a0ac373d1ab11652"
+    },
+    "generated/java/nio/InvalidMarkException.java": {
+      "sha256": "66353bfec18530ee0bf4b7199a05f7a21adee9cba7c7546eee4a6d0e3e3c8922"
+    },
+    "generated/java/nio/LongBuffer.java": {
+      "sha256": "83b87309f363fc216b86de55d07204a62a18a8aa738f5d26985577811b5bb0f7"
+    },
+    "generated/java/nio/ReadOnlyBufferException.java": {
+      "sha256": "84f7cd61f7acfa759fddffcca14654227c8b5032f10548e61e3bcbe01a2b1b4c"
+    },
+    "generated/java/nio/ShortBuffer.java": {
+      "sha256": "5fd8d84653da8ffab2a6d175112b3be96683e12e45a6aef55747072e43ad2d4e"
+    },
+    "generated/java/nio/charset/CharacterCodingException.java": {
+      "sha256": "dcc0315c99ca0c377becc0484713be6d1e2dd7b0ab8b518dc2251cae781bb6af"
+    },
+    "generated/java/nio/charset/CharsetDecoder.java": {
+      "sha256": "c38e66e278937ef8a0787341ed6160e4b59a2686da4727c340b3a3e085929227"
+    },
+    "generated/java/nio/charset/CharsetEncoder.java": {
+      "sha256": "50d600af2faec9b193f8c5c68433a8378c51706c41eb9af56718205627da9c81"
+    },
+    "generated/java/nio/charset/IllegalCharsetNameException.java": {
+      "sha256": "3405fd2605324aed9f2c0ed78e576935cccb91260d010122746cbc9498b21b46"
+    },
+    "generated/java/nio/charset/UnsupportedCharsetException.java": {
+      "sha256": "6b7ebaefec7ec154439d45ecde8f863281978556bc760cfc8cbc44b05d0d3097"
+    },
+    "generated/sun/nio/cs/NspireAliases.java": {
+      "sha256": "fc3acecd55d26b4808e9b54a6240828462c763293b23df11dc74f2c928bf95fa"
+    }
+  }
+}

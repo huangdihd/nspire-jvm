@@ -21,6 +21,6 @@ if ns.xinbot and (not ns.only or ns.only=='LogbackBeanTest'):
     (ROOT/'LOGBACK-BEAN-RESULTS.txt').write_text(report[-1]+'\n'+result+'\nComponent check only; whole Xinbot startup is not verified.\n',encoding='utf-8')
 if not ns.only:
     failure=run([str(Path(ns.vm).resolve()),'-bootclasspath',ROOT/'dist/runtime.jar.tns','-cp',build,'UnsupportedMethodTest'],ok=False)
-    assert failure.returncode==1 and 'runtime method not implemented: java/lang/String.getBytes()[B' in failure.stderr,failure.stderr
+    assert failure.returncode==1 and 'runtime method not implemented: java/lang/String.contentEquals(Ljava/lang/StringBuffer;)Z' in failure.stderr,failure.stderr
     report.append('PASS explicit unsupported reflected intrinsic (sanitizer output checked)');print(report[-1],flush=True)
     (ROOT/'METHOD-RESULTS.txt').write_text('\n'.join(report)+'\nHost only; calculator execution not verified.\n',encoding='utf-8')

@@ -1,0 +1,12 @@
+PASS LogbackCharsetTest (standard Java oracle)
+true
+UTF-8
+[108, 111, 103, 58, -28, -72, -83, -16, -97, -104, -128]
+UTF-16LE
+[108, 0, 111, 0, 103, 0, 58, 0, 45, 78, 61, -40, 0, -34]
+US-ASCII
+[108, 111, 103, 58, 63, 63]
+ISO-8859-1
+[108, 111, 103, 58, 63, 63]
+
+Component check only; whole startup remains incomplete.

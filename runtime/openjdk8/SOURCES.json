@@ -58,6 +58,10 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Iterable.java",
       "sha256": "9d5216a4214a4b497faf47bfcdae81acc82f26222e5c04fe7a8702f95cafac1d"
     },
+    "java/lang/Readable.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Readable.java",
+      "sha256": "3730c0c53c49e8aaeb3d449d9c72ab5b1f7275d17b0967468959a7644ea9c0bf"
+    },
     "java/lang/StringBuffer.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/StringBuffer.java",
       "sha256": "e5c14887ce9895987c88ce33bd7fda9b627bbc8d74e5eb555e8f0bbf30058d26"
@@ -109,6 +113,54 @@
     "java/lang/annotation/Target.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/annotation/Target.java",
       "sha256": "2653863ca379960c66d6d43e3a9a1cc61b7b385950d32771db28b9d4f8727964"
+    },
+    "java/nio/Buffer.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/Buffer.java",
+      "sha256": "57a69d05807ababdb22e6960173e836a49d60239f5c188b704d208a4dcd71315"
+    },
+    "java/nio/ByteOrder.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/ByteOrder.java",
+      "sha256": "4a0c92fe81eec3c3b1eedeb2db5c6527defc1bb212bb9e32013a16f6c0778918"
+    },
+    "java/nio/CharBufferSpliterator.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/CharBufferSpliterator.java",
+      "sha256": "5447fbd9dbc6c40f21dcabf239dc62bc65710f8cf69e87a54eb559f4d754de4b"
+    },
+    "java/nio/StringCharBuffer.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/StringCharBuffer.java",
+      "sha256": "0ea4bed9323be3731ff698baab2c432b6342fdf2a99284424423c1b0a043561a"
+    },
+    "java/nio/charset/Charset.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/Charset.java",
+      "sha256": "df6cdf9865cf42e70769bc2131b1ff193f30b6781b49e0b175c36d5e2f4091e3"
+    },
+    "java/nio/charset/CoderMalfunctionError.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/CoderMalfunctionError.java",
+      "sha256": "ae7faccbd327e7e99b149c8c46bbbd556bca1cd05a5cd52d28d59b2391ea19a2"
+    },
+    "java/nio/charset/CoderResult.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/CoderResult.java",
+      "sha256": "eb203f11fba8ac7b2a8f65467753e30b546a79c1700f1c17e62071b878340701"
+    },
+    "java/nio/charset/CodingErrorAction.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/CodingErrorAction.java",
+      "sha256": "40c7a31771128ce64869d7163d36e6dee960356027d340c908317fa439f40857"
+    },
+    "java/nio/charset/MalformedInputException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/MalformedInputException.java",
+      "sha256": "a879f0498a020e9df34faaccc014b0c03fe2e1f0baad50b4dcc6bc573b38f958"
+    },
+    "java/nio/charset/StandardCharsets.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/StandardCharsets.java",
+      "sha256": "ab8121f14775a5fcae225db68bb25fdb027596ed035370515d16abd49015cedc"
+    },
+    "java/nio/charset/UnmappableCharacterException.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/UnmappableCharacterException.java",
+      "sha256": "010b6e0447a32b8f820f7b2a1c4eb6436109cf8853a538847bef5064de41a5c2"
+    },
+    "java/nio/charset/spi/CharsetProvider.java": {
+      "upstream_path": "jdk/src/share/classes/java/nio/charset/spi/CharsetProvider.java",
+      "sha256": "011fa88c852811ff3c9552672938f27e2fcc5617ce35fb1113a07cf223b0297b"
     },
     "java/security/PrivilegedAction.java": {
       "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",
@@ -254,6 +306,14 @@
       "upstream_path": "jdk/src/share/classes/java/util/Map.java",
       "sha256": "f6d3a0d3582f4e73e8c091f76aa4aac8e774d0d75b71e347b030905410e67355"
     },
+    "java/util/NavigableMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/NavigableMap.java",
+      "sha256": "06c347ec8a5d17df2e09d2dafc67864bc35cca38ed12f580aedf83890fbbcc68"
+    },
+    "java/util/NavigableSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/NavigableSet.java",
+      "sha256": "03ce98badd51786e9a65968c59ed2f2818a4927e7cc7b2933843077363e4449d"
+    },
     "java/util/NoSuchElementException.java": {
       "upstream_path": "jdk/src/share/classes/java/util/NoSuchElementException.java",
       "sha256": "ea4c58ae9185c8642a38e3045a401d32b78ed3ab667bee10d51ad0826a303161"
@@ -310,6 +370,14 @@
       "upstream_path": "jdk/src/share/classes/java/util/Set.java",
       "sha256": "e6e876a4a82dc266d35baa15c4705ce614b13e06f5a5989dd14daec712267eba"
     },
+    "java/util/SortedMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/SortedMap.java",
+      "sha256": "4fbb1b87168e63bca6a4c1c3bce83d370d21465784b4bf7c5248058f7e54012d"
+    },
+    "java/util/SortedSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/SortedSet.java",
+      "sha256": "1088f3cbab719260d118016cecbe580fec785f7df3ac90044e5443899c26242b"
+    },
     "java/util/Spliterator.java": {
       "upstream_path": "jdk/src/share/classes/java/util/Spliterator.java",
       "sha256": "4680fd5cb32d4707c8c783bc0f484061d2f0329d5422bc10c53b26fce3dda6bd"
@@ -329,6 +397,14 @@
     "java/util/TimSort.java": {
       "upstream_path": "jdk/src/share/classes/java/util/TimSort.java",
       "sha256": "073e5e10bbb58ad9fa6799195d18ee4cc393c0ab904deeae2636eddca6c3f1e2"
+    },
+    "java/util/TreeMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/TreeMap.java",
+      "sha256": "423adeb23b7923391a7b3f20abf32d1a15939a887e381f478be8c33888bc6427"
+    },
+    "java/util/TreeSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/TreeSet.java",
+      "sha256": "808d762204265d54f4afad489f90b5340abc16401f8daa7d1501d76e8feb0ee6"
     },
     "java/util/Vector.java": {
       "upstream_path": "jdk/src/share/classes/java/util/Vector.java",
@@ -834,9 +910,65 @@
       "upstream_path": "jaxp/src/org/xml/sax/helpers/LocatorImpl.java",
       "sha256": "730c552a082efb956e0a092fe4f160b253490cd4ff87a756ded7ccfcb0f4ec00"
     },
+    "sun/misc/ASCIICaseInsensitiveComparator.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/ASCIICaseInsensitiveComparator.java",
+      "sha256": "2c364441ad9b4674058b88915cc1a0096e67f0c7fce7c51f9943146ac6f27041"
+    },
     "sun/misc/Contended.java": {
       "upstream_path": "jdk/src/share/classes/sun/misc/Contended.java",
       "sha256": "ecf600d32ca268101d6b349bb196aeb03e4c34d2bc1143cbcbe782157a410bf2"
+    },
+    "sun/nio/cs/ArrayDecoder.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/ArrayDecoder.java",
+      "sha256": "b0a624ad6319a694f7f6da2fec61c5670fd81e1e19a1ea20e02f6d61e5e3d5ee"
+    },
+    "sun/nio/cs/ArrayEncoder.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/ArrayEncoder.java",
+      "sha256": "fa1b6bf43bbd9ec0b8ba9313af49cff32525bd010ddedc169b568aa2aa3e27c8"
+    },
+    "sun/nio/cs/HistoricallyNamedCharset.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/HistoricallyNamedCharset.java",
+      "sha256": "8911f32eee185e1fa2ef66f32420c87fa09f23a0e10c6b416dddfecf3e850653"
+    },
+    "sun/nio/cs/ISO_8859_1.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/ISO_8859_1.java",
+      "sha256": "0bda7306a5dca541e7e229bc24246e1f3b7a4af236633cf366a7786ebdfcc463"
+    },
+    "sun/nio/cs/Surrogate.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/Surrogate.java",
+      "sha256": "24e1a8b84e995f8414445caa8dacfc6cceeeaec5be67ec4f5a64f7e868b142bc"
+    },
+    "sun/nio/cs/ThreadLocalCoders.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/ThreadLocalCoders.java",
+      "sha256": "d03aaeb5bcdbbbf657decaf1bc98dcecf367fa59e6e7249be013ec14c5dd96bd"
+    },
+    "sun/nio/cs/US_ASCII.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/US_ASCII.java",
+      "sha256": "3b879a70eecf1e75229e741365a5aa3757f6423b95815fc621b9c9689ad8c0ca"
+    },
+    "sun/nio/cs/UTF_16.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UTF_16.java",
+      "sha256": "1d1ab30697ccd6ad8f35be1f3b915f967928939423307ddfa71129a6e56393bf"
+    },
+    "sun/nio/cs/UTF_16BE.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UTF_16BE.java",
+      "sha256": "fb3821ca12fba6ae29e6bf29b5ae022dd6b907f2234a7f82e4e4bf11e2c09f5a"
+    },
+    "sun/nio/cs/UTF_16LE.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UTF_16LE.java",
+      "sha256": "98e814bdfb3773eff9e407e062719e8cdae95ebb1c587c0116a3eb3eab192722"
+    },
+    "sun/nio/cs/UTF_8.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UTF_8.java",
+      "sha256": "1a061b179f6a4e88c06a644cc4450b83c15a1df64a7a6c25ee3df6d4b3c15e25"
+    },
+    "sun/nio/cs/UnicodeDecoder.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UnicodeDecoder.java",
+      "sha256": "344eaff85df2354a6d9fa0b5e27bc0a16f8a41e84f0e348a17351349d8826390"
+    },
+    "sun/nio/cs/UnicodeEncoder.java": {
+      "upstream_path": "jdk/src/share/classes/sun/nio/cs/UnicodeEncoder.java",
+      "sha256": "e4ee228de2a853f0feeac93dea154ff27cbb3ab975db4dfeb536152952d613a0"
     },
     "sun/security/action/GetBooleanAction.java": {
       "upstream_path": "jdk/src/share/classes/sun/security/action/GetBooleanAction.java",
