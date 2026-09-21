@@ -49,7 +49,7 @@ bash tools/build-local-sdk.sh
 ## 验证范围
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
-- 内存检查：当前 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查和 6 项流/枚举/装箱检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
+- 内存检查：当前 48 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查和 6 项流/枚举/装箱检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 注解检查：4 项标准 Java 对照、1 项真实 Logback 阶段对照和 1 项不支持文本格式的明确失败检查，均通过普通构建和 ASan/UBSan/泄漏检测；记录见 `ANNOTATION-RESULTS.txt`。
 - 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
@@ -119,3 +119,19 @@ fdlibm log/sqrt 及 sqrt 的单处已定义整数运算调整见 `vendor/openjdk
 `make build/nspire-jvm-asan` 使用相同源文件和平台选项构建内存检查版本。
 8 项时间检查（含真实 Logback 日期组件）与普通/可序列化 lambda 的验证范围见
 `TIME-SUPPORT.md`、`LAMBDA-SUPPORT.md`。时区配置、时钟精度和软浮点行为尚未实机验证。
+
+## 文件描述符与线程优先级
+
+原始 FileDescriptor/FileInputStream/FileOutputStream/InputStream 在运行库执行，
+C 适配只处理真实句柄读写、关闭、可读字节数与同步。标准流共享 Java 描述符；
+Java 关闭后进程/SDK 的诊断句柄保留。Ndless 行输入使用共享缓冲，避免 SDK
+单字节 _read 的缓冲区问题；存储同步缺少可靠平台原语，明确返回 SyncFailedException。
+描述符与普通输出流测试分开，命令和可验证边界见 FILE-SUPPORT.md。
+
+线程优先级范围 1–10，按父线程继承；字节码每 256 条指令经过调度检查，
+每个轮转时间片包含 priority 个这样的块。显式 yield 和阻塞立即让出；
+此策略只约束解释器字节码，阻塞本机系统调用仍可能阻塞整个解释器。
+未实现 ThreadGroup、SecurityManager 或 OS 原生线程优先级。
+ThreadPriorityTest 对照 Java 的接口行为，ThreadPriorityScheduleTest 单独验证
+本 VM 的 CPU 份额策略和低优先级进展，不声称 Java SE 规定固定份额。
+参考：https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#setPriority-int-

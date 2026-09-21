@@ -28,6 +28,10 @@ build/file-lifetime: file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCE
 	mkdir -p build
 	$(CC) $(COMMON) $(WARN) $(CFLAGS) file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) -lm -o $@
 
+build/file-lifetime-asan: file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) $(HOST_HEADERS) Makefile
+	mkdir -p build
+	$(CC) $(COMMON) $(WARN) -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer file-tests/lifetime.c $(filter-out src/main.c,$(HOST_SOURCES)) -lm -o $@
+
 ndless: dist/nspire-jvm.tns
 build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/case.inc vendor/openjdk17-casing/data.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/search.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) Makefile
 	mkdir -p $(dir $@)

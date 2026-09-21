@@ -57,7 +57,7 @@ def main():
     jar=build/'tests.jar'
     with zipfile.ZipFile(jar,'w',zipfile.ZIP_DEFLATED) as z:
         for p in sorted(build.glob('*.class')): z.write(p,p.name)
-    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[]),('BoxingTest',[]),('ConcatTest',[]),('FormatTest',[])]
+    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadPriorityTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[]),('BoxingTest',[]),('ConcatTest',[]),('FormatTest',[])]
     count=0
     report=[]
     for name,args in cases:
@@ -70,6 +70,9 @@ def main():
                 raise AssertionError(name+' output differs\n'+''.join(difflib.unified_diff(ref.splitlines(True),result.stdout.splitlines(True),fromfile='Java',tofile='Nspire JVM')))
             count+=1; report.append(f'PASS {name} ({"JAR" if cp==jar else "directory"})')
             print(report[-1],flush=True)
+    scheduled=run([vm,*boot,'-cp',jar,'ThreadPriorityScheduleTest']).stdout
+    assert scheduled=='priority affects CPU share; low priority still progresses\n'
+    count+=1;report.append('PASS VM weighted priority scheduling');print(report[-1],flush=True)
     negative=[('UnsupportedTest',[],'unbound native method'),('ThreadFailureTest',[],'unbound native method'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
     # Split a real application across JARs; runtime resolution must find all
     # dependency classes, not just the entry point. Check boot precedence too.

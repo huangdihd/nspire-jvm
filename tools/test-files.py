@@ -19,14 +19,31 @@ def snapshot(folder):
     return {p.relative_to(folder).as_posix():p.read_bytes() for p in folder.rglob('*') if p.is_file() and not p.is_symlink()}
 with tempfile.TemporaryDirectory(prefix='files-中文😀-',dir=build) as temp:
     root=Path(temp)
-    for name in ('FilePathTest','FileMutationTest','FileStreamTest'):
+    for name in ('FilePathTest','FileMutationTest','FileStreamTest','FileDescriptorTest','InputDefaultsTest'):
         oracle=root/(name+'-java');actual=root/(name+'-vm');fixture(oracle);fixture(actual)
         expected=execute([java,'-Dfile.encoding=UTF-8','-Dsun.io.useCanonCaches=false','-cp',str(build),name],oracle).stdout
         got=execute([vm,'--heap','1048576','-bootclasspath',str(ROOT/'dist/runtime.jar.tns'),'-cp',str(build),name],actual).stdout
         assert got==expected,name+'\n'+''.join(difflib.unified_diff(expected.splitlines(True),got.splitlines(True)))
         assert snapshot(actual)==snapshot(oracle),name+' disk contents differ'
         if name=='FileStreamTest':assert (actual/'文字😀.bin').read_bytes()==bytes([0,255,42]) and (actual/'payload').read_bytes()==b''
+        if name=='FileDescriptorTest':assert (actual/'shared').read_bytes()==bytes([1,2,3,4,5]) and (actual/'retained').read_bytes()==bytes([17,18])
         report.append('PASS '+name+' (Linux Java 8 output and actual disk contents)');print(report[-1],flush=True)
+    for mode in ('input','output','error'):
+        captured=[]
+        for command in ([java,'-Dfile.encoding=UTF-8','-cp',str(build)],
+                        [vm,'--heap','1048576','-bootclasspath',str(ROOT/'dist/runtime.jar.tns'),'-cp',str(build)]):
+            # Prefill a pipe before child startup, making available() deterministic.
+            readfd,writefd=os.pipe()
+            try:
+                os.write(writefd,bytes([0,255,1,2,3,4,5,6,7,8,9,10]));os.close(writefd);writefd=-1
+                p=subprocess.run([*command,'ConsoleDescriptorTest',mode],stdin=readfd,capture_output=True,timeout=30)
+                assert p.returncode==0,(mode,p.returncode,p.stdout,p.stderr)
+                captured.append((p.stdout,p.stderr))
+            finally:
+                os.close(readfd)
+                if writefd!=-1:os.close(writefd)
+        assert captured[0]==captured[1],(mode,captured)
+        report.append('PASS shared console '+mode+' (exact stdout/stderr bytes and pipe input)');print(report[-1],flush=True)
     for fatal in (False,True):
         folder=root/('fatal' if fatal else 'gc');fixture(folder)
         command=[vm,'--heap','524288','-bootclasspath',str(ROOT/'dist/runtime.jar.tns'),'-cp',str(build),'FileGcTest']+(['fatal'] if fatal else [])

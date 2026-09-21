@@ -90,6 +90,17 @@ static void stream_buffer(VM *v,Object *o,size_t n) {
     free(o->buffer);o->bytes-=o->buffer_size;v->heap-=o->buffer_size;
     o->buffer=data;o->buffer_size=n;o->bytes+=n;v->heap+=n;o->cursor=o->mark_cursor=0;
 }
+static void resource_stream_class(VM *v,Class *c) {
+    /* Explicit overrides: the base InputStream now executes original Java. */
+    static const char *spec[]={"read","()I","read","([BII)I","skip","(J)J",
+        "available","()I","close","()V","markSupported","()Z","mark","(I)V","reset","()V"};
+    c->nm=(uint16_t)(sizeof spec/sizeof spec[0]/2);c->methods=(Method *)alloc(v,c->nm*sizeof(Method));
+    for(unsigned i=0;i<c->nm;i++) {
+        Method *m=&c->methods[i];m->owner=c;m->name=(char *)spec[2*i];m->desc=(char *)spec[2*i+1];m->flags=NATIVE|1;
+        if(!strcmp(c->name,"java/io/ByteArrayInputStream")&&
+            (!strcmp(m->name,"read")||!strcmp(m->name,"skip")||!strcmp(m->name,"available")||!strcmp(m->name,"reset")))m->flags|=0x20;
+    }
+}
 static Object *resource_stream(VM *v,Object *url) {
     if(!url||url->kind!='u'||!url->resource_name)fail(v,"unsupported URL stream");
     root(v,url);ClassPath *entry=&v->paths[url->resource_path];size_t len;
@@ -270,11 +281,10 @@ static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,u
             self->data[!strcmp(n,"setConnectTimeout")?3:4]=a[1];return none;
         }
     }
-    int byte_stream=!strcmp(cl,"java/io/InputStream")||!strcmp(cl,"java/io/ByteArrayInputStream")||(self&&(self->kind=='b'||self->kind=='j'));
+    int byte_stream=!strcmp(cl,"java/io/ByteArrayInputStream")||(self&&(self->kind=='b'||self->kind=='j'));
     int reader=!strcmp(cl,"java/io/Reader")||!strcmp(cl,"java/io/InputStreamReader")||!strcmp(cl,"java/io/BufferedReader")||(self&&(self->kind=='r'||self->kind=='R'));
     if((byte_stream||reader)&&!stat) {
         if(!strcmp(n,"<init>")) {
-            if(!strcmp(cl,"java/io/InputStream")&&!strcmp(d,"()V"))return none;
             if(!strcmp(cl,"java/io/Reader")&&!strcmp(d,"()V"))return none;
             if(!strcmp(cl,"java/io/ByteArrayInputStream")&&(!strcmp(d,"([B)V")||!strcmp(d,"([BII)V"))) {
                 Object *bytes=nonnull(v,a[1]);if(!bytes)return none;

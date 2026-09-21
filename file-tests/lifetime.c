@@ -17,6 +17,9 @@ int main(int argc,char **argv) {
     for(int i=0;i<6;i++){
         const char *argument="fatal";int result=vm_run(&options,i%2,&argument);
         if(result!=i%2||descriptors()!=initial){fputs("Descriptor leak or unexpected VM result\n",stderr);return 4;}
+        options.main_class="ConsoleCloseTest";
+        if(vm_run(&options,0,NULL)||descriptors()!=initial){fputs("Console close escaped the VM lifetime\n",stderr);return 5;}
+        options.main_class="FileGcTest";
     }
     puts("PASS descriptors unchanged across six normal/fatal VM runs");return 0;
 }

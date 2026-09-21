@@ -99,7 +99,7 @@ struct VmThread {
     VmThread *next;VM *vm;VmContext context;void *stack;
     Object *object,*waiting,*exception;Class *waiting_class;VmThread *joining;
     Frame *frame;Object *roots[256];unsigned nr;int depth,state,interrupted,daemon;
-    unsigned id;uint64_t deadline;int finished,permit;
+    unsigned id;uint64_t deadline;int finished,permit,priority;unsigned quantum;
     LocalEntry *locals_map;
     Object *context_loader;int context_loader_set;
 };
@@ -304,6 +304,7 @@ static void initialize(VM *,Class *);
 static Value execute(VM *,Method *,Value *,unsigned);
 static Value native_call(VM *,Class *,const char *,const char *,Value *,unsigned,int);
 static void printstream_class(VM *,Class *);
+static void resource_stream_class(VM *,Class *);
 static void system_streams(VM *,Class *);
 static Object *array_new(VM *,const char *,int32_t);
 static void schedule(VM *);
@@ -373,7 +374,7 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/NoSuchMethodException")||!strcmp(n,"java/lang/reflect/InvocationTargetException"))return "java/lang/ReflectiveOperationException";
     if(!strcmp(n,"java/lang/Comparable")||!strcmp(n,"java/lang/CharSequence"))return "java/lang/Object";
     if(!strcmp(n,"sun/misc/SharedSecrets")||!strcmp(n,"sun/misc/JavaLangAccess")||!strcmp(n,"nspire/JavaLangAccess"))return "java/lang/Object";
-    const char *io_plain[]={"java/lang/ClassLoader","java/net/URL","java/io/InputStream","java/io/Reader","nspire/ResourceEnumeration","java/security/AccessController",NULL};
+    const char *io_plain[]={"java/lang/ClassLoader","java/net/URL","java/io/Reader","nspire/ResourceEnumeration","java/security/AccessController",NULL};
     for(unsigned i=0;io_plain[i];i++)if(!strcmp(n,io_plain[i]))return "java/lang/Object";
     if(!strcmp(n,"java/io/ByteArrayInputStream"))return "java/io/InputStream";
     if(!strcmp(n,"java/io/InputStreamReader")||!strcmp(n,"java/io/BufferedReader"))return "java/io/Reader";
@@ -552,12 +553,13 @@ static Class *load(VM *v,const char *name) {
     if(base) {
         c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->slots=c->super?c->super->slots:0;c->loading=0;
         if(!strcmp(name,"java/io/PrintStream"))printstream_class(v,c);
+        if(!strcmp(name,"nspire/ResourceInputStream")||!strcmp(name,"java/io/ByteArrayInputStream"))resource_stream_class(v,c);
         if(!strcmp(name,"java/lang/ref/Reference")) {
             c->access=0x401;c->slots=1;c->nf=1;c->fields=(Field *)alloc(v,sizeof(Field));
             c->fields[0].name="referent";c->fields[0].desc="Ljava/lang/Object;";c->fields[0].flags=2;c->fields[0].slot=0;
         }
         if(!strcmp(name,"java/lang/AutoCloseable")||!strcmp(name,"java/io/Closeable"))c->access=0x601;
-        if(!strcmp(name,"java/io/Closeable")||!strcmp(name,"java/io/InputStream")||!strcmp(name,"java/io/Reader")) {
+        if(!strcmp(name,"java/io/Closeable")||!strcmp(name,"java/io/Reader")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,!strcmp(name,"java/io/Closeable")?"java/lang/AutoCloseable":"java/io/Closeable");
         }
         if(!strcmp(name,"java/net/URLConnection")||!strcmp(name,"java/net/JarURLConnection"))c->access=0x401;
@@ -1063,6 +1065,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!strcmp(n,"isAlive")&&!strcmp(d,"()Z"))return iv(thread_alive(t));
             if(!strcmp(n,"isDaemon")&&!strcmp(d,"()Z"))return iv(t->daemon);
             if(!strcmp(n,"setDaemon")&&!strcmp(d,"(Z)V")){if(thread_alive(t))throwing(v,"java/lang/IllegalThreadStateException");else t->daemon=!!integer(a[1]);return none;}
+            if(!strcmp(n,"getPriority")&&!strcmp(d,"()I"))return iv(t->priority);
+            if(!strcmp(n,"setPriority")&&!strcmp(d,"(I)V")) {
+                int priority=integer(a[1]);
+                if(priority<1||priority>10)throwing(v,"java/lang/IllegalArgumentException");
+                else if(!t->finished&&t->state!=T_DONE){t->priority=priority;t->quantum=(unsigned)priority;}
+                return none;
+            }
             if(!strcmp(n,"getName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(string(v,self->text?self->text:""));
             if(!strcmp(n,"setName")&&!strcmp(d,"(Ljava/lang/String;)V")){Object *s=nonnull(v,a[1]);if(s)set_text(v,self,s->text);return none;}
             if(!strcmp(n,"getId")&&!strcmp(d,"()J"))return val(t->id,LONG);
@@ -1610,7 +1619,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
     while(f->pc<m->length) {
         if(v->opt.instruction_limit && v->steps>=v->opt.instruction_limit) fail(v,"instruction budget exceeded");
         if((v->steps++&4095)==0&&v->opt.cancelled&&v->opt.cancelled()) fail(v,"cancelled by user");
-        if((v->steps&255)==0)schedule(v);
+        if((v->steps&255)==0&&!--v->current->quantum)schedule(v);
         f->ip=f->pc; unsigned op=code(v,f,1); Value a,b; unsigned idx;
         if(op>=0x02&&op<=0x08) {push(v,f,iv((int32_t)op-3));continue;}
         if(op>=0x1a&&op<=0x2d) {push(v,f,local_get(v,f,(op-0x1a)%4));continue;}

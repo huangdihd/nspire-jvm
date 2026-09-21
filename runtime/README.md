@@ -3,10 +3,10 @@
 The sources in `openjdk8/` are preserved upstream OpenJDK sources, not a complete
 runtime. The build deliberately packages only classes compiled from these files.
 Missing classes, unimplemented natives and unsupported invokedynamic bootstraps
-(including LambdaMetafactory) still fail explicitly. A limited StringConcatFactory
+still fail explicitly; supported lambda paths are described in LAMBDA-SUPPORT.md. A limited StringConcatFactory
 intrinsic handles strings/references and integral primitives, not float/double.
 
-Build with a host JDK 17+ and a Java 8 JDK/JRE supplying compatible API signatures:
+Build with a Java 8 JDK compiler and its compatible API signatures:
 
 ```sh
 python3 tools/build-runtime.py --java8-home /path/to/java8
@@ -31,7 +31,12 @@ sorting; actual PrivilegedAction execution; and constructor reflection including
 initialization order, argument checks, access and target exception wrapping.
 They do not establish Java SE compatibility, serialization support, or support
 for all methods present in the JAR (including streams, lambdas and fork/join).
-The VM has no protection-domain/SecurityManager policy. Only the no-context
-doPrivileged(PrivilegedAction) overload is currently supported; it executes the
-provided action and propagates its exception. Other access-control operations
+The VM has no protection-domain/SecurityManager policy. The no-context
+doPrivileged(PrivilegedAction/PrivilegedExceptionAction) overloads execute the
+provided action; the latter wraps checked exceptions using preserved Java code. Other access-control operations
 remain unsupported. Properties.store and XML persistence also need further I/O.
+
+Original InputStream, FileDescriptor and file streams are now included. Rebuild
+the supplemental runtime when rebuilding the native VM: standard console
+initialization depends on those classes. File/console limits, alias lifetime
+and host-versus-calculator behavior are described in FILE-SUPPORT.md.

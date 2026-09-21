@@ -1,10 +1,5 @@
 # Output streams and console integration
 
-**Development snapshot:** the results below belong to verified checkpoint
-`4e097f3`. Current source routes System.out/err through original Java file
-streams and shared FileDescriptor objects, and adds System.in. These changes
-have not passed the output regression suite or device testing; see CHECKPOINT.md.
-
 OutputStream, FilterOutputStream, BufferedOutputStream, ByteArrayOutputStream,
 Flushable and InterruptedIOException now execute unchanged OpenJDK 8 sources
 at the revision in `runtime/openjdk8/SOURCES.json`. Byte-array growth, buffer
@@ -27,13 +22,15 @@ Supported paths include:
   format/printf conversions. UTF-16 surrogate pairs become real four-byte UTF-8;
   NUL becomes a zero byte. A pending high surrogate survives flush and text-call
   boundaries. Unpaired surrogates use `?`; close drains any pending surrogate.
-- Actual writes to the selected Java OutputStream or the host/SDK stdout and
-  stderr handles, with IOException error flags and InterruptedIOException's
+- Actual writes to the selected Java OutputStream, including original
+  FileOutputStream instances wrapping FileDescriptor.out/err, with IOException error flags and InterruptedIOException's
   write-time interrupt handling. Other Java exceptions propagate.
 - System.setOut/setErr, including original references keeping their destination
   after replacement. Closing a Java console stream makes subsequent Java output
-  fail through checkError. Native console handles are borrowed, so close flushes
-  them without closing the VM's own diagnostic/UI handle.
+  fail through checkError. Native console handles are borrowed: Java close invalidates the shared
+  FileDescriptor and all aliases, while the embedding process/SDK UI keeps its
+  handle. A later vm_run receives fresh Java descriptors. System.in/setIn and
+  raw descriptor input are covered by the file/console suite.
 - Throwable.addSuppressed/getSuppressed with null/self rejection, GC retention
   and defensive arrays. This supports the imported Java 8 close implementation;
   Java 17's changed FilterOutputStream close ordering is not substituted.

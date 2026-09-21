@@ -51,6 +51,9 @@ static void schedule(VM *v) {
         VmThread *next=old->next?old->next:v->threads,*start=next;
         do {
             if(next->state==T_RUN) {
+                /* Weighted round robin at bytecode safepoints. Blocking and
+                 * explicit yield still give up the remaining quantum. */
+                next->quantum=(unsigned)next->priority;
                 if(next==old)return;
                 save_thread(v,old);restore_thread(v,next);
                 vm_context_switch(&old->context,&next->context);
@@ -67,6 +70,7 @@ static VmThread *thread_record(VM *v,Object *o) {
     if(o->thread)return o->thread;
     VmThread *t=(VmThread *)alloc(v,sizeof *t);t->vm=v;t->object=o;t->id=++v->next_thread_id;
     t->daemon=v->current?v->current->daemon:0;t->state=T_NEW;t->next=v->threads;v->threads=t;o->thread=t;
+    t->priority=v->current?v->current->priority:5;t->quantum=(unsigned)t->priority;
     return t;
 }
 static int monitor_enter(VM *v,Object *o) {

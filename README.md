@@ -1,6 +1,6 @@
 # Nspire JVM 0.1（实验版）
 
-> **控制台接口开发快照，尚未通过回归测试。** 最新源码已接入原始 OpenJDK FileDescriptor 和文件流，主机编译通过；文件流测试目前停在缺失的 `InputStream.markSupported()`。`dist/`、既有 RESULTS 文件和 `XINBOT-RUN.txt` 保留上一次通过验证的时间库检查点 `4e097f3`，不代表当前源码的验证结果。详见 [CHECKPOINT.md](CHECKPOINT.md) 和 [DESCRIPTOR-CHECKPOINT.txt](DESCRIPTOR-CHECKPOINT.txt)。
+> **控制台与描述符检查点。** 原始 OpenJDK 文件描述符、文件流和 InputStream 已接入平台读写；完整 Xinbot 推进到 Jansi 本机库加载，当前缺少 `System.mapLibraryName()`，仍未进入 main。验证范围见 [CHECKPOINT.md](CHECKPOINT.md)、[FILE-SUPPORT.md](FILE-SUPPORT.md)。
 
 面向已安装 Ndless 的 TI-Nspire CX II CAS 的 C 字节码解释器。
 
@@ -9,8 +9,6 @@
 主机对照测试与计算器实机测试是两回事：目前没有完成计算器实机验证。
 
 ## 已实现
-
-以下清单记录此前各阶段已验证的能力；当前控制台改动仍需重新验证，不能据此认定本开发快照全部通过。
 
 - 从多个 JAR/ZIP 或目录读取 `.class`，支持 `.jar.tns` 文件名和独立补充运行库。
 - 基础 `Class` 对象：类字面量、getClass、类名、父类、组件类型、直接接口列表、isAssignableFrom、isInstance、cast 和 forName；枚举常量、规范类名和声明类信息。
@@ -21,7 +19,7 @@
 - 原始 OpenJDK 字符集编码器：六种标准编码、字符集查找与服务发现、String 字节转换、分段编码和错误处理；原始堆缓冲区及字节序视图、供编码缓存使用的无队列弱引用。范围与版本差异见 `CHARSET-SUPPORT.md`。
 - 运行时注解读取：实际成员和默认值、继承与重复注解、数组复制、相等比较与哈希、成员访问时的类型演化异常；支持范围见 `ANNOTATION-SUPPORT.md`。
 - 原始 OpenJDK 时间与时区规则、TZDB 数据、数字日期格式化和已验证的 ISO 日期路径；详见 `TIME-SUPPORT.md`。
-- 原始 OpenJDK File 路径处理、目录与文件属性接口；真实 FileInputStream/FileOutputStream、追加/截断、关闭与句柄回收。Ndless 仍缺部分系统操作，详见 `FILE-SUPPORT.md`。
+- 原始 OpenJDK File 路径处理、目录与文件属性接口；真实 FileInputStream/FileOutputStream、追加/截断、关闭与句柄回收。Ndless 仍缺部分系统操作，详见 `FILE-SUPPORT.md`。新增原始 FileDescriptor/getFD、共享关闭及异常回调、System.in/out/err 描述符连接与 InputStream 默认方法。
 - 部分输入流与 UTF-8 Reader、资源 URL、Integer/Long 装箱缓存、Boolean 单例、Double 数值对象、数组和 Cloneable 对象浅复制。
 - 类路径 JAR/文件的只读 URLConnection：连接设置、内容长度、资源流关闭和无缓存 JAR 流的关闭联动。
 - Expat 2.8.4 驱动的 SAX XML 解析：命名空间、属性、UTF-8/UTF-16、内部实体、回调异常、错误定位和输入流关闭；真实 Logback 配置的事件结果已对照标准 Java。
@@ -41,7 +39,7 @@
 - 基本类型数组、对象数组、多维数组、类型检查和 `System.arraycopy`。
 - Java 异常表，支持显式抛出、跨方法捕获，以及常见运行时异常。
 - 标记清扫 GC，根包括执行栈、局部变量、静态字段、字符串常量和本地临时引用。
-- 实验性协作式线程、Thread/Runnable、join/sleep/interrupt、可重入 monitor、synchronized 和 wait/notify；GC 扫描挂起线程的根。
+- 实验性协作式线程、Thread/Runnable、优先级继承及加权轮转、join/sleep/interrupt、可重入 monitor、synchronized 和 wait/notify；GC 扫描挂起线程的根。
 - ThreadLocal/InheritableThreadLocal 的隔离、初始值、构造时继承、移除和弱键清理。
 - OpenJDK 8 集合补充库：已对照验证 HashMap、ConcurrentHashMap、ArrayList、HashSet、CopyOnWriteArrayList、原子变量、ReentrantLock/Condition 和 LinkedBlockingQueue 的部分路径。
 - 原始 AtomicBoolean，包含 CAS 保护共享更新的双线程测试。
@@ -134,8 +132,8 @@ python3 tools/test-methods.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-charset.py --vm build/nspire-jvm --java /path/to/java8/bin/java --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 377 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
-当前有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、6 项文件系统/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。另有 8 项时间与日期组件检查；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 378 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
+当前有 48 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、11 项文件系统/描述符/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。另有 8 项时间与日期组件检查；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -185,14 +183,14 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 当前实际结果：
 
 ```text
-VM error: class not found: java/io/FileDescriptor
-  at org/fusesource/jansi/AnsiConsole.ansiStream(Z)Lorg/fusesource/jansi/AnsiPrintStream; pc=4
+VM error: runtime method not implemented: java/lang/System.mapLibraryName(Ljava/lang/String;)Ljava/lang/String;
+  at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=36
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。现在成功创建 Xinbot 自身的 JLineConsoleAppender，BeanDescriptionFactory 已完成继承方法发现和类型查询。时间库、TZDB 和可序列化 lambda 协议现已让原始日期转换器完成初始化。实际 ConsoleAppender 随后按原始配置启用 Jansi，在创建控制台流时需要 FileDescriptor；尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。现在成功创建 Xinbot 自身的 JLineConsoleAppender，BeanDescriptionFactory 已完成继承方法发现和类型查询。时间库、TZDB 和可序列化 lambda 协议现已让原始日期转换器完成初始化。实际 ConsoleAppender 随后按原始配置启用 Jansi，已创建描述符输出流并设置清理线程优先级，现在在本机库加载流程缺少 System.mapLibraryName；尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
-真实 Logback 的 9 个相关类的注解阶段读取、Duration 时长解析及 ConsoleTarget 输出包装也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt`、`LOGBACK-DURATION-RESULTS.txt` 和 `LOGBACK-CONSOLE-RESULTS.txt`。原始属性发现与 setter/getter 调用见 `LOGBACK-BEAN-RESULTS.txt`，字符集属性转换和日志正文编码见 `LOGBACK-CHARSET-RESULTS.txt`。日志头编码也已通过对照。原始 CachingDateFormatter 的组件对照见 `LOGBACK-DATE-RESULTS.txt`。仍需补齐控制台描述符、Jansi 平台接口、剩余时间/时区接口、设备文件系统缺口、更多动态调用路径、完整线程语义和网络支持。
+真实 Logback 的 9 个相关类的注解阶段读取、Duration 时长解析及 ConsoleTarget 输出包装也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt`、`LOGBACK-DURATION-RESULTS.txt` 和 `LOGBACK-CONSOLE-RESULTS.txt`。原始属性发现与 setter/getter 调用见 `LOGBACK-BEAN-RESULTS.txt`，字符集属性转换和日志正文编码见 `LOGBACK-CHARSET-RESULTS.txt`。日志头编码也已通过对照。原始 CachingDateFormatter 的组件对照见 `LOGBACK-DATE-RESULTS.txt`。仍需补齐 Jansi 本机库加载与平台接口、剩余时间/时区接口、设备文件系统缺口、更多动态调用路径、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -213,7 +211,7 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/annotations.inc` 读取运行时注解、默认值，并提供注解成员访问器。
 `src/regex.inc` 把 String 正则入口接到实际类库；`src/character.inc` 提供字符属性与码点接口，`src/parse_number.inc` 和 `src/environment.inc` 提供上述数值解析与环境查询。
 `src/output.inc` 把 PrintStream 接到 Java 输出流或主机/Ndless 控制台，保留回调、监视器与 GC 根。
-`src/filesystem.inc` 提供原始 UnixFileSystem 的本机绑定与文件流；`src/canonical.c` 编译原始 OpenJDK 路径规范化算法。
+`src/filesystem.inc` 提供原始 UnixFileSystem 的本机绑定，`src/descriptors.inc` 连接原始 Java 文件描述符与平台句柄；`src/canonical.c` 编译原始 OpenJDK 路径规范化算法。
 `src/charset.inc` 把 String 字节转换交给 `nspire.charset.StringCoding` 和真实 Java 编码器；`tools/generate-nio.py` 复现原始 NIO 生成源码。
 `src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。

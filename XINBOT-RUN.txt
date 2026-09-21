@@ -7,8 +7,11 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/io/FileDescriptor
-  at org/fusesource/jansi/AnsiConsole.ansiStream(Z)Lorg/fusesource/jansi/AnsiPrintStream; pc=4
+VM error: runtime method not implemented: java/lang/System.mapLibraryName(Ljava/lang/String;)Ljava/lang/String;
+  at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=36
+  at org/fusesource/jansi/internal/JansiLoader.initialize()Z pc=35
+  at org/fusesource/jansi/internal/CLibrary.<clinit>()V pc=0
+  at org/fusesource/jansi/AnsiConsole.ansiStream(Z)Lorg/fusesource/jansi/AnsiPrintStream; pc=81
   at org/fusesource/jansi/AnsiConsole.initStreams()V pc=7
   at org/fusesource/jansi/AnsiConsole.systemInstall()V pc=6
   at ch/qos/logback/core/ConsoleAppender.wrapWithJansi(Ljava/io/OutputStream;)Ljava/io/OutputStream; pc=45
@@ -37,24 +40,21 @@ VM error: class not found: java/io/FileDescriptor
   at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
-The actual SLF4J provider discovery, Logback XML processing, annotation phases,
-bean reflection, charset initialization and PatternLayout converter creation
-execute normally. The previously missing java.time.ZoneId is supplied by the
-preserved OpenJDK time/calendar code and packaged TZDB. The formatter now passes
-its default-zone, locale and internal serializable-lambda initialization.
-The original ConsoleAppender follows withJansi=true from Xinbot's own logback.xml
-and invokes Jansi's AnsiConsole.systemInstall. Its original ansiStream now needs
-java/io/FileDescriptor. No application configuration or logger was bypassed.
+The original application discovers its SLF4J provider, processes its Logback XML,
+annotations, reflection, charset and date converter initialization. Its unchanged
+withJansi=true configuration invokes AnsiConsole.systemInstall and ansiStream.
+The former FileDescriptor failure is resolved with preserved OpenJDK descriptors
+and file streams; real platform writes remain connected to System.out/err.
+The JansiLoader cleanup thread now receives priority 1 and starts through the
+actual cooperative scheduler. The next missing method is System.mapLibraryName
+in loadJansiNativeLibrary. No successful native library load is claimed.
 
-The same stopping point was confirmed with ASan/UBSan/leak detection enabled,
-with no sanitizer errors. Separate date-component tests compare the unchanged
-CachingDateFormatter from this JAR against standard Java, including fractions,
-multiple zones, historical dates, default-zone selection and cache behavior.
-See TIME-RESULTS.txt, LOGBACK-DATE-RESULTS.txt and TIME-SUPPORT.md. Existing XML,
-bean, charset, annotation, regex and output component checks remain separate.
+The same stopping point was verified on ordinary and ASan/UBSan/leak-detection
+builds, with no sanitizer error. These observations remain separate from the
+file/console and Logback component differential tests.
 
 This is still before Xinbot.main. Complete startup has NOT succeeded.
 No Minecraft connection was made and no account credentials were used.
-Calculator/firmware-emulator execution is NOT verified. Console descriptors,
-Jansi platform/native dependencies, further JDK paths, networking/transport and
-device execution remain to be implemented and verified.
+Calculator/firmware-emulator execution is NOT verified. Jansi platform/native
+dependencies, further JDK paths, real network transport and device execution
+remain to be implemented and verified.

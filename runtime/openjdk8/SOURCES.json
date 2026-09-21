@@ -82,6 +82,10 @@
       "upstream_path": "jdk/src/share/classes/java/io/Flushable.java",
       "sha256": "ad3bed7f6b496bb9ecdf3865880a91c40c07e9e2a0504ccec0fb24123d0f3121"
     },
+    "java/io/InputStream.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/InputStream.java",
+      "sha256": "1d1045ef5e0c29a609bff704012c20350e9ff12c97e6cb19656548c29fe4a259"
+    },
     "java/io/InterruptedIOException.java": {
       "upstream_path": "jdk/src/share/classes/java/io/InterruptedIOException.java",
       "sha256": "e0701c5850763cf84f4578293a58fa804217f1f705dfee89cfa5312c9f457b8f"

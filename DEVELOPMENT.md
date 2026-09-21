@@ -3,7 +3,11 @@
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
 The current interpreter and passing sample programs do not achieve that objective.
 
-2026-09-21 progress:
+Current checkpoint: FileDescriptor and console streams are implemented; original
+Xinbot reaches System.mapLibraryName in JansiLoader, still before main. See
+CHECKPOINT.md and XINBOT-RUN.txt for the latest evidence and remaining work.
+
+Development history (earlier stopping points below are historical):
 - Class mirrors, basic Class APIs and supplemental bootclasspath are implemented.
 - Cooperative Thread/Runnable execution, monitors, wait/notify, join/sleep and
   interrupt are supported with GC roots for suspended threads. Main-thread join,

@@ -67,4 +67,4 @@ failures, while this runtime preserves the Java 8 implementation and its wrapper
 
 The fatal cleanup tests now use explicitly unbound application native methods
 on the main and child stacks. Real Xinbot passes its time formatter's internal
-serializable lambdas; the next whole-startup failure is FileDescriptor in Jansi.
+serializable lambdas; the current whole-startup failure is System.mapLibraryName in Jansi.

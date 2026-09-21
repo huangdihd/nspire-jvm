@@ -1,13 +1,5 @@
 # Files and native stream handles
 
-**Development snapshot:** this document describes the verified `4e097f3`
-checkpoint. Current source replaces the intrinsic file streams with original
-OpenJDK streams and a shared FileDescriptor bridge in `src/descriptors.inc`.
-Host compilation succeeds, but FileStreamTest stops at the missing inherited
-InputStream.markSupported method. Descriptor constructors, getFD, alias
-lifetime, standard input and synchronization are work in progress, not verified
-capabilities. See CHECKPOINT.md and DESCRIPTOR-CHECKPOINT.txt.
-
 File, FileSystem, UnixFileSystem, DefaultFileSystem, ExpiringCache, FileFilter
 and FilenameFilter are unchanged OpenJDK 8 sources at the revision recorded in
 runtime/openjdk8/SOURCES.json. Path normalization, parent/child resolution,
@@ -31,17 +23,31 @@ and space queries. Native attributes read File's actual private path. Stream
 constructors call virtual File.getPath, as the original Java implementation does.
 Open errors produce FileNotFoundException; I/O errors produce IOException.
 
-FileInputStream/FileOutputStream are intrinsic classes backed by OS handles.
-They support String/File constructors, append and truncate modes, byte/array/
-slice I/O, close, and seekable input skip/available. Writes loop until complete;
-reads may return partial results. Host descriptors are unbuffered. Explicit
-close, unreachable stream collection and every VM return/abort release owned
-handles. Directory handles are also tracked, and close before Java callbacks.
-FileOutputStream inherits the original OutputStream.flush no-op. Descriptor
-constructors, getFD, channels and shared descriptors are unsupported. Pipes and
-nonseekable input lack full semantics. InputStreamReader's existing malformed
-UTF-8 pushback limitation on custom streams also applies to file input; this is
-not a complete Reader implementation.
+FileDescriptor, FileInputStream, FileOutputStream and InputStream now execute
+preserved OpenJDK Java bytecode. src/descriptors.inc supplies only the native
+handle operations. String/File/descriptor constructors, getFD/valid, shared
+offsets, append/truncate, byte/array/slice I/O and seekable skip/available are
+covered. InputStream's original partial-read error handling, skip, mark/reset,
+available and close defaults run in Java; resource streams and intrinsic
+ByteArrayInputStream declare their actual overrides.
+
+Explicit close executes the original Java attach/closeAll callbacks, including
+shared stream overrides and suppressed IOException aggregation. Ownership is
+stored on the descriptor, so reachable aliases or the descriptor alone retain
+the handle. Unreachable groups and every VM return/abort close owned handles
+once. Generic Java finalizers are not executed by the collector: GC cleanup
+does not claim to invoke custom finalizers or subclass close callbacks.
+
+Host sync calls fsync and propagates failure as SyncFailedException. Standard
+descriptors borrow fd 0/1/2; closing a Java alias invalidates the shared Java
+descriptor but retains the embedding process/SDK UI's handle. System.in/out/err
+wrap these same objects. System.setIn/setOut/setErr replace Java stream fields.
+Host pipe input and available use actual read/ioctl operations. Generic JNI,
+FileChannel and full nonseekable-device semantics remain unsupported.
+
+FileOutputStream inherits the original OutputStream.flush no-op. Host writes
+are unbuffered. InputStreamReader's existing malformed UTF-8 pushback limitation
+on custom streams also applies to file input; this is not a complete Reader.
 
 ## Ndless boundary
 
@@ -51,7 +57,13 @@ buffering and visibility before close require device testing. Target fstat
 returns ENOSYS; directories are checked before open. Host code additionally
 checks the opened descriptor. Target stat only initializes timestamp seconds;
 the adapter zeroes the structure and reads those supported fields. Target seek
-range is constrained by off_t.
+range is constrained by off_t. Target sync throws SyncFailedException because
+the SDK has no verified durable-storage synchronization primitive.
+
+SDK standard input is line-oriented. Its single-byte _read path is unsafe, so
+the bridge reads into a descriptor-owned 4096-byte buffer and serves byte/slice
+requests from that shared cursor. Target stdin available reports only buffered
+bytes. This adaptation builds for ARM but has not been exercised on hardware.
 
 These target operations explicitly stop with an unsupported diagnostic:
 createNewFile, access/permission checks and changes, setLastModified, setReadOnly
@@ -73,19 +85,24 @@ python3 tools/test-files.py --vm build/nspire-jvm --java /path/to/java8/bin/java
 ```
 
 Use a Linux Java 8 oracle; javac may be the Windows JDK discovered by the build
-tools. Three programs compare output and actual disk contents in isolated
-fixtures: paths, UTF-16 search and symlinks; attributes/mutation/filter callbacks;
-and streaming/append/truncation/errors/Unicode filenames. Two VM checks open
-400 abandoned streams per run under a 64-descriptor limit, exercise GC and a
-fatal abort, and inspect disk bytes. The optional sixth check calls vm_run six
-times in the same host process and counts /proc/self/fd after each normal/fatal
-return. All passed normally and with ASan/UBSan/leak detection, alongside the
-existing regression suite. See FILE-RESULTS.txt.
+tools. Five programs compare output and disk contents: paths; mutation/filter
+callbacks; file streaming; shared descriptors/close callbacks/errors/sync; and
+InputStream defaults, partial errors and long skips. Three console modes compare
+exact stdout/stderr bytes and prefilled-pipe input, including alias invalidation
+and System.setIn replacement. Two VM checks abandon input/output alias groups
+under a 64-descriptor limit, test retained aliases during GC, and inspect disk
+bytes after normal/fatal returns. The optional eleventh check counts /proc/self/fd
+across six normal/fatal runs and six console-close runs in one host process;
+later runs must still have working process stdio. See FILE-RESULTS.txt.
+
+The sanitizer embedding harness is built with `make build/file-lifetime-asan`;
+pass it through `--lifetime` alongside `--vm build/nspire-jvm-asan`, with
+ASAN_OPTIONS=detect_leaks=1 and UBSAN_OPTIONS=halt_on_error=1.
 
 Original Logback headerBytes now returns bytes matching Java 17 with the same
 configured line separator. Class.getInterfaces returns a fresh array of direct
 interfaces; a separate oracle test covers source order, inherited-only
 interfaces, arrays, primitives, annotations and reflective calls. Whole Xinbot
-now reaches missing java/time/ZoneId in CachingDateFormatter, before Xinbot.main.
+now reaches missing System.mapLibraryName in JansiLoader, before Xinbot.main.
 No full application or calculator run has completed. The unmodified JNI files
 beside the canonicalizer are references and are not compiled.

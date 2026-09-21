@@ -20,6 +20,8 @@ PASS ThreadGcTest (directory)
 PASS ThreadGcTest (JAR)
 PASS ThreadLifecycleTest (directory)
 PASS ThreadLifecycleTest (JAR)
+PASS ThreadPriorityTest (directory)
+PASS ThreadPriorityTest (JAR)
 PASS ThreadLocalTest (directory)
 PASS ThreadLocalTest (JAR)
 PASS PropertiesTest (directory)
@@ -30,6 +32,7 @@ PASS ConcatTest (directory)
 PASS ConcatTest (JAR)
 PASS FormatTest (directory)
 PASS FormatTest (JAR)
+PASS VM weighted priority scheduling
 PASS split application/runtime classpath
 PASS split application/runtime classpath
 PASS boot classpath precedence
@@ -38,4 +41,4 @@ PASS fail-fast ThreadFailureTest
 PASS fail-fast UnsupportedFormatTest
 PASS fail-fast LoopTest
 PASS six truncated class files
-45 checks passed. Host only; no calculator execution verified.
+48 checks passed. Host only; no calculator execution verified.
