@@ -32,7 +32,7 @@ Current limits:
   methods, dynamic constants or direct Java calls to LambdaMetafactory.
 - Generated classes use internal VM class metadata; full hidden-class reflection,
   nestmate metadata, class unloading and lambda serialization are not implemented.
-- Generated classes count toward the existing 512-class and 16 MiB metadata
+- Generated classes count toward the existing 2,048-class and 16 MiB metadata
   limits. The current global-per-name class loader model still applies.
 - Linkage checks and failure reporting are a subset of JVM bootstrap verification;
   malformed or unsupported bootstraps can produce a VM diagnostic instead of a
@@ -48,5 +48,6 @@ private/super references, default-method composition and threaded execution.
 The original unsupported-lambda tests now use a serializable lambda to preserve
 their main-stack and child-stack fatal-error checks. Ordinary lambda execution
 is covered by the new positive tests. Real Xinbot now passes its initial lambda
-bootstrap, XML parsing and sequential stream matching; it still fails later in
-log configuration model setup while requesting annotation metadata.
+bootstrap, XML parsing, sequential stream matching and annotation-based phase
+selection. It still fails later while loading java.util.regex.Pattern for
+Logback Duration during configuration handler initialization.

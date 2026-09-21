@@ -1,18 +1,18 @@
 {
   "demo.jar.tns": {
     "bytes": 824,
-    "sha256": "09e0301fc0cbee3e7d77b876461616281750bf41a4aabb9dbb2190c8ea3796a9"
+    "sha256": "6d908b41caa479a7f0739321cb6d7a3cbe08c907d5621406573742f394436f32"
   },
   "jvm.cfg.tns": {
     "bytes": 18,
     "sha256": "d6f99992b88ae00d0a1fc7b42549aab78f7feb9de8b59166acf322f4c125824a"
   },
   "nspire-jvm.tns": {
-    "bytes": 458180,
-    "sha256": "68e089157fd4ecfe6b1fa34e44227c75105a8eec7f532a853334245d98e9946c"
+    "bytes": 473524,
+    "sha256": "908d7b6f440748dfac33566bfa80a8f582ac9f90ededf1ef11b518bf65c7b7ad"
   },
   "runtime.jar.tns": {
-    "bytes": 974044,
-    "sha256": "494831cf59f157d08e835bbeaa04bade3448cb653efa2347a873c07e6e9b2177"
+    "bytes": 982562,
+    "sha256": "ed54ff82b8a8545d55b585d5baee326684fc21ee85748b5fe4d17a8a502a00d6"
   }
 }

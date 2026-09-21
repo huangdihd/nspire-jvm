@@ -12,6 +12,7 @@
 - 基础 `Class` 对象：类字面量、getClass、类名、父类、组件类型、isAssignableFrom、isInstance、cast 和 forName；枚举常量、规范类名和声明类信息。
 - 内建 bootstrap/application 类加载器、线程 context loader、JAR/目录资源读取及 ServiceLoader 服务发现。
 - 字节码类的构造器查找与调用、参数类型查询、访问检查、Integer/Boolean/Long/Double 拆箱及合法拓宽转换、InvocationTargetException 包装。
+- 运行时注解读取：实际成员和默认值、继承与重复注解、数组复制、相等比较与哈希、成员访问时的类型演化异常；支持范围见 `ANNOTATION-SUPPORT.md`。
 - 部分输入流与 UTF-8 Reader、资源 URL、Integer/Long 装箱缓存、Boolean 单例、Double 数值对象、数组和 Cloneable 对象浅复制。
 - 类路径 JAR/文件的只读 URLConnection：连接设置、内容长度、资源流关闭和无缓存 JAR 流的关闭联动。
 - Expat 2.8.4 驱动的 SAX XML 解析：命名空间、属性、UTF-8/UTF-16、内部实体、回调异常、错误定位和输入流关闭；真实 Logback 配置的事件结果已对照标准 Java。
@@ -99,12 +100,14 @@ python3 tools/test-xml.py --vm build/nspire-jvm
 python3 tools/test-lambda.py --vm build/nspire-jvm
 python3 tools/test-case.py --vm build/nspire-jvm
 python3 tools/test-stream.py --vm build/nspire-jvm
+python3 tools/test-annotations.py --vm build/nspire-jvm
 # 可选：使用自己下载的真实 Xinbot 发布包测试其中的 Logback XML 组件
 python3 tools/test-logback-xml.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
+python3 tools/test-annotations.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 180 个上游源文件；`runtime/nspire/` 包含本项目编写的 XML 适配层和 Locale 子集。
-本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 194 个上游源文件；`runtime/nspire/` 包含本项目编写的 XML 适配层和 Locale 子集。
+本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -118,7 +121,7 @@ jar cf myapp.jar.tns -C classes .
 
 ## 尚未实现的关键功能
 
-- 通用 `invokedynamic`、可序列化 lambda、MethodHandle API、动态常量和完整反射（方法/字段反射、注解、泛型等）。lambda 的支持边界见 `LAMBDA-SUPPORT.md`；字符串拼接暂不支持 float/double 的 Java 格式化。
+- 通用 `invokedynamic`、可序列化 lambda、MethodHandle API、动态常量和完整反射（方法/字段反射、参数/类型使用位置的注解、泛型等）。lambda 的支持边界见 `LAMBDA-SUPPORT.md`；字符串拼接暂不支持 float/double 的 Java 格式化。
 - 完整 Formatter：数字、日期、Locale、Formattable 和格式错误对应的 Java 异常仍未实现，遇到这些路径会给出 VM 诊断。构造器反射尚缺多数内建类构造器、其他装箱类型和 nestmate 访问规则。
 - 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
 - 完整 Java 标准类库、自定义 ClassLoader 命名空间和 defineClass、JNI、插件 JAR 动态加载。现有资源 API 只读启动时指定的类路径，单个资源最多 8 MiB。
@@ -135,7 +138,7 @@ jar cf myapp.jar.tns -C classes .
 内建类只提供明确实现的方法，不能当作完整 JDK。
 
 默认 Java 堆上限为 8 MiB，另有最多 16 MiB 的类元数据/解释器分配预算。
-ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 个类，调用深度最多 128，
+ZIP 中央目录等第三方分配不计入这两个预算。最多加载 2,048 个类，调用深度最多 128，
 默认指令预算为 1 亿。这些是本版实现限制，不是计算器硬件规格。
 当前线程实现最多同时保留 32 个活动线程，每个子线程分配 256 KiB 的 C 栈，计入解释器分配预算。
 Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的输入字节数最多 8 MiB。
@@ -154,14 +157,14 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 当前实际结果：
 
 ```text
-VM error: class not found: java/lang/annotation/Annotation
+VM error: class not found: java/util/regex/Pattern
   at ch/qos/logback/core/model/processor/DefaultProcessor.determineProcessingPhase(Ljava/lang/Class;)Lch/qos/logback/core/model/processor/ProcessingPhase; pc=1
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。执行已进入配置模型处理，在关联处理器时缺少注解反射，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，开始创建处理器；现在 Logback Duration 初始化缺少正则表达式 Pattern，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
-仍需补齐注解反射等运行库、更多动态调用路径、完整线程语义和网络支持。
+真实 Logback 的 9 个相关类的注解阶段读取也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt`。仍需补齐正则表达式等运行库、完整反射、更多动态调用路径、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -178,6 +181,7 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/case.inc` 和固定数据表实现 Unicode 大小写及词边界，`src/search.inc` 实现子串查找。
 `src/enums.inc` 提供枚举常量和名字缓存；`src/builder.inc` 支持流收集器使用的 CharSequence 操作。
 `src/reflection.inc` 实现构造器反射，`src/format.inc` 实现上述字符串格式化子集。
+`src/annotations.inc` 读取运行时注解、默认值，并提供注解成员访问器。
 `src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。
 `vendor/miniz.*` 仅用于读取压缩 JAR，`vendor/expat/` 提供 XML 解析。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。

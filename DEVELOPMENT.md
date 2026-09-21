@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 180 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 194 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -28,8 +28,8 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is java/lang/annotation/Annotation while loading PhaseIndicator for
-  Class.getAnnotation in DefaultProcessor.determineProcessingPhase, before Xinbot.main.
+  failure is java/util/regex/Pattern during Logback Duration initialization,
+  after actual annotation phase selection and before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -73,15 +73,23 @@ The current interpreter and passing sample programs do not achieve that objectiv
   an explicit unsupported-Thai-boundary diagnostic and its resource cleanup.
 - Six stream/enum/boxing checks also pass with ordinary and instrumented builds;
   negative cases verify missing parallel support and Double formatting fail clearly.
+- Added actual runtime annotation attributes and defaults, member accessors,
+  primitive/reference/enum/nested/array values, inheritance, repeated annotations,
+  equality/hash and deferred errors for evolved annotation definitions. Four
+  differential tests, actual Logback phase comparison and a text-failure check
+  pass on ordinary and ASan/UBSan/leak-detection builds, as does the full existing
+  regression suite. See ANNOTATION-SUPPORT.md for the remaining reflection gaps.
+- Increased the class table from 512 to 2,048 after actual Xinbot exhausted it
+  during handler creation; the 16 MiB metadata budget remains enforced.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement actual runtime annotation metadata. DefaultProcessor loads the
-   PhaseIndicator annotation type, calls Class.getAnnotation, then reads phase()
-   to select its ProcessingPhase enum. Read the real classfile annotations,
-   defaults and inheritance rules; an always-null result would select incorrect
-   processing phases. Inspect this method in the original Xinbot JAR with javap.
+1. Implement regex support. The real application now selects FIRST/SECOND/
+   DEPENDENCY_ANALYSIS using its actual PhaseIndicator annotations. During
+   ConfigurationModelHandler initialization it loads Logback Duration, which
+   calls Pattern.compile. Inspect Duration with javap and implement the actual
+   Pattern/Matcher behavior; do not replace configuration parsing with constants.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

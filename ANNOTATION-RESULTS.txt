@@ -1,0 +1,7 @@
+PASS AnnotationTest (standard Java oracle)
+PASS RepeatableTest (standard Java oracle)
+PASS PrimitiveAnnotationTest (standard Java oracle)
+PASS EvolutionTest (standard Java oracle, replaced/removed classfiles)
+PASS actual Logback annotation phases (9 upstream classes, standard Java oracle)
+PASS explicit failure for annotation floating-point text (sanitizer output checked)
+Host only; calculator execution not verified.

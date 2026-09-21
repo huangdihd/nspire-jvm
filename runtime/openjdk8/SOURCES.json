@@ -10,13 +10,69 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Comparable.java",
       "sha256": "fa36a5187e874680520eb22bba1cd52657d1a3206ab050df0e3b986a19853c15"
     },
+    "java/lang/Deprecated.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Deprecated.java",
+      "sha256": "a76d3f0d52ee32f9b33e8844178a52fdd8750bbe5f702e79f7a96b3b43cec610"
+    },
     "java/lang/Enum.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Enum.java",
       "sha256": "9c7c0281768c55d669361da6e8680812a2bbb8dcee2943834d267653a3068611"
     },
+    "java/lang/EnumConstantNotPresentException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/EnumConstantNotPresentException.java",
+      "sha256": "57658d35cb176e0c54e2b53bfff4313bc53f48b2cea56f946882a67c5a8348f3"
+    },
     "java/lang/Iterable.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Iterable.java",
       "sha256": "9d5216a4214a4b497faf47bfcdae81acc82f26222e5c04fe7a8702f95cafac1d"
+    },
+    "java/lang/TypeNotPresentException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/TypeNotPresentException.java",
+      "sha256": "c184d2bf6cdda0159c608eddb54a88f8c1ade4c440764075718e14f024fabdad"
+    },
+    "java/lang/annotation/Annotation.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Annotation.java",
+      "sha256": "457ca35f2382a9f851d31669468d66f0b906f9152799963207af7a848bee1c1f"
+    },
+    "java/lang/annotation/AnnotationFormatError.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/AnnotationFormatError.java",
+      "sha256": "0828889ea407fe33ecc5e699f0605cd4c6080364c072070dde52b10957bf6e3c"
+    },
+    "java/lang/annotation/AnnotationTypeMismatchException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/AnnotationTypeMismatchException.java",
+      "sha256": "2f7b8b80dda4fe9254e5f27c7ebf3e48a78154051ff90c04f215c77206833201"
+    },
+    "java/lang/annotation/Documented.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Documented.java",
+      "sha256": "3e29fec083ea24189231b04349856695ebccf7381d82421b8047935c76522fb3"
+    },
+    "java/lang/annotation/ElementType.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/ElementType.java",
+      "sha256": "2c154a7b4337e5a0f7b38e8dc10ec49d4849f82586d4739d1f3807c9a8c5ef1f"
+    },
+    "java/lang/annotation/IncompleteAnnotationException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/IncompleteAnnotationException.java",
+      "sha256": "785362624e217fc2770fa042ba404e17af5c3c3b826a1b296101f956363e1fe6"
+    },
+    "java/lang/annotation/Inherited.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Inherited.java",
+      "sha256": "504f47a6a4538a0ef4822258bdc1e4e06ec3b20e47cef8e8bd0f2ff3fc0c0e28"
+    },
+    "java/lang/annotation/Repeatable.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Repeatable.java",
+      "sha256": "b0874d3e729d3968749374b88eed44bc742bae7f664e6ecb54c21bb4ff3afec0"
+    },
+    "java/lang/annotation/Retention.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Retention.java",
+      "sha256": "c666fdbecfb91e86e6467eca429900397ee45d71d512db9ce53c4202c6627c92"
+    },
+    "java/lang/annotation/RetentionPolicy.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/RetentionPolicy.java",
+      "sha256": "b6be6931feace625f77a5bde894badbd9d790e169fe4e49266576c4b28878e01"
+    },
+    "java/lang/annotation/Target.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/annotation/Target.java",
+      "sha256": "2653863ca379960c66d6d43e3a9a1cc61b7b385950d32771db28b9d4f8727964"
     },
     "java/security/PrivilegedAction.java": {
       "upstream_path": "jdk/src/share/classes/java/security/PrivilegedAction.java",

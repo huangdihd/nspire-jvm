@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#define MAX_CLASSES 512
+#define MAX_CLASSES 2048
 #define MAX_DEPTH 128
 #define CLASS_LIMIT (2U * 1024U * 1024U)
 #define META_LIMIT (16U * 1024U * 1024U)
@@ -39,12 +39,15 @@ typedef struct Mem { struct Mem *next; size_t size; } Mem;
 typedef struct { uint8_t tag; uint16_t a, b; uint64_t bits; char *text; Object *intern; Class *lambda_class; } CP;
 typedef struct { uint16_t start, end, handler, type; } Handler;
 typedef struct { uint16_t handle,nargs;uint16_t *args; } Bootstrap;
+typedef struct { unsigned char *bytes;size_t length;Object *cache; } AnnotationData;
 typedef struct {
     char *name, *desc; uint16_t flags, constant; size_t slot; Value value;
+    AnnotationData annotations;
 } Field;
 struct Method {
     Class *owner; char *name, *desc; uint16_t flags, locals, stack;
     unsigned char *code; uint32_t length; Handler *handlers; uint16_t nh;
+    AnnotationData annotations,annotation_default;
 };
 struct Class {
     char *name; Class *super; CP *cp; uint16_t nc, nf, nm;
@@ -56,6 +59,7 @@ struct Class {
     VmThread *init_owner;
     int app_loader;
     Bootstrap *bootstraps;unsigned nbootstraps;
+    AnnotationData annotations;Class *annotation_impl,*annotation_type;
 };
 struct Object {
     Object *next, *grey; Class *cls; unsigned mark; char kind;
@@ -194,6 +198,9 @@ static void collect(VM *v) {
     for (int i=0;i<v->nclasses;i++) {
         Class *c=v->classes[i];
         mark(c->mirror,&grey);mark(c->enum_constants,&grey);mark(c->enum_directory,&grey);
+        mark(c->annotations.cache,&grey);
+        for(unsigned j=0;j<c->nm;j++)mark(c->methods[j].annotations.cache,&grey);
+        for(unsigned j=0;j<c->nf;j++)mark(c->fields[j].annotations.cache,&grey);
         for (unsigned j=1;j<c->nc;j++) mark(c->cp[j].intern,&grey);
         for (unsigned j=0;j<c->nf;j++) if(c->fields[j].value.tag==REF) mark(obj(c->fields[j].value),&grey);
     }
@@ -321,8 +328,10 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"nspire/ResourceInputStream"))return "java/io/InputStream";
     if(!strcmp(n,"java/net/UnknownServiceException"))return "java/io/IOException";
     if(!strcmp(n,"java/lang/reflect/AccessibleObject"))return "java/lang/Object";
+    if(!strcmp(n,"java/lang/reflect/Type"))return "java/lang/Object";
+    if(!strcmp(n,"java/lang/reflect/Field"))return "java/lang/reflect/AccessibleObject";
     if(!strcmp(n,"java/lang/reflect/Executable"))return "java/lang/reflect/AccessibleObject";
-    if(!strcmp(n,"java/lang/reflect/Constructor"))return "java/lang/reflect/Executable";
+    if(!strcmp(n,"java/lang/reflect/Constructor")||!strcmp(n,"java/lang/reflect/Method"))return "java/lang/reflect/Executable";
     if(!strcmp(n,"java/lang/reflect/AnnotatedElement")||!strcmp(n,"java/lang/reflect/GenericDeclaration")||!strcmp(n,"java/lang/reflect/Member"))return "java/lang/Object";
     if(!strcmp(n,"java/lang/ReflectiveOperationException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/NoSuchMethodException")||!strcmp(n,"java/lang/reflect/InvocationTargetException"))return "java/lang/ReflectiveOperationException";
@@ -461,6 +470,11 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
             }
         }
         else if(!m&&!f&&!strcmp(name,"EnclosingMethod"))c->local_class=1;
+        else if(!strcmp(name,"RuntimeVisibleAnnotations")||(m&&!strcmp(name,"AnnotationDefault"))) {
+            AnnotationData *data=!strcmp(name,"AnnotationDefault")?&m->annotation_default:m?&m->annotations:f?&f->annotations:&c->annotations;
+            if(data->bytes)fail(r->v,"duplicate annotation attribute");
+            data->bytes=r->p+r->pos;data->length=len;
+        }
         if(r->pos>end) fail(r->v,"invalid attribute size: %s",name);
         r->pos=end;
     }
@@ -502,6 +516,11 @@ static Class *load(VM *v,const char *name) {
         if(!strcmp(name,"java/net/URLConnection")||!strcmp(name,"java/net/JarURLConnection"))c->access=0x401;
         if(!strcmp(name,"nspire/FileConnection")||!strcmp(name,"nspire/JarConnection"))c->slots=6;
         if(!strcmp(name,"java/lang/reflect/AnnotatedElement")||!strcmp(name,"java/lang/reflect/GenericDeclaration")||!strcmp(name,"java/lang/reflect/Member"))c->access=0x601;
+        if(!strcmp(name,"java/lang/reflect/Type"))c->access=0x601;
+        if(!strcmp(name,"java/lang/Class")) {
+            c->ni=3;c->interfaces=(Class **)alloc(v,3*sizeof(Class *));
+            c->interfaces[0]=load(v,"java/io/Serializable");c->interfaces[1]=load(v,"java/lang/reflect/GenericDeclaration");c->interfaces[2]=load(v,"java/lang/reflect/Type");
+        }
         if(!strcmp(name,"java/lang/reflect/AccessibleObject")||!strcmp(name,"java/lang/reflect/GenericDeclaration")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,"java/lang/reflect/AnnotatedElement");
         }
@@ -778,6 +797,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "split.inc"
 #include "search.inc"
 #include "builder.inc"
+#include "annotations.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -787,6 +807,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     const char *cl=c->name; Value none=iv(0); Object *self=NULL;
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
+    loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
         xml_parse(v,self,obj(a[1]),integer(a[2]),integer(a[3]));return none;
@@ -1015,6 +1036,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
         if(!isstatic) {
             Class *target=self->represented;if(self->kind!='c'||!target)fail(v,"invalid Class receiver");
+            if(!strcmp(n,"hashCode")&&!strcmp(d,"()I"))return iv((int32_t)(uintptr_t)self);
+            if(!strcmp(n,"equals")&&!strcmp(d,"(Ljava/lang/Object;)Z"))return iv(self==obj(a[1]));
+            if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) {
+                Object *name=class_name_string(v,target,0);root(v,name);const char *prefix=target->primitive?"":(target->access&0x200)?"interface ":"class ";
+                size_t size=strlen(prefix)+strlen(name->text)+1;char *text=(char *)alloc(v,size);snprintf(text,size,"%s%s",prefix,name->text);
+                Object *result=string(v,text);release(v,text);v->nr--;return rv(result);
+            }
             if(!strcmp(n,"getDeclaredField")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/reflect/Field;")) {
                 Object *name=nonnull(v,a[1]);if(!name)return none;
                 for(unsigned i=0;i<target->nf;i++)if(!strcmp(target->fields[i].name,name->text)) {
@@ -1407,6 +1435,11 @@ static void stackop(VM *v,Frame *f,unsigned op) {
     }
 }
 static Value execute(VM *v,Method *m,Value *args,unsigned count) {
+    if((m->flags&NATIVE)&&m->owner->annotation_type) {
+        if(++v->depth>MAX_DEPTH)fail(v,"maximum annotation call depth exceeded");
+        unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
+        Value result=annotation_invoke(v,m,args,count);v->nr=saved;v->depth--;return result;
+    }
     Value result=iv(0);
     if(!m->code) fail(v,"method has no executable Code: %s.%s%s",m->owner->name,m->name,m->desc);
     if(++v->depth>MAX_DEPTH) fail(v,"maximum call depth %d exceeded",MAX_DEPTH);
@@ -1543,7 +1576,8 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
                 if(target->flags&NATIVE) {
-                    if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
+                    if(target->owner->annotation_type)res=execute(v,target,aa,na);
+                    else if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
                     else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
                     else fail(v,"unbound native method: %s.%s%s",c->name,n,d);
                 } else res=execute(v,target,aa,na);

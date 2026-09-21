@@ -1,0 +1,12 @@
+PASS actual Logback annotation phases (9 upstream classes, standard Java oracle)
+ch.qos.logback.classic.model.LoggerModel=SECOND
+ch.qos.logback.classic.model.RootLoggerModel=SECOND
+ch.qos.logback.core.model.AppenderModel=SECOND
+ch.qos.logback.core.model.AppenderRefModel=SECOND
+ch.qos.logback.core.model.processor.AppenderDeclarationAnalyser=DEPENDENCY_ANALYSIS
+ch.qos.logback.core.model.processor.AppenderRefDependencyAnalyser=DEPENDENCY_ANALYSIS
+ch.qos.logback.core.model.processor.DefaultProcessor=absent
+ch.qos.logback.core.model.processor.FileCollisionAnalyser=DEPENDENCY_ANALYSIS
+ch.qos.logback.core.model.processor.RefContainerDependencyAnalyser=DEPENDENCY_ANALYSIS
+
+This component check does not prove full Xinbot startup.

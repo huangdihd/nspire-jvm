@@ -10,7 +10,7 @@ method after class initialization. Each class roots its shared enum universe
 and name directory. Public `Class.getEnumConstants()` returns a defensive array
 copy, and EnumMap/EnumSet use the internal shared universe. Enum.valueOf and
 canonical/declaring-class names are supported for the tested top-level, member,
-local, anonymous and array cases. General annotation/reflection APIs remain
+local, anonymous and array cases. General method/field reflection APIs remain
 incomplete.
 
 Additional native support required by these libraries includes Integer/Long
@@ -60,5 +60,6 @@ not that multiple-failure case.
 
 The existing class-count, metadata, stack and Java-heap budgets apply. Host
 success does not verify the ARM context switch, device timing or calculator
-memory use. Full Xinbot startup still fails later while requesting annotation
-metadata for log configuration handlers; see XINBOT-RUN.txt.
+memory use. Full Xinbot startup passes annotation phase selection and still
+fails later while loading regex Pattern for log configuration handlers;
+see XINBOT-RUN.txt.

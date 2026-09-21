@@ -7,13 +7,14 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/lang/annotation/Annotation
-  at ch/qos/logback/core/model/processor/DefaultProcessor.determineProcessingPhase(Ljava/lang/Class;)Lch/qos/logback/core/model/processor/ProcessingPhase; pc=1
-  at ch/qos/logback/core/model/processor/DefaultProcessor.addHandler(Ljava/lang/Class;Lch/qos/logback/core/model/ModelHandlerFactoryMethod;)V pc=12
-  at ch/qos/logback/core/joran/ModelClassToModelHandlerLinkerBase.link(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=8
-  at ch/qos/logback/classic/joran/ModelClassToModelHandlerLinker.link(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=2
-  at ch/qos/logback/classic/joran/JoranConfigurator.addModelHandlerAssociations(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=23
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.processModel(Lch/qos/logback/core/model/Model;)V pc=38
+VM error: class not found: java/util/regex/Pattern
+  at ch/qos/logback/core/util/Duration.<clinit>()V pc=3
+  at ch/qos/logback/classic/model/processor/ConfigurationModelHandler.<clinit>()V pc=1
+  at ch/qos/logback/classic/joran/JoranConfigurator$$Lambda$112.make(Lch/qos/logback/core/Context;Lch/qos/logback/core/model/processor/ModelInterpretationContext;)Lch/qos/logback/core/model/processor/ModelHandlerBase; pc=4
+  at ch/qos/logback/core/model/processor/DefaultProcessor.createHandler(Lch/qos/logback/core/model/Model;)Lch/qos/logback/core/model/processor/ModelHandlerBase; pc=54
+  at ch/qos/logback/core/model/processor/DefaultProcessor.mainTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=36
+  at ch/qos/logback/core/model/processor/DefaultProcessor.process(Lch/qos/logback/core/model/Model;)V pc=21
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.processModel(Lch/qos/logback/core/model/Model;)V pc=57
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=80
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=16
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
@@ -42,8 +43,9 @@ Unicode case conversion, literal substring checks and Stack initialization now
 pass. Collection.stream and Stream.noneMatch now execute the original OpenJDK
 pipeline and application predicate while matching element paths. The recorded
 SAX events are interpreted and the configuration model is built. Execution
-stops while linking handlers: DefaultProcessor.determineProcessingPhase requests
-annotation metadata and java/lang/annotation/Annotation is not yet provided.
+now reads the actual PhaseIndicator annotations and selects processing phases.
+It starts creating configuration handlers, then stops while initializing
+Logback Duration because java/util/regex/Pattern is not yet provided.
 This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
@@ -53,6 +55,6 @@ Separately, the unchanged Logback SaxEventRecorder in this same release parsed
 its actual logback.xml with this VM's Expat-backed SAX provider. It produced the
 same 27 events as standard Java (see LOGBACK-XML-RESULTS.txt). This component test
 does not mean that whole-application startup succeeds.
-Annotation reflection is the next missing path. Full reflection, additional
+Regex Pattern is the next missing path. Full reflection, additional
 dynamic invocation, other I/O, networking and device verification
 remain. The application or its logging setup was not bypassed.
