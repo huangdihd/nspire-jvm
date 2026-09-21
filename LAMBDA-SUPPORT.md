@@ -16,8 +16,9 @@ Implemented paths:
   constructor references. A bound instance receiver must be non-null at capture.
   Actual target class initialization occurs when the generated invocation needs it.
 - Reference casts, primitive widening, return-value discarding and calls to the
-  VM's wrapper boxing/unboxing methods. Integer/Boolean wrappers are supported;
-  other wrapper APIs remain incomplete and still fail explicitly when reached.
+  VM's wrapper boxing/unboxing methods. Integer/Boolean and Long/Double numeric
+  wrappers are supported; Double object text formatting and other wrapper APIs
+  remain incomplete and still fail explicitly when reached.
 - `altMetafactory` marker interfaces and additional bridge descriptors.
   Serializable-lambda flags are rejected; no serialized representation is faked.
 - Interface default methods are selected by specificity. Interfaces declaring
@@ -47,4 +48,5 @@ private/super references, default-method composition and threaded execution.
 The original unsupported-lambda tests now use a serializable lambda to preserve
 their main-stack and child-stack fatal-error checks. Ordinary lambda execution
 is covered by the new positive tests. Real Xinbot now passes its initial lambda
-bootstrap and XML parsing; it still fails later in log configuration model setup.
+bootstrap, XML parsing and sequential stream matching; it still fails later in
+log configuration model setup while requesting annotation metadata.

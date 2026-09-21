@@ -1,0 +1,7 @@
+PASS EnumTest (actual OpenJDK library bytecode)
+PASS StreamSupportTest (actual OpenJDK library bytecode)
+PASS WideBoxingTest (actual OpenJDK library bytecode)
+PASS StreamTest (actual OpenJDK library bytecode)
+PASS explicit failure UnsupportedParallelTest (sanitizer output checked)
+PASS explicit failure UnsupportedDoubleTextTest (sanitizer output checked)
+Host only; calculator execution not verified.

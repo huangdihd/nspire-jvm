@@ -50,8 +50,8 @@ struct Class {
     char *name; Class *super; CP *cp; uint16_t nc, nf, nm;
     Field *fields; Method *methods; size_t slots; int builtin, init, loading;
     Class **interfaces; uint16_t ni;
-    Object *mirror; Class *component;
-    char *simple_name; uint16_t access;
+    Object *mirror,*enum_constants,*enum_directory; Class *component;
+    char *simple_name,*declaring_name; uint16_t access;int local_class;
     unsigned primitive;
     VmThread *init_owner;
     int app_loader;
@@ -93,8 +93,8 @@ struct VM {
     ClassPath paths[32]; unsigned npaths,nbootpaths; uint64_t steps;
     VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;int fatal;
     Object *unsafe_instance,*runtime_instance;
-    Object *app_loader;
-    Object *integer_cache[256];
+    Object *app_loader,*java_lang_access;
+    Object *integer_cache[256],*long_cache[256];
     Property *properties;
     XmlParse *xml_parsers;XmlMem *xml_mem;size_t xml_bytes;
 };
@@ -169,8 +169,8 @@ static void collect(VM *v) {
     Object *grey=NULL;
     mark(v->exception,&grey);
     mark(v->unsafe_instance,&grey);mark(v->runtime_instance,&grey);
-    mark(v->app_loader,&grey);
-    for(unsigned i=0;i<256;i++)mark(v->integer_cache[i],&grey);
+    mark(v->app_loader,&grey);mark(v->java_lang_access,&grey);
+    for(unsigned i=0;i<256;i++){mark(v->integer_cache[i],&grey);mark(v->long_cache[i],&grey);}
     for (unsigned i=0;i<v->nr;i++) mark(v->roots[i],&grey);
     for(VmThread *t=v->threads;t;t=t->next)if(t->state!=T_NEW&&t->state!=T_DONE) {
         mark(t->object,&grey);mark(t->waiting,&grey);
@@ -193,7 +193,7 @@ static void collect(VM *v) {
     }
     for (int i=0;i<v->nclasses;i++) {
         Class *c=v->classes[i];
-        mark(c->mirror,&grey);
+        mark(c->mirror,&grey);mark(c->enum_constants,&grey);mark(c->enum_directory,&grey);
         for (unsigned j=1;j<c->nc;j++) mark(c->cp[j].intern,&grey);
         for (unsigned j=0;j<c->nf;j++) if(c->fields[j].value.tag==REF) mark(obj(c->fields[j].value),&grey);
     }
@@ -265,6 +265,7 @@ static char *classname(VM *v,Class *c,unsigned i) { return utf(v,c,cp(v,c,i,7)->
 static Class *load(VM *,const char *);
 static void initialize(VM *,Class *);
 static Value execute(VM *,Method *,Value *,unsigned);
+static Value native_call(VM *,Class *,const char *,const char *,Value *,unsigned,int);
 static Object *array_new(VM *,const char *,int32_t);
 static void schedule(VM *);
 static int monitor_enter(VM *,Object *);
@@ -326,6 +327,7 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/ReflectiveOperationException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/NoSuchMethodException")||!strcmp(n,"java/lang/reflect/InvocationTargetException"))return "java/lang/ReflectiveOperationException";
     if(!strcmp(n,"java/lang/Comparable")||!strcmp(n,"java/lang/CharSequence"))return "java/lang/Object";
+    if(!strcmp(n,"sun/misc/SharedSecrets")||!strcmp(n,"sun/misc/JavaLangAccess")||!strcmp(n,"nspire/JavaLangAccess"))return "java/lang/Object";
     const char *io_plain[]={"java/lang/ClassLoader","java/net/URL","java/io/InputStream","java/io/Reader","nspire/ResourceEnumeration","java/security/AccessController",NULL};
     for(unsigned i=0;io_plain[i];i++)if(!strcmp(n,io_plain[i]))return "java/lang/Object";
     if(!strcmp(n,"java/io/ByteArrayInputStream"))return "java/io/InputStream";
@@ -450,11 +452,15 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
         else if(!m&&!f&&!strcmp(name,"InnerClasses")) {
             unsigned entries=readn(r,2);
             while(entries--) {
-                unsigned inner=readn(r,2); (void)readn(r,2);
+                unsigned inner=readn(r,2),outer=readn(r,2);
                 unsigned simple=readn(r,2); (void)readn(r,2);
-                if(inner&&!strcmp(classname(r->v,c,inner),c->name))c->simple_name=simple?utf(r->v,c,simple):"";
+                if(inner&&!strcmp(classname(r->v,c,inner),c->name)) {
+                    c->simple_name=simple?utf(r->v,c,simple):"";
+                    c->declaring_name=outer?classname(r->v,c,outer):NULL;
+                }
             }
         }
+        else if(!m&&!f&&!strcmp(name,"EnclosingMethod"))c->local_class=1;
         if(r->pos>end) fail(r->v,"invalid attribute size: %s",name);
         r->pos=end;
     }
@@ -503,9 +509,16 @@ static Class *load(VM *v,const char *name) {
             c->ni=2;c->interfaces=(Class **)alloc(v,2*sizeof(Class *));c->interfaces[0]=load(v,"java/lang/reflect/Member");c->interfaces[1]=load(v,"java/lang/reflect/GenericDeclaration");
         }
         if(!strcmp(name,"java/lang/Cloneable")||!strcmp(name,"java/io/Serializable")||!strcmp(name,"java/lang/Runnable")||!strcmp(name,"java/lang/Comparable")||!strcmp(name,"java/lang/CharSequence"))c->access=0x601;
+        if(!strcmp(name,"sun/misc/JavaLangAccess"))c->access=0x601;
+        if(!strcmp(name,"nspire/JavaLangAccess")) {
+            c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,"sun/misc/JavaLangAccess");
+        }
         if(!strcmp(name,"java/lang/String")) {
             c->ni=3;c->interfaces=(Class **)alloc(v,3*sizeof(Class *));
             c->interfaces[0]=load(v,"java/io/Serializable");c->interfaces[1]=load(v,"java/lang/Comparable");c->interfaces[2]=load(v,"java/lang/CharSequence");
+        }
+        if(!strcmp(name,"java/lang/StringBuilder")) {
+            c->ni=2;c->interfaces=(Class **)alloc(v,2*sizeof(Class *));c->interfaces[0]=load(v,"java/io/Serializable");c->interfaces[1]=load(v,"java/lang/CharSequence");
         }
         if(!strcmp(name,"java/lang/Thread")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,"java/lang/Runnable");
@@ -521,9 +534,10 @@ static Class *load(VM *v,const char *name) {
         if(!strcmp(name,"java/lang/Class")||!strcmp(name,"java/lang/String")||wrapper_primitive(name))c->access=0x11;
         if(wrapper_primitive(name)) {
             int boolean=!strcmp(name,"java/lang/Boolean");
-            c->nf=boolean?4:!strcmp(name,"java/lang/Integer")?2:1;c->fields=(Field *)alloc(v,c->nf*sizeof(Field));
+            int number=!strcmp(name,"java/lang/Integer")||!strcmp(name,"java/lang/Long")||!strcmp(name,"java/lang/Double");
+            c->nf=boolean?4:number?2:1;c->fields=(Field *)alloc(v,c->nf*sizeof(Field));
             c->fields[0].name="TYPE";c->fields[0].desc="Ljava/lang/Class;";c->fields[0].flags=STATIC|0x11;c->fields[0].value=rv(NULL);
-            if(c->nf>=2){c->slots=1;c->fields[1].name="value";c->fields[1].desc=boolean?"Z":"I";c->fields[1].flags=0x12;c->fields[1].slot=0;
+            if(c->nf>=2){c->slots=1;c->fields[1].name="value";c->fields[1].desc=boolean?"Z":!strcmp(name,"java/lang/Long")?"J":!strcmp(name,"java/lang/Double")?"D":"I";c->fields[1].flags=0x12;c->fields[1].slot=0;
                 c->ni=2;c->interfaces=(Class **)alloc(v,2*sizeof(Class *));c->interfaces[0]=load(v,"java/lang/Comparable");c->interfaces[1]=load(v,"java/io/Serializable");}
             if(boolean)for(unsigned i=2;i<4;i++){c->fields[i].name=i==2?"TRUE":"FALSE";c->fields[i].desc="Ljava/lang/Boolean;";c->fields[i].flags=STATIC|0x11;c->fields[i].value=rv(NULL);}
         }
@@ -682,6 +696,7 @@ static char *as_text(VM *v,Value a,char buf[128]) {
  * allocations in toString. The caller roots the returned string if it allocates. */
 static Value object_string(VM *v,Value value) {
     if(!obj(value))return rv(string(v,"null"));
+    if(obj(value)->kind=='w'&&obj(value)->data[0].tag==DOUBLE)fail(v,"Double object text formatting is not implemented");
     Method *m=method(obj(value)->cls,"toString","()Ljava/lang/String;");
     if(m) {
         Value result=execute(v,m,&value,1);
@@ -755,12 +770,14 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "reflection.inc"
 #include "loader.inc"
 #include "identifiers.inc"
+#include "enums.inc"
 #include "case.inc"
 #include "lambda.inc"
 #include "indy.inc"
 #include "format.inc"
 #include "split.inc"
 #include "search.inc"
+#include "builder.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -780,6 +797,14 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         Object *action=nonnull(v,a[0]);if(!action)return none;
         Method *run=method(action->cls,"run","()Ljava/lang/Object;");if(!run)fail(v,"PrivilegedAction.run not found");
         return execute(v,run,a,1);
+    }
+    if(isstatic&&!strcmp(cl,"sun/misc/SharedSecrets")&&!strcmp(n,"getJavaLangAccess")&&!strcmp(d,"()Lsun/misc/JavaLangAccess;")) {
+        if(!v->java_lang_access)v->java_lang_access=new_object(v,load(v,"nspire/JavaLangAccess"),'o',0);
+        return rv(v->java_lang_access);
+    }
+    if(!isstatic&&(!strcmp(cl,"sun/misc/JavaLangAccess")||!strcmp(cl,"nspire/JavaLangAccess"))&&!strcmp(n,"getEnumConstantsShared")&&!strcmp(d,"(Ljava/lang/Class;)[Ljava/lang/Enum;")) {
+        Object *mirror=nonnull(v,a[1]);if(!mirror)return none;
+        if(mirror->kind!='c')fail(v,"enum universe requires Class");return rv(enum_constants(v,mirror->represented));
     }
     if(!strcmp(cl,"java/lang/Boolean")) {
         if(isstatic) {
@@ -857,6 +882,37 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!strcmp(n,"compareTo")&&(!strcmp(d,"(Ljava/lang/Integer;)I")||!strcmp(d,"(Ljava/lang/Object;)I"))) {
                 Object *other=nonnull(v,a[1]);if(!other)return none;if(other->cls!=c){throwing(v,"java/lang/ClassCastException");return none;}
                 int32_t right=integer(other->data[0]);return iv(value<right?-1:value>right?1:0);
+            }
+        }
+    }
+    if(!strcmp(cl,"java/lang/Long")||!strcmp(cl,"java/lang/Double")) {
+        int large=!strcmp(cl,"java/lang/Long");
+        if(isstatic&&!strcmp(n,"valueOf")&&!strcmp(d,large?"(J)Ljava/lang/Long;":"(D)Ljava/lang/Double;")) {
+            int64_t value=(int64_t)a[0].bits;int cached=large&&value>=-128&&value<=127;
+            if(cached&&v->long_cache[value+128])return rv(v->long_cache[value+128]);
+            Object *o=new_object(v,c,'w',1);o->data[0]=a[0];if(cached)v->long_cache[value+128]=o;return rv(o);
+        }
+        if(!isstatic) {
+            if(!strcmp(n,"<init>")&&!strcmp(d,large?"(J)V":"(D)V")){self->kind='w';self->data[0]=a[1];return none;}
+            Value value=self->data[0];double number=large?(double)(int64_t)value.bits:dbl(value);
+            if(!strcmp(n,"doubleValue")&&!strcmp(d,"()D"))return dv(number);
+            if(!strcmp(n,"floatValue")&&!strcmp(d,"()F"))return fv(large?(float)(int64_t)value.bits:(float)number);
+            if(!strcmp(n,"longValue")&&!strcmp(d,"()J"))return large?value:val(isnan(number)?0:number>=9223372036854775808.0?INT64_MAX:number<=-9223372036854775808.0?(uint64_t)INT64_MIN:(uint64_t)(int64_t)number,LONG);
+            if((!strcmp(n,"intValue")&&!strcmp(d,"()I"))||(!strcmp(n,"shortValue")&&!strcmp(d,"()S"))||(!strcmp(n,"byteValue")&&!strcmp(d,"()B"))) {
+                int32_t x=large?(int32_t)(uint32_t)value.bits:isnan(number)?0:number>=INT_MAX?INT_MAX:number<=INT_MIN?INT_MIN:(int32_t)number;
+                return iv(d[2]=='B'?(int8_t)x:d[2]=='S'?(int16_t)x:x);
+            }
+            uint64_t bits=!large&&isnan(number)?UINT64_C(0x7ff8000000000000):value.bits;
+            if(!strcmp(n,"hashCode")&&!strcmp(d,"()I"))return iv((int32_t)(uint32_t)(bits^(bits>>32)));
+            if(!strcmp(n,"equals")&&!strcmp(d,"(Ljava/lang/Object;)Z")) {
+                Object *other=obj(a[1]);if(!other||other->cls!=c)return iv(0);uint64_t right=other->data[0].bits;
+                if(!large&&isnan(dbl(other->data[0])))right=UINT64_C(0x7ff8000000000000);return iv(bits==right);
+            }
+            if(large&&!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")){char text[128];return rv(string(v,as_text(v,value,text)));}
+            if(!strcmp(n,"compareTo")&&(!strcmp(d,"(Ljava/lang/Object;)I")||!strcmp(d,large?"(Ljava/lang/Long;)I":"(Ljava/lang/Double;)I"))) {
+                Object *other=nonnull(v,a[1]);if(!other)return none;if(other->cls!=c){throwing(v,"java/lang/ClassCastException");return none;}
+                Value right=other->data[0];if(!large){double y=dbl(right);if(number<y)return iv(-1);if(number>y)return iv(1);if(isnan(y))right.bits=UINT64_C(0x7ff8000000000000);}
+                return iv((int64_t)bits<(int64_t)right.bits?-1:(int64_t)bits>(int64_t)right.bits?1:0);
             }
         }
     }
@@ -970,6 +1026,14 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!strcmp(n,"desiredAssertionStatus")&&!strcmp(d,"()Z"))return iv(0);
             if(!strcmp(n,"getName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,0));
             if(!strcmp(n,"getSimpleName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,1));
+            if(!strcmp(n,"getCanonicalName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(canonical_name(v,target));
+            if(!strcmp(n,"getDeclaringClass")&&!strcmp(d,"()Ljava/lang/Class;"))return rv(target->declaring_name?class_mirror(v,load(v,target->declaring_name)):NULL);
+            if(!strcmp(n,"isEnum")&&!strcmp(d,"()Z"))return iv(enum_type(target));
+            if((!strcmp(n,"getEnumConstants")||!strcmp(n,"getEnumConstantsShared"))&&!strcmp(d,"()[Ljava/lang/Object;")) {
+                Object *values=enum_constants(v,target);if(v->exception||!values||!strcmp(n,"getEnumConstantsShared"))return rv(values);
+                Object *clone=array_new(v,values->array_desc,(int32_t)values->count);memcpy(clone->data,values->data,values->count*sizeof(Value));return rv(clone);
+            }
+            if(!strcmp(n,"enumConstantDirectory")&&!strcmp(d,"()Ljava/util/Map;"))return rv(enum_directory(v,target));
             if(!strcmp(n,"isPrimitive")&&!strcmp(d,"()Z"))return iv(target->primitive!=0);
             if(!strcmp(n,"isArray")&&!strcmp(d,"()Z"))return iv(target->component!=NULL);
             if(!strcmp(n,"isInterface")&&!strcmp(d,"()Z"))return iv((target->access&0x200)!=0);
@@ -1096,6 +1160,15 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(isstatic&&!strcmp(n,"valueOf")&&(!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     }
     if(!strcmp(cl,"java/lang/StringBuilder")) {
+        if(!strcmp(n,"append")&&(!strcmp(d,"(Ljava/lang/CharSequence;)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/CharSequence;II)Ljava/lang/StringBuilder;"))) {
+            builder_sequence(v,self,obj(a[1]),na==4?integer(a[2]):0,na==4?integer(a[3]):0,na==2);return a[0];
+        }
+        if(!strcmp(n,"setLength")&&!strcmp(d,"(I)V")){builder_length(v,self,integer(a[1]));return none;}
+        if(!strcmp(n,"charAt")&&!strcmp(d,"(I)C")) {
+            int32_t index=integer(a[1]),position=0;const unsigned char *p=(const unsigned char *)(self->text?self->text:"");
+            while(*p){unsigned ch=utf_unit(&p);if(position++==index)return iv((int32_t)ch);}
+            throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;
+        }
         if(!strcmp(n,"length")&&!strcmp(d,"()I")) {
             const unsigned char *s=(const unsigned char *)(self->text?self->text:"");int32_t length=0;
             while(*s){utf_unit(&s);length++;}return iv(length);
@@ -1140,6 +1213,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"abs")&&!strcmp(d,"(J)J")) return val((int64_t)a[0].bits<0?0-a[0].bits:a[0].bits,LONG);
         if(!strcmp(n,"sqrt")&&!strcmp(d,"(D)D")) return dv(sqrt(dbl(a[0])));
         if((!strcmp(n,"min")||!strcmp(n,"max"))&&!strcmp(d,"(II)I")) { int less=integer(a[0])<integer(a[1]); return (!strcmp(n,"min")?less:!less)?a[0]:a[1]; }
+        if((!strcmp(n,"min")||!strcmp(n,"max"))&&!strcmp(d,"(JJ)J")) {int less=(int64_t)a[0].bits<(int64_t)a[1].bits;return (!strcmp(n,"min")?less:!less)?a[0]:a[1];}
         if((!strcmp(n,"min")||!strcmp(n,"max"))&&(!strcmp(d,"(FF)F")||!strcmp(d,"(DD)D"))) {
             double x=d[1]=='F'?(double)flt(a[0]):dbl(a[0]),y=d[1]=='F'?(double)flt(a[1]):dbl(a[1]);
             int minimum=!strcmp(n,"min");
@@ -1150,9 +1224,27 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     }
     if((!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))&&isstatic&&!strcmp(n,"toString")&&
        (!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
+    if(isstatic&&(!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))) {
+        int large=!strcmp(cl,"java/lang/Long");
+        if(!strcmp(n,"compare")&&!strcmp(d,large?"(JJ)I":"(II)I")) {
+            int64_t x=large?(int64_t)a[0].bits:integer(a[0]),y=large?(int64_t)a[1].bits:integer(a[1]);return iv(x<y?-1:x>y?1:0);
+        }
+        if(!strcmp(d,large?"(JJ)J":"(II)I")) {
+            if(!strcmp(n,"sum"))return large?val(a[0].bits+a[1].bits,LONG):iv((int32_t)(uint32_t)(a[0].bits+a[1].bits));
+            if(!strcmp(n,"min")||!strcmp(n,"max")) {
+                int64_t x=large?(int64_t)a[0].bits:integer(a[0]),y=large?(int64_t)a[1].bits:integer(a[1]);return (!strcmp(n,"min")?x<y:x>y)?a[0]:a[1];
+            }
+        }
+    }
     if(!strcmp(cl,"java/lang/Integer")&&isstatic&&!strcmp(n,"numberOfLeadingZeros")&&!strcmp(d,"(I)I")) {
         uint32_t x=(uint32_t)a[0].bits;int count=0;if(!x)return iv(32);
         while(!(x&0x80000000U)){count++;x<<=1;}return iv(count);
+    }
+    if(isstatic&&(!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))&&(!strcmp(d,"(I)I")||!strcmp(d,"(J)I"))) {
+        unsigned width=d[1]=='J'?64:32;uint64_t x=width==64?a[0].bits:(uint32_t)a[0].bits;int count=0;
+        if(!strcmp(n,"bitCount")){while(x){x&=x-1;count++;}return iv(count);}
+        if(!strcmp(n,"numberOfTrailingZeros")){if(!x)return iv((int32_t)width);while(!(x&1)){count++;x>>=1;}return iv(count);}
+        if(!strcmp(n,"numberOfLeadingZeros")){if(!x)return iv((int32_t)width);uint64_t mask=UINT64_C(1)<<(width-1);while(!(x&mask)){count++;x<<=1;}return iv(count);}
     }
     if(isstatic&&!strcmp(n,"isNaN")) {
         if(!strcmp(cl,"java/lang/Float")&&!strcmp(d,"(F)Z"))return iv(isnan(flt(a[0]))!=0);
@@ -1163,6 +1255,8 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"intBitsToFloat")&&!strcmp(d,"(I)F"))return val((uint32_t)integer(a[0]),FLOAT);
     }
     if(isstatic&&!strcmp(cl,"java/lang/Double")) {
+        if(!strcmp(n,"isNaN")&&!strcmp(d,"(D)Z"))return iv(isnan(dbl(a[0]))!=0);
+        if(!strcmp(n,"isInfinite")&&!strcmp(d,"(D)Z"))return iv(isinf(dbl(a[0]))!=0);
         if((!strcmp(n,"doubleToRawLongBits")||!strcmp(n,"doubleToLongBits"))&&!strcmp(d,"(D)J"))return val(!strcmp(n,"doubleToLongBits")&&isnan(dbl(a[0]))?UINT64_C(0x7ff8000000000000):a[0].bits,LONG);
         if(!strcmp(n,"longBitsToDouble")&&!strcmp(d,"(J)D"))return val(a[0].bits,DOUBLE);
     }

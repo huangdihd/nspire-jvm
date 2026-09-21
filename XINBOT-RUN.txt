@@ -7,18 +7,14 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/util/stream/StreamSupport
-  at java/util/Collection.stream()Ljava/util/stream/Stream; pc=7
-  at ch/qos/logback/core/joran/spi/SimpleRuleStore.removeTransparentPathParts(Lch/qos/logback/core/joran/spi/ElementPath;)Lch/qos/logback/core/joran/spi/ElementPath; pc=47
-  at ch/qos/logback/core/joran/spi/SimpleRuleStore.matchActionsWithoutTransparentPartsAndRenamedParts(Lch/qos/logback/core/joran/spi/ElementPath;)Ljava/util/function/Supplier; pc=2
-  at ch/qos/logback/core/joran/spi/SimpleRuleStore.matchActions(Lch/qos/logback/core/joran/spi/ElementPath;)Ljava/util/function/Supplier; pc=14
-  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.getApplicableAction(Lch/qos/logback/core/joran/spi/ElementPath;Lorg/xml/sax/Attributes;)Lch/qos/logback/core/joran/action/Action; pc=5
-  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V pc=36
-  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.startElement(Lch/qos/logback/core/joran/event/StartEvent;)V pc=25
-  at ch/qos/logback/core/joran/spi/EventPlayer.play()V pc=53
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.playSaxEvents()V pc=7
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.buildModelFromSaxEventList(Ljava/util/List;)Lch/qos/logback/core/model/Model; pc=6
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=54
+VM error: class not found: java/lang/annotation/Annotation
+  at ch/qos/logback/core/model/processor/DefaultProcessor.determineProcessingPhase(Ljava/lang/Class;)Lch/qos/logback/core/model/processor/ProcessingPhase; pc=1
+  at ch/qos/logback/core/model/processor/DefaultProcessor.addHandler(Ljava/lang/Class;Lch/qos/logback/core/model/ModelHandlerFactoryMethod;)V pc=12
+  at ch/qos/logback/core/joran/ModelClassToModelHandlerLinkerBase.link(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=8
+  at ch/qos/logback/classic/joran/ModelClassToModelHandlerLinker.link(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=2
+  at ch/qos/logback/classic/joran/JoranConfigurator.addModelHandlerAssociations(Lch/qos/logback/core/model/processor/DefaultProcessor;)V pc=23
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.processModel(Lch/qos/logback/core/model/Model;)V pc=38
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=80
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=16
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
   at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
@@ -43,9 +39,11 @@ the XML resource in the upstream JAR. Its URL connection opens the resource
 stream with caching disabled. The configuration-event lambda is created and
 invoked through the actual collection API, and SAX parses the original XML.
 Unicode case conversion, literal substring checks and Stack initialization now
-pass. Execution begins interpreting the recorded SAX events, then stops at
-Collection.stream because java/util/stream/StreamSupport is missing, called
-while matching element paths in SimpleRuleStore.removeTransparentPathParts.
+pass. Collection.stream and Stream.noneMatch now execute the original OpenJDK
+pipeline and application predicate while matching element paths. The recorded
+SAX events are interpreted and the configuration model is built. Execution
+stops while linking handlers: DefaultProcessor.determineProcessingPhase requests
+annotation metadata and java/lang/annotation/Annotation is not yet provided.
 This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
@@ -55,6 +53,6 @@ Separately, the unchanged Logback SaxEventRecorder in this same release parsed
 its actual logback.xml with this VM's Expat-backed SAX provider. It produced the
 same 27 events as standard Java (see LOGBACK-XML-RESULTS.txt). This component test
 does not mean that whole-application startup succeeds.
-Java Stream support is the next missing path. Full reflection, additional
+Annotation reflection is the next missing path. Full reflection, additional
 dynamic invocation, other I/O, networking and device verification
 remain. The application or its logging setup was not bypassed.

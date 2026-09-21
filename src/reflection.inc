@@ -61,8 +61,12 @@ static Object *construct(VM *v,Object *ctor,Object *args) {
             if(o&&!subtype(o->cls,type)){throwing(v,"java/lang/IllegalArgumentException");break;}
         } else if(o&&o->kind=='B'&&type->primitive=='Z')value=o->data[0];
         else if(o&&o->kind=='w') {
-            int32_t x=integer(o->data[0]);
-            switch(type->primitive){case 'I':value=iv(x);break;case 'J':value=val((uint64_t)(int64_t)x,LONG);break;case 'F':value=fv((float)x);break;case 'D':value=dv((double)x);break;default:throwing(v,"java/lang/IllegalArgumentException");}
+            Value unboxed=o->data[0];int kind=unboxed.tag;
+            if(type->primitive=='I'&&kind==INT)value=unboxed;
+            else if(type->primitive=='J'&&(kind==INT||kind==LONG))value=kind==LONG?unboxed:val((uint64_t)(int64_t)integer(unboxed),LONG);
+            else if(type->primitive=='F'&&(kind==INT||kind==LONG||kind==FLOAT))value=kind==FLOAT?unboxed:fv(kind==LONG?(float)(int64_t)unboxed.bits:(float)integer(unboxed));
+            else if(type->primitive=='D')value=dv(kind==DOUBLE?dbl(unboxed):kind==FLOAT?(double)flt(unboxed):kind==LONG?(double)(int64_t)unboxed.bits:(double)integer(unboxed));
+            else throwing(v,"java/lang/IllegalArgumentException");
         } else {if(o&&o->kind!='B'&&wrapper_primitive(o->cls->name))fail(v,"reflection unboxing is not implemented for %s",o->cls->name);throwing(v,"java/lang/IllegalArgumentException");}
         if(v->exception)break;snapshot->data[i+1]=value;
     }

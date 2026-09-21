@@ -4,23 +4,23 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 4975
-  Zehn executable size: 449776 bytes
-  Bytes needed to load: 450712 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 5052
+  Zehn executable size: 458180 bytes
+  Bytes needed to load: 459116 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
 11/11 loader/resource/connection/service/reflection/string cases, 2/2 Java 8/17
-lambda runs, 3/3 casing checks, 3/3 SAX tests and 1/1 actual Logback XML
-component test passed.
+lambda runs, 3/3 casing checks, 6/6 stream/enum/boxing checks, 3/3 SAX tests
+and 1/1 actual Logback XML component test passed.
 All suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
 The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
-same missing java/util/stream/StreamSupport class during Collection.stream(),
-with no sanitizer errors. Initial lambda creation/invocation and XML parsing
-now pass; execution enters configuration event interpretation and stops while
-matching element paths, before Xinbot.main.
+same missing java/lang/annotation/Annotation class while loading PhaseIndicator,
+with no sanitizer errors. Initial lambda creation/invocation, XML parsing and
+stream-based element path matching now pass; execution enters configuration model
+processing and stops while linking handlers, before Xinbot.main.
 Separately, Xinbot's actual Logback SaxEventRecorder produced the same 27 events
 as standard Java from the original logback.xml. This does not prove full startup.
 Expat callback-abort cleanup was checked on both main and child fiber stacks.

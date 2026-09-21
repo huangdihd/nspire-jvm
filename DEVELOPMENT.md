@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 105 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 180 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -23,13 +23,13 @@ The current interpreter and passing sample programs do not achieve that objectiv
   float/double min/max and bit conversions, String constructors/interfaces and
   a limited String.format implementation (%s, %%, %n, indexing/width/precision).
 - Added constructor lookup/invocation, access flags, parameter mirrors,
-  Integer/Boolean unboxing/widening and InvocationTargetException wrapping.
+  Integer/Boolean/Long/Double unboxing/widening and InvocationTargetException wrapping.
   Initialization precedes argument conversion, verified against standard Java.
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is java/util/stream/StreamSupport during Collection.stream() while
-  matching element paths (see XINBOT-RUN.txt), before Xinbot.main.
+  failure is java/lang/annotation/Annotation while loading PhaseIndicator for
+  Class.getAnnotation in DefaultProcessor.determineProcessingPhase, before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -53,6 +53,14 @@ The current interpreter and passing sample programs do not achieve that objectiv
   and 5,832 sigma contexts were checked against JDK 17. See CASE-SUPPORT.md.
 - Added literal substring contains/indexOf/lastIndexOf with UTF-16 positions and
   actual CharSequence.toString calls; imported original Stack/Vector classes.
+- Added original OpenJDK stream pipelines, function interfaces, optional values,
+  collectors/statistics, comparators and enum collections. Sequential object and
+  int/long/double stream tests pass, including genuine short-circuit execution.
+  Parallel execution, serializable-lambda factories and newer Stream APIs remain.
+- Added GC-rooted enum universe/name caches, defensive public copies, Enum.valueOf
+  support, canonical/declaring class names, Long/Double boxing and conversions,
+  integer/long bit operations and CharSequence StringBuilder append/setLength.
+  Double object formatting is explicitly unsupported. See STREAM-SUPPORT.md.
 - 45 basic checks, 6 OpenJDK runtime runs and 11 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
@@ -63,20 +71,23 @@ The current interpreter and passing sample programs do not achieve that objectiv
   builds, using a 64 KiB heap. See LAMBDA-SUPPORT.md for limits and coverage.
 - Three case checks passed with ordinary and instrumented builds, including
   an explicit unsupported-Thai-boundary diagnostic and its resource cleanup.
+- Six stream/enum/boxing checks also pass with ordinary and instrumented builds;
+  negative cases verify missing parallel support and Double formatting fail clearly.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Add the actual Java Stream library/API needed by Collection.stream and
-   Stream.noneMatch(Predicate) in SimpleRuleStore.removeTransparentPathParts,
-   then continue Logback XML model
-   construction. Preserve real initialization; do not skip logging or stream stages.
+1. Implement actual runtime annotation metadata. DefaultProcessor loads the
+   PhaseIndicator annotation type, calls Class.getAnnotation, then reads phase()
+   to select its ProcessingPhase enum. Read the real classfile annotations,
+   defaults and inheritance rules; an always-null result would select incorrect
+   processing phases. Inspect this method in the original Xinbot JAR with javap.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate
    the calculator's precision or behavior when its wall clock changes.
 3. Expand Java native/library coverage from actual failures. Imported methods
-   still require APIs not provided here (streams, serializable lambdas, fork/join,
+   still require APIs not provided here (parallel/newer streams, serializable lambdas, fork/join,
    serialization and others). Class-init failure semantics also remain partial.
 4. Dynamic invocation, reflection, NIO/TLS, plugin loading and the calculator's
    real network transport remain outstanding. The user's intended network

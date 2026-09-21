@@ -56,6 +56,6 @@ callbacks with a 64 KiB Java heap and a fatal VM abort during a callback.
 Logback SaxEventRecorder bundled inside that JAR against its original logback.xml.
 The tested Xinbot 2.4.3 release produces the same 27 events on Java and this VM.
 This is a component test. Actual Xinbot startup now also reaches XML parsing,
-then enters configuration event interpretation and encounters missing StreamSupport
-while matching element paths.
+then interprets configuration events, including stream-based path matching.
+It encounters missing annotation reflection while linking configuration handlers.
 Whole-application startup and calculator execution remain unverified.
