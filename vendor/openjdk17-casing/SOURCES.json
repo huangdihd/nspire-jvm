@@ -1,0 +1,45 @@
+{
+  "runtime": {
+    "checksum": "0b2b640e3046b64c8ec504de0ab9d91bb5610182bda21fad454681ce54d45a62",
+    "checksum_link": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jre_x64_linux_hotspot_17.0.20.1_1.tar.gz.sha256.txt",
+    "download_count": 143212,
+    "link": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jre_x64_linux_hotspot_17.0.20.1_1.tar.gz",
+    "metadata_link": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jre_x64_linux_hotspot_17.0.20.1_1.tar.gz.json",
+    "name": "OpenJDK17U-jre_x64_linux_hotspot_17.0.20.1_1.tar.gz",
+    "signature_link": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.20.1%2B1/OpenJDK17U-jre_x64_linux_hotspot_17.0.20.1_1.tar.gz.sig",
+    "size": 46640574
+  },
+  "release": "jdk-17.0.20.1+1",
+  "files": {
+    "LICENSE": {
+      "origin": "Temurin JRE legal/java.base/LICENSE",
+      "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+    },
+    "unicode.md": {
+      "origin": "Temurin JRE legal/java.base/unicode.md",
+      "sha256": "5e4e6623a21a63f9bc16ea54af4133b8038e490c0d499a74676f9e5a61b9c5b2"
+    },
+    "icu.md": {
+      "origin": "Temurin JRE legal/java.base/icu.md",
+      "sha256": "af0057e8553906083f69c2fb9fe9ed4ae8bc2340a0b1e376a424702f00300b29"
+    },
+    "RuleBasedBreakIterator.java": {
+      "origin": "https://raw.githubusercontent.com/openjdk/jdk17u/jdk-17.0.20.1%2B1/src/java.base/share/classes/sun/text/RuleBasedBreakIterator.java",
+      "sha256": "9b01b18dcf9b2e7abc85d69f21a32d1ef05de6d1dc2186fb018926a8290b72af"
+    },
+    "ConditionalSpecialCasing.java": {
+      "origin": "https://raw.githubusercontent.com/openjdk/jdk17u/jdk-17.0.20.1%2B1/src/java.base/share/classes/java/lang/ConditionalSpecialCasing.java",
+      "sha256": "cdd17b115087d7528301b807693dfd9ce9cd4d1de82b9a8c6f0caf69b42f03aa"
+    },
+    "BreakIteratorRules.java": {
+      "origin": "https://raw.githubusercontent.com/openjdk/jdk17u/jdk-17.0.20.1%2B1/src/java.base/share/classes/sun/text/resources/BreakIteratorRules.java",
+      "sha256": "7ac4cca9f001b7e1e3b9db76a82a899104fcb743947d34ffe012a89bf5466a4b"
+    }
+  },
+  "generated": {
+    "data.inc": {
+      "sha256": "1c44ac4c045cc452bd896927733b3948fa0cfebf171eb36762c322bf185fceb6",
+      "generator": "tools/GenerateCaseData.java"
+    }
+  }
+}

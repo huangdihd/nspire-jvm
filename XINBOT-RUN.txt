@@ -7,15 +7,17 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: runtime method not implemented: java/lang/String.toLowerCase()Ljava/lang/String;
-  at ch/qos/logback/core/joran/spi/ElementSelector.hashCode()I pc=20
-  at java/util/HashMap.hash(Ljava/lang/Object;)I pc=9
-  at java/util/HashMap.get(Ljava/lang/Object;)Ljava/lang/Object; pc=2
-  at ch/qos/logback/core/joran/spi/SimpleRuleStore.addRule(Lch/qos/logback/core/joran/spi/ElementSelector;Ljava/util/function/Supplier;)V pc=5
-  at ch/qos/logback/core/joran/JoranConfiguratorBase.addElementSelectorAndActionAssociations(Lch/qos/logback/core/joran/spi/RuleStore;)V pc=15
-  at ch/qos/logback/classic/joran/JoranConfigurator.addElementSelectorAndActionAssociations(Lch/qos/logback/core/joran/spi/RuleStore;)V pc=2
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.buildSaxEventInterpreter(Ljava/util/List;)V pc=7
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.buildModelFromSaxEventList(Ljava/util/List;)Lch/qos/logback/core/model/Model; pc=2
+VM error: class not found: java/util/stream/StreamSupport
+  at java/util/Collection.stream()Ljava/util/stream/Stream; pc=7
+  at ch/qos/logback/core/joran/spi/SimpleRuleStore.removeTransparentPathParts(Lch/qos/logback/core/joran/spi/ElementPath;)Lch/qos/logback/core/joran/spi/ElementPath; pc=47
+  at ch/qos/logback/core/joran/spi/SimpleRuleStore.matchActionsWithoutTransparentPartsAndRenamedParts(Lch/qos/logback/core/joran/spi/ElementPath;)Ljava/util/function/Supplier; pc=2
+  at ch/qos/logback/core/joran/spi/SimpleRuleStore.matchActions(Lch/qos/logback/core/joran/spi/ElementPath;)Ljava/util/function/Supplier; pc=14
+  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.getApplicableAction(Lch/qos/logback/core/joran/spi/ElementPath;Lorg/xml/sax/Attributes;)Lch/qos/logback/core/joran/action/Action; pc=5
+  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.startElement(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lorg/xml/sax/Attributes;)V pc=36
+  at ch/qos/logback/core/joran/spi/SaxEventInterpreter.startElement(Lch/qos/logback/core/joran/event/StartEvent;)V pc=25
+  at ch/qos/logback/core/joran/spi/EventPlayer.play()V pc=53
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.playSaxEvents()V pc=7
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.buildModelFromSaxEventList(Ljava/util/List;)Lch/qos/logback/core/model/Model; pc=6
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=54
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=16
   at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
@@ -40,8 +42,11 @@ Constructor reflection creates the actual DefaultJoranConfigurator, which finds
 the XML resource in the upstream JAR. Its URL connection opens the resource
 stream with caching disabled. The configuration-event lambda is created and
 invoked through the actual collection API, and SAX parses the original XML.
-Execution stops at String.toLowerCase in ElementSelector.hashCode while the
-configuration model's rules are being constructed, still before Xinbot.main().
+Unicode case conversion, literal substring checks and Stack initialization now
+pass. Execution begins interpreting the recorded SAX events, then stops at
+Collection.stream because java/util/stream/StreamSupport is missing, called
+while matching element paths in SimpleRuleStore.removeTransparentPathParts.
+This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
 The same stopping point was confirmed with ASan/UBSan/leak detection enabled;
@@ -50,6 +55,6 @@ Separately, the unchanged Logback SaxEventRecorder in this same release parsed
 its actual logback.xml with this VM's Expat-backed SAX provider. It produced the
 same 27 events as standard Java (see LOGBACK-XML-RESULTS.txt). This component test
 does not mean that whole-application startup succeeds.
-String case conversion is the next missing path. Full reflection, additional
+Java Stream support is the next missing path. Full reflection, additional
 dynamic invocation, other I/O, networking and device verification
 remain. The application or its logging setup was not bypassed.

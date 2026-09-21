@@ -25,8 +25,8 @@ def path_for(exe, path):
         return subprocess.check_output(['wslpath', '-w', p], text=True).strip()
     return p
 
-def run(cmd, ok=True):
-    result = subprocess.run(list(map(str,cmd)), text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=45)
+def run(cmd, ok=True, timeout=45):
+    result = subprocess.run(list(map(str,cmd)), text=True, encoding='utf-8', errors='replace', capture_output=True, timeout=timeout)
     # Negative VM tests intentionally exit nonzero; do not let that hide a
     # sanitizer failure underneath the expected unsupported-feature message.
     if any(marker in result.stderr for marker in ('ERROR: AddressSanitizer','ERROR: LeakSanitizer','SUMMARY: UndefinedBehaviorSanitizer','runtime error:')):

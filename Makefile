@@ -10,12 +10,12 @@ NDLESS_LD ?= nspire-ld
 .PHONY: all host ndless test clean
 all: host
 host: build/nspire-jvm
-build/nspire-jvm: $(HOST_SOURCES) src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) vendor/miniz.h Makefile
+build/nspire-jvm: $(HOST_SOURCES) src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/case.inc vendor/openjdk17-casing/data.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/search.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) vendor/miniz.h Makefile
 	mkdir -p build
 	$(CC) $(COMMON) $(WARN) $(CFLAGS) $(HOST_SOURCES) -lm -o $@
 
 ndless: dist/nspire-jvm.tns
-build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) Makefile
+build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc src/unsafe.inc src/loader.inc src/identifiers.inc src/case.inc vendor/openjdk17-casing/data.inc src/indy.inc src/lambda.inc src/format.inc src/split.inc src/search.inc src/reflection.inc src/xml.inc src/expat_config.h $(wildcard vendor/expat/lib/*.h) Makefile
 	mkdir -p $(dir $@)
 	$(NDLESS_CC) $(COMMON) $(WARN) -Os -marm -ffunction-sections -fdata-sections -c $< -o $@
 build/ndless/%.o: %.S

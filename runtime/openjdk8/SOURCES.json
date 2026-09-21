@@ -226,6 +226,18 @@
       "upstream_path": "jdk/src/share/classes/java/util/Properties.java",
       "sha256": "219e6963c956441a62d5b475c9035840f7a16e2de61ddd4899028b659bd36b55"
     },
+    "java/util/Stack.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Stack.java",
+      "sha256": "b219c26c4c0bb4dae543c183c0a1474afefede78b69d230b22f9cce73d08d837"
+    },
+    "java/util/Vector.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Vector.java",
+      "sha256": "a647b3ac4d52e2a601544b9d3dbf2012cbe8b3aa2c22bdfd1a6030e629aff055"
+    },
+    "java/util/EmptyStackException.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/EmptyStackException.java",
+      "sha256": "ee830053f39975add350041b3ce36c0ba0e250c0550d99579af21033931a3b58"
+    },
     "java/util/TimSort.java": {
       "upstream_path": "jdk/src/share/classes/java/util/TimSort.java",
       "sha256": "073e5e10bbb58ad9fa6799195d18ee4cc393c0ab904deeae2636eddca6c3f1e2"

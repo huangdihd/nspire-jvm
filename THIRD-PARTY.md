@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 102 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 105 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -32,7 +32,7 @@ compile-time API signatures and is not redistributed or copied into the JAR.
 
 The SAX sources also preserve their historical SAX notices. The OpenJDK source
 headers and root license files remain intact. The additional Java adapter and
-provider selector in `runtime/nspire/` are original MIT-licensed project code,
+provider selector and Locale subset in `runtime/nspire/` are original MIT-licensed project code,
 compiled into the same supplemental JAR with their own license and source hashes.
 
 Expat XML parser:
@@ -44,6 +44,20 @@ records the archive URL, SHA-256 and per-file hashes. The original MIT notices
 are preserved. Project-specific configuration is in `src/expat_config.h`;
 the upstream source is not modified. Expat is statically linked into the host
 and Ndless VM builds. The Java bridge is original code, not Xerces.
+
+JDK 17 Unicode case data and word boundaries:
+
+`vendor/openjdk17-casing/` preserves three unmodified OpenJDK source files,
+GPLv2 + Classpath exception LICENSE, Unicode/ICU notices, a generated table and
+source/runtime hashes. The data were generated with the open-source Temurin
+17.0.20.1+1 runtime identified by its archive hash in SOURCES.json. The Temurin
+runtime is a local build dependency and is not redistributed.
+
+`src/case.inc` adapts the OpenJDK RuleBasedBreakIterator traversal and preserves
+its Oracle/Taligent/IBM notices. That file and the generated table retain GPLv2
+with the Classpath exception; they are not relicensed under the root MIT license.
+The corresponding C source, upstream Java references and original MIT-licensed
+table generator are all included. See CASE-SUPPORT.md for regeneration and scope.
 
 Xinbot release audited (not redistributed in this package):
 https://github.com/huangdihd/xinbot/releases/tag/2.4.3-RELEASE

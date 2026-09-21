@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 102 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 105 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -28,8 +28,8 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is String.toLowerCase in ElementSelector.hashCode while building
-  configuration rules (see XINBOT-RUN.txt), before Xinbot.main.
+  failure is java/util/stream/StreamSupport during Collection.stream() while
+  matching element paths (see XINBOT-RUN.txt), before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -47,7 +47,13 @@ The current interpreter and passing sample programs do not achieve that objectiv
   Serializable lambdas and general method-handle APIs remain unsupported.
 - Added the single-character String.split fast path with limit/empty-field and
   UTF-16 behavior; other regular expressions still report an explicit failure.
-- 45 basic checks, 5 OpenJDK runtime runs and 10 loader/service/reflection checks passed
+- Added Unicode 13 String case conversion, explicit/default Locale arguments,
+  contextual sigma and Turkish/Azeri/Lithuanian rules; JDK 17 ROOT word breaks
+  are preserved as generated tables plus an adapted C traversal. All code points
+  and 5,832 sigma contexts were checked against JDK 17. See CASE-SUPPORT.md.
+- Added literal substring contains/indexOf/lastIndexOf with UTF-16 positions and
+  actual CharSequence.toString calls; imported original Stack/Vector classes.
+- 45 basic checks, 6 OpenJDK runtime runs and 11 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
 - Three SAX test runs and the real Logback XML component run also passed on
@@ -55,12 +61,16 @@ The current interpreter and passing sample programs do not achieve that objectiv
   abort and nested readers with thread callbacks and a 64 KiB Java heap.
 - Two lambda runs (javac releases 8 and 17) passed with normal and instrumented
   builds, using a 64 KiB heap. See LAMBDA-SUPPORT.md for limits and coverage.
+- Three case checks passed with ordinary and instrumented builds, including
+  an explicit unsupported-Thai-boundary diagnostic and its resource cleanup.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement String case conversion and continue through Logback XML model
-   construction. Preserve real initialization; do not skip logging.
+1. Add the actual Java Stream library/API needed by Collection.stream and
+   Stream.noneMatch(Predicate) in SimpleRuleStore.removeTransparentPathParts,
+   then continue Logback XML model
+   construction. Preserve real initialization; do not skip logging or stream stages.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

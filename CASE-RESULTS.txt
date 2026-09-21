@@ -1,0 +1,4 @@
+PASS all Unicode code points: String lower/upper and Character simple mappings/properties
+PASS ROOT/en/zh/tr/az/lt, sigma contexts, expansions, comparisons, nulls, identity and Locale values
+PASS explicit failure for unsupported Thai dictionary boundaries (sanitizer output checked)
+Host differential test against JDK 17; calculator execution not verified.

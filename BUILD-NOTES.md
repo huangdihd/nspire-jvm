@@ -49,7 +49,7 @@ bash tools/build-local-sdk.sh
 ## 验证范围
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
-- 内存检查：当前 45 项基础检查、5 项运行库对照运行、10 项资源/连接/服务/反射/分割测试和 2 项 lambda 对照运行均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
+- 内存检查：当前 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行和 3 项大小写检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
@@ -75,3 +75,10 @@ bash tools/build-local-sdk.sh
 外部实体在 Java 适配层保持关闭；解析器不读取它们指向的文件或网络资源。
 主机另编译 Expat 的 `/dev/urandom` 模块，Ndless 使用上游低熵后备实现。
 本机 XML 分配经过独立的每 VM 8 MiB 上限检查；完整限制见 `XML-SUPPORT.md`。
+
+## Unicode 数据
+
+大小写映射、组合属性及 ROOT 词边界表由开源 Temurin 17.0.20.1+1 生成，
+发行包与生成文件的哈希记录在 `vendor/openjdk17-casing/SOURCES.json`。
+普通构建使用已检入的数据，不需要在计算器上部署该 JRE。
+数据与适配的边界算法保留上游授权；范围和复现命令见 `CASE-SUPPORT.md`。

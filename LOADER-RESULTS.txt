@@ -2,6 +2,7 @@ PASS UTF-8 streams, byte windows, close and bounds
 PASS constructors, access, unboxing, GC roots and target exceptions
 PASS JAR/file connections, settings, stream lifetime and metadata
 PASS literal String.split delimiters, limits, empty fields and UTF-16
+PASS literal substring search, UTF-16 offsets and CharSequence conversion
 PASS services across two JARs, duplicates, lazy init and reload
 PASS services across JAR and directory
 PASS service error: syntax

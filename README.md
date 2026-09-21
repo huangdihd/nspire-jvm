@@ -20,6 +20,8 @@
 - 接口默认方法分派及初始化，包含 lambda 的继承默认方法；Java 17 私有方法引用保持直接调用原声明方法。
 - String 的字符数组构造、Comparable/CharSequence、前后缀匹配；String.format 支持 `%s`、`%%`、`%n`、参数索引、宽度和字符串精度。
 - String.split 的单字符分隔符路径：支持 limit、空字段、转义标点和 UTF-16；通用正则表达式尚未实现。
+- Unicode 13 大小写转换、Locale 默认值、土耳其语/立陶宛语与希腊 sigma 上下文规则，以及大小写不敏感比较；范围与数据来源见 `CASE-SUPPORT.md`。
+- 字符串 contains/indexOf/lastIndexOf 子串查找：UTF-16 下标、空串及实际 CharSequence.toString 调用。
 - 读取 class-file version 45–61；只执行本解释器已实现的指令。
 - `int`、`long`、`float`、`double` 的主要运算、转换、分支、两类 switch、wide 局部变量。
 - 静态方法、实例方法、递归、继承、接口方法分派、静态初始化、实例与静态字段。
@@ -30,6 +32,7 @@
 - ThreadLocal/InheritableThreadLocal 的隔离、初始值、构造时继承、移除和弱键清理。
 - OpenJDK 8 集合补充库：已对照验证 HashMap、ConcurrentHashMap、ArrayList、HashSet、CopyOnWriteArrayList、原子变量、ReentrantLock/Condition 和 LinkedBlockingQueue 的部分路径。
 - OpenJDK Properties 文件读取、默认值和 Hashtable；对象稳定排序与部分基本类型排序，包含 TimSort 和旧版合并排序路径。
+- 原始 OpenJDK Stack、Vector 和 EmptyStackException，包含扩容、迭代、克隆及同步方法。
 - 运行库所需的字段句柄、原子 CAS/更新、park/unpark 和系统属性；不提供任意本机地址访问。
 - 很小的内建运行库：部分 Object、String、StringBuilder、System、PrintStream、Math 方法。
 - 执行指令预算和 Ndless 下的 ESC 中断检查。
@@ -92,12 +95,13 @@ python3 tools/test-runtime.py --vm build/nspire-jvm
 python3 tools/test-loader.py --vm build/nspire-jvm
 python3 tools/test-xml.py --vm build/nspire-jvm
 python3 tools/test-lambda.py --vm build/nspire-jvm
+python3 tools/test-case.py --vm build/nspire-jvm
 # 可选：使用自己下载的真实 Xinbot 发布包测试其中的 Logback XML 组件
 python3 tools/test-logback-xml.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 102 个上游源文件；`runtime/nspire/` 是本项目编写的 XML 适配层。
-本次有 45 项基础检查、5 项运行库对照运行、10 项资源/连接/服务/反射/分割测试、2 项 lambda 对照运行、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 105 个上游源文件；`runtime/nspire/` 包含本项目编写的 XML 适配层和 Locale 子集。
+本次有 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -120,6 +124,7 @@ jar cf myapp.jar.tns -C classes .
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
+- Java Stream API；Locale 的服务提供者、语言标签和分类默认值；泰语字典词边界（影响该 Locale 下的希腊词尾 sigma）。
 - 旧式 `jsr/ret` 指令及完整的类初始化错误语义。
 
 不支持的功能会报错；不会用空线程、假的网络成功或跳过字节码来冒充兼容。
@@ -145,15 +150,15 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 当前实际结果：
 
 ```text
-VM error: runtime method not implemented: java/lang/String.toLowerCase()Ljava/lang/String;
-  at ch/qos/logback/core/joran/spi/ElementSelector.hashCode()I pc=20
-  at java/util/HashMap.hash(Ljava/lang/Object;)I pc=9
+VM error: class not found: java/util/stream/StreamSupport
+  at java/util/Collection.stream()Ljava/util/stream/Stream; pc=7
+  at ch/qos/logback/core/joran/spi/SimpleRuleStore.removeTransparentPathParts(Lch/qos/logback/core/joran/spi/ElementPath;)Lch/qos/logback/core/joran/spi/ElementPath; pc=47
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已创建并使用配置事件的 lambda，解析原始 XML，进入日志配置模型的规则构建；停在 ElementSelector.hashCode 的大小写转换，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，构建规则并开始解释 SAX 配置事件；停在路径匹配所需的 Java Stream API，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
-仍需补齐大小写转换等运行库、更多动态调用路径、完整线程语义和网络支持。
+仍需补齐 Stream 等运行库、更多动态调用路径、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -167,6 +172,7 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/unsafe.inc` 为 OpenJDK 提供经过对象边界检查的字段访问和原子操作。
 `src/loader.inc` 实现类加载器与资源 API，`src/indy.inc` 实现字符串拼接 bootstrap。
 `src/lambda.inc` 生成 lambda 捕获对象和字节码桥接方法；`src/split.inc` 实现单字符分割路径。
+`src/case.inc` 和固定数据表实现 Unicode 大小写及词边界，`src/search.inc` 实现子串查找。
 `src/reflection.inc` 实现构造器反射，`src/format.inc` 实现上述字符串格式化子集。
 `src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。

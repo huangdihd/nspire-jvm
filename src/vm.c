@@ -135,6 +135,7 @@ static void init_properties(VM *v) {
     const char *pairs[]={"java.vm.name","Nspire JVM","java.vm.version","0.1",
         "java.vm.vendor","Nspire JVM contributors","java.class.version","61.0",
         "file.separator","/","path.separator",";","line.separator","\n","file.encoding","UTF-8",
+        "user.language","en","user.country","",
 #ifdef _TINSPIRE
         "os.name","Ndless","os.arch","arm",
 #else
@@ -754,10 +755,12 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "reflection.inc"
 #include "loader.inc"
 #include "identifiers.inc"
+#include "case.inc"
 #include "lambda.inc"
 #include "indy.inc"
 #include "format.inc"
 #include "split.inc"
+#include "search.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -984,8 +987,20 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
     }
     if(!strcmp(cl,"java/lang/String")) {
+        if(!isstatic&&(!strcmp(n,"toLowerCase")||!strcmp(n,"toUpperCase"))&&(!strcmp(d,"()Ljava/lang/String;")||!strcmp(d,"(Ljava/util/Locale;)Ljava/lang/String;")))
+            return rv(case_string(v,self,na==2?obj(a[1]):NULL,na==1,!strcmp(n,"toUpperCase")));
         if(!isstatic&&!strcmp(n,"split")&&(!strcmp(d,"(Ljava/lang/String;)[Ljava/lang/String;")||!strcmp(d,"(Ljava/lang/String;I)[Ljava/lang/String;")))return rv(split_string(v,self,obj(a[1]),na==3?integer(a[2]):0));
         const char *s=self&&self->text?self->text:"";
+        if(!strcmp(n,"contains")&&!strcmp(d,"(Ljava/lang/CharSequence;)Z")) {
+            if(!nonnull(v,a[1]))return none;
+            Value converted=object_string(v,a[1]);if(v->exception)return none;
+            Object *needle=nonnull(v,converted);if(!needle)return none;
+            return iv(string_search(s,needle->text,0,0)>=0);
+        }
+        if((!strcmp(n,"indexOf")||!strcmp(n,"lastIndexOf"))&&(!strcmp(d,"(Ljava/lang/String;)I")||!strcmp(d,"(Ljava/lang/String;I)I"))) {
+            Object *needle=nonnull(v,a[1]);if(!needle)return none;int back=!strcmp(n,"lastIndexOf");
+            return iv(string_search(s,needle->text,na==3?integer(a[2]):back?INT_MAX:0,back));
+        }
         if(isstatic&&!strcmp(n,"format")&&!strcmp(d,"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))return rv(format_string(v,obj(a[0]),obj(a[1])));
         if(!strcmp(n,"<init>")&&!isstatic) {
             if(!strcmp(d,"()V")){self->kind='s';set_text(v,self,"");return none;}
@@ -1007,6 +1022,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"length")&&!strcmp(d,"()I")) { int count=0; for(size_t i=0;s[i];i++) if(((unsigned char)s[i]&0xc0)!=0x80) count++; return iv(count); }
         if(!strcmp(n,"isEmpty")&&!strcmp(d,"()Z")) return iv(!*s);
         if(!strcmp(n,"equals")&&!strcmp(d,"(Ljava/lang/Object;)Z")) return iv(obj(a[1])&&obj(a[1])->kind=='s'&&!strcmp(s,obj(a[1])->text));
+        if(!strcmp(n,"equalsIgnoreCase")&&!strcmp(d,"(Ljava/lang/String;)Z"))return iv(obj(a[1])&&!case_compare((const unsigned char *)s,(const unsigned char *)obj(a[1])->text));
+        if(!strcmp(n,"compareToIgnoreCase")&&!strcmp(d,"(Ljava/lang/String;)I")) {
+            Object *other=nonnull(v,a[1]);if(!other)return none;
+            return iv(case_compare((const unsigned char *)s,(const unsigned char *)other->text));
+        }
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return a[0];
         if(!strcmp(n,"endsWith")&&!strcmp(d,"(Ljava/lang/String;)Z")) {
             Object *suffix=nonnull(v,a[1]);if(!suffix)return none;
@@ -1147,6 +1167,10 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"longBitsToDouble")&&!strcmp(d,"(J)D"))return val(a[0].bits,DOUBLE);
     }
     if(!strcmp(cl,"java/lang/Character")&&isstatic) {
+        if((!strcmp(n,"toLowerCase")||!strcmp(n,"toUpperCase")||!strcmp(n,"toTitleCase"))&&(!strcmp(d,"(I)I")||!strcmp(d,"(C)C")))
+            return iv((int32_t)case_simple((unsigned)integer(a[0]),!strcmp(n,"toLowerCase")?0:!strcmp(n,"toUpperCase")?1:2));
+        if((!strcmp(n,"isLowerCase")||!strcmp(n,"isUpperCase")||!strcmp(n,"isTitleCase"))&&(!strcmp(d,"(I)Z")||!strcmp(d,"(C)Z")))
+            return iv((case_flags((unsigned)integer(a[0]))&(!strcmp(n,"isLowerCase")?16:!strcmp(n,"isUpperCase")?32:64))!=0);
         if(!strcmp(n,"charCount")&&!strcmp(d,"(I)I"))return iv(integer(a[0])>=0x10000?2:1);
         if((!strcmp(n,"isJavaIdentifierStart")||!strcmp(n,"isJavaIdentifierPart"))&&(!strcmp(d,"(I)Z")||!strcmp(d,"(C)Z"))) {
             uint32_t ch=(uint32_t)integer(a[0]);size_t lo=0,hi=sizeof identifier_ranges/sizeof *identifier_ranges;

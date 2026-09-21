@@ -3,4 +3,5 @@ PASS ConcurrentLibraryTest (OpenJDK runtime JAR)
 PASS PropertyFileTest (OpenJDK runtime JAR)
 PASS SortingTest (OpenJDK runtime JAR)
 PASS SortingTest legacy (OpenJDK runtime JAR)
+PASS StackTest (OpenJDK runtime JAR)
 Host only; calculator execution not verified.
