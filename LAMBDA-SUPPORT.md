@@ -49,5 +49,6 @@ The original unsupported-lambda tests now use a serializable lambda to preserve
 their main-stack and child-stack fatal-error checks. Ordinary lambda execution
 is covered by the new positive tests. Real Xinbot now passes its initial lambda
 bootstrap, XML parsing, sequential stream matching and annotation-based phase
-selection. It still fails later while loading java.util.regex.Pattern for
-Logback Duration during configuration handler initialization.
+selection. It also compiles the real Duration regex and passes property
+substitution. It still fails loading java.io.OutputStream while creating the
+application's JLineConsoleAppender.

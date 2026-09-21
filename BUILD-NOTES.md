@@ -52,6 +52,7 @@ bash tools/build-local-sdk.sh
 - 内存检查：当前 45 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、2 项 lambda 对照运行、3 项大小写检查和 6 项流/枚举/装箱检查均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 注解检查：4 项标准 Java 对照、1 项真实 Logback 阶段对照和 1 项不支持文本格式的明确失败检查，均通过普通构建和 ASan/UBSan/泄漏检测；记录见 `ANNOTATION-RESULTS.txt`。
+- 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
@@ -79,7 +80,11 @@ bash tools/build-local-sdk.sh
 
 ## Unicode 数据
 
-大小写映射、组合属性及 ROOT 词边界表由开源 Temurin 17.0.20.1+1 生成，
+大小写映射、组合属性、ROOT 词边界表及字符属性表由开源 Temurin 17.0.20.1+1 生成，
 发行包与生成文件的哈希记录在 `vendor/openjdk17-casing/SOURCES.json`。
 普通构建使用已检入的数据，不需要在计算器上部署该 JRE。
 数据与适配的边界算法保留上游授权；范围和复现命令见 `CASE-SUPPORT.md`。
+字符属性表的复现命令见 `REGEX-SUPPORT.md`；生成器验证固定 JRE 版本和输出 SHA-256。
+
+浮点字符串先按 Java 语法检查，再由 libc 转换。Linux 主机的边界值与随机十进制
+输入通过标准 Java 位模式对照；Ndless 使用 newlib，其实际舍入结果仍需实机验证。

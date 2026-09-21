@@ -40,6 +40,10 @@
     "data.inc": {
       "sha256": "1c44ac4c045cc452bd896927733b3948fa0cfebf171eb36762c322bf185fceb6",
       "generator": "tools/GenerateCaseData.java"
+    },
+    "character.inc": {
+      "sha256": "f7356eb4123d59518e0e674d1082b48359648ff083aeb4f8a233293dc47a81b2",
+      "generator": "tools/GenerateCharacterData.java"
     }
   }
 }

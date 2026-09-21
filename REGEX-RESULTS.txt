@@ -1,0 +1,9 @@
+PASS RegexTest (standard Java oracle)
+PASS CharacterTest (standard Java oracle)
+PASS ParseNumberTest (standard Java oracle)
+PASS CharacterPropertiesTest (standard Java oracle)
+PASS LogbackDurationTest (standard Java oracle)
+PASS controlled environment lookup (synthetic test variables only)
+PASS explicit unsupported regex normalize (sanitizer output checked)
+PASS explicit unsupported regex script (sanitizer output checked)
+Host only; calculator execution not verified.

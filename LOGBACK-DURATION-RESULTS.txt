@@ -1,0 +1,27 @@
+PASS LogbackDurationTest (standard Java oracle)
+0
+0 milliseconds
+12
+12 milliseconds
+1500
+1 seconds
+120000
+2 minutes
+900000
+15 minutes
+259200000
+72 hours
+42
+42 milliseconds
+1000
+1 seconds
+2
+2 milliseconds
+java.lang.NumberFormatException
+java.lang.NumberFormatException
+java.lang.IllegalArgumentException
+java.lang.IllegalArgumentException
+-2000
+-2000 milliseconds
+
+Component check only; full Xinbot startup is not verified.

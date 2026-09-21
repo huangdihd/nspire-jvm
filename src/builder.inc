@@ -29,3 +29,11 @@ static void builder_length(VM *v,Object *builder,int32_t length) {
     char *text=(char *)alloc(v,prefix+zeros*2+1),*out=text+prefix;memcpy(text,start,prefix);
     while(zeros--)out+=write_unit(out,0);*out=0;set_text(v,builder,text);release(v,text);
 }
+static void builder_chars(VM *v,Object *builder,Object *chars,int offset,int length) {
+    if(!chars){throwing(v,"java/lang/NullPointerException");return;}
+    if(chars->kind!='a'||strcmp(chars->array_desc,"[C"))fail(v,"StringBuilder append requires char[]");
+    if(offset<0||length<0||(size_t)offset>chars->count||(size_t)length>chars->count-(size_t)offset){throwing(v,"java/lang/IndexOutOfBoundsException");return;}
+    size_t prefix=builder->text?strlen(builder->text):0;if(prefix>=META_LIMIT||(size_t)length>(META_LIMIT-prefix-1)/3)fail(v,"StringBuilder append exceeds metadata limit");
+    char *text=(char *)alloc(v,prefix+(size_t)length*3+1),*end=text+prefix;if(prefix)memcpy(text,builder->text,prefix);
+    for(int i=0;i<length;i++)end+=write_unit(end,(uint16_t)integer(chars->data[offset+i]));*end=0;set_text(v,builder,text);release(v,text);
+}

@@ -66,6 +66,7 @@ Limits:
   toward the 2,048-class limit and the unchanged 16 MiB metadata budget.
 
 Actual Xinbot now passes annotation-based configuration phase selection and
-starts creating configuration handlers. It next fails while initializing
-Logback Duration because `java.util.regex.Pattern` is absent. This remains
+starts creating configuration handlers. Regex compilation and property
+substitution also pass. It next fails loading `java.io.OutputStream` while
+constructing Xinbot's JLineConsoleAppender. This remains
 before Xinbot.main, without networking or calculator runtime verification.

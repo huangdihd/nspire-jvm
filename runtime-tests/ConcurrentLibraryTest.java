@@ -10,6 +10,11 @@ public class ConcurrentLibraryTest {
     static final ReentrantLock lock = new ReentrantLock();
     static final Condition changed = lock.newCondition();
     static boolean ready;
+    static final AtomicBoolean gate = new AtomicBoolean();
+    static int guarded;
+    static final class BooleanWorker extends Thread {
+        public void run(){for(int i=0;i<100;i++){while(!gate.compareAndSet(false,true))Thread.yield();try{int old=guarded;Thread.yield();guarded=old+1;}finally{gate.set(false);}}}
+    }
     static final class Worker extends Thread {
         final String prefix;Worker(String prefix){this.prefix=prefix;}
         public void run() { for(int i=0;i<2000;i++) { counter.incrementAndGet();longCounter.incrementAndGet();map.put(prefix+i,"v"+i); if(i%17==0) Thread.yield(); } }
@@ -45,5 +50,7 @@ public class ConcurrentLibraryTest {
         waiter.join();System.out.println(lock.isLocked());
         Thread me=Thread.currentThread();LockSupport.unpark(me);LockSupport.park();
         Thread.currentThread().interrupt();LockSupport.park();System.out.println(Thread.interrupted());
+        Thread x=new BooleanWorker(),y=new BooleanWorker();x.start();y.start();x.join();y.join();System.out.println(guarded);
+        System.out.println(gate.getAndSet(true));System.out.println(gate.get());gate.lazySet(false);System.out.println(gate.toString());
     }
 }

@@ -61,5 +61,5 @@ not that multiple-failure case.
 The existing class-count, metadata, stack and Java-heap budgets apply. Host
 success does not verify the ARM context switch, device timing or calculator
 memory use. Full Xinbot startup passes annotation phase selection and still
-fails later while loading regex Pattern for log configuration handlers;
+fails later while loading OutputStream for the application's console appender;
 see XINBOT-RUN.txt.

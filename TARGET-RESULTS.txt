@@ -4,24 +4,26 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 5166
-  Zehn executable size: 473524 bytes
-  Bytes needed to load: 474460 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 5381
+  Zehn executable size: 544940 bytes
+  Bytes needed to load: 545876 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
 11/11 loader/resource/connection/service/reflection/string cases, 2/2 Java 8/17
 lambda runs, 3/3 casing checks, 6/6 stream/enum/boxing checks,
-6/6 annotation checks (including actual Logback phases), 3/3 SAX tests
-and 1/1 actual Logback XML component test passed.
+6/6 annotation checks (including actual Logback phases), 8/8 regex and supporting
+runtime checks (including actual Logback Duration), 3/3 SAX tests and 1/1 actual
+Logback XML component test passed.
 All suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
 The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
-same missing java/util/regex/Pattern class while initializing Logback Duration,
+same missing java/io/OutputStream class while initializing ConsoleTarget,
 with no sanitizer errors. Initial lambda creation/invocation, XML parsing,
-stream-based element path matching and actual annotation phase selection pass;
-execution starts creating configuration handlers, before Xinbot.main.
+stream-based element path matching, actual annotation phase selection, regex
+compilation, environment substitution and AtomicBoolean initialization pass;
+execution starts creating Xinbot's JLineConsoleAppender, before Xinbot.main.
 The ordinary and instrumented component checks read the same phases as standard
 Java from nine original Xinbot/Logback classes. Class capacity is now 2,048;
 the 16 MiB metadata budget remains enforced.

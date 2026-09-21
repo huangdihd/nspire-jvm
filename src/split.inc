@@ -1,5 +1,4 @@
-/* String.split's literal-character fast path. Other regular expressions are
- * rejected until a Java-compatible regex implementation is available. */
+/* String.split's literal-character fast path, with an OpenJDK regex fallback. */
 static Object *split_slice(VM *v,Object *source,const unsigned char *start,const unsigned char *end) {
     if(start==(const unsigned char *)source->text&&!*end)return source;
     size_t n=(size_t)(end-start);char *copy=(char *)alloc(v,n+1);memcpy(copy,start,n);
@@ -15,7 +14,7 @@ static Object *split_string(VM *v,Object *source,Object *pattern,int32_t limit) 
             if((delimiter>='a'&&delimiter<='z')||(delimiter>='A'&&delimiter<='Z')||(delimiter>='0'&&delimiter<='9'))delimiter=0x110000;
         } else if(delimiter&&delimiter<128&&strchr(".$|()[{^?*+\\",(int)delimiter))delimiter=0x110000;
     } else delimiter=0x110000;
-    if(*regex||delimiter>=0x110000||(delimiter>=0xd800&&delimiter<=0xdfff))fail(v,"String.split regular expression is not implemented");
+    if(*regex||delimiter>=0x110000||(delimiter>=0xd800&&delimiter<=0xdfff))return obj(regex_string(v,source,pattern,NULL,limit,0));
     const unsigned char *text=(const unsigned char *)source->text,*start=text,*cursor=text;
     size_t pieces=0,kept=0;int matched=0;
     while(*cursor&&(limit<=0||pieces<(size_t)limit-1)) {

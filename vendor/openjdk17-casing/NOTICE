@@ -1,7 +1,7 @@
-JDK 17 case mapping and word-boundary data
+JDK 17 case mapping, character properties and word-boundary data
 
 Generated using the open-source Eclipse Temurin runtime identified in SOURCES.json.
-data.inc retains GPLv2 with the Classpath exception; LICENSE contains those terms.
+data.inc and character.inc retain GPLv2 with the Classpath exception; LICENSE contains those terms.
 Unicode and ICU notices are preserved separately. The factual case mappings,
 character properties and OpenJDK ROOT word-break automata are used by src/case.inc.
 The original OpenJDK RuleBasedBreakIterator, ConditionalSpecialCasing and
@@ -9,4 +9,7 @@ BreakIteratorRules sources are preserved without changes, with their notices.
 The adapted C boundary traversal in src/case.inc uses the same GPLv2 + Classpath
 exception. Other project files retain their stated licenses.
 GenerateCaseData.java is original project code under the root MIT license.
+GenerateCharacterData.java is also original MIT project code. character.inc
+contains Unicode 13 character classifications and radix-digit values generated
+from the same pinned Temurin runtime; it is consumed by src/character.inc.
 The Temurin executable is a local build dependency and is not redistributed.

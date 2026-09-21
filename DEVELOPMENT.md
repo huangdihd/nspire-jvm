@@ -10,7 +10,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 194 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 205 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
@@ -28,8 +28,8 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is java/util/regex/Pattern during Logback Duration initialization,
-  after actual annotation phase selection and before Xinbot.main.
+  failure is java/io/OutputStream during ConsoleTarget initialization while
+  creating Xinbot's JLineConsoleAppender, still before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -46,7 +46,7 @@ The current interpreter and passing sample programs do not achieve that objectiv
   private method references remain nonvirtual on Java 17 bytecode.
   Serializable lambdas and general method-handle APIs remain unsupported.
 - Added the single-character String.split fast path with limit/empty-field and
-  UTF-16 behavior; other regular expressions still report an explicit failure.
+  UTF-16 behavior; other regular expressions now use the OpenJDK regex engine.
 - Added Unicode 13 String case conversion, explicit/default Locale arguments,
   contextual sigma and Turkish/Azeri/Lithuanian rules; JDK 17 ROOT word breaks
   are preserved as generated tables plus an adapted C traversal. All code points
@@ -81,15 +81,27 @@ The current interpreter and passing sample programs do not achieve that objectiv
   regression suite. See ANNOTATION-SUPPORT.md for the remaining reflection gaps.
 - Increased the class table from 512 to 2,048 after actual Xinbot exhausted it
   during handler creation; the 16 MiB metadata budget remains enforced.
+- Added original OpenJDK regex parsing/matching, StringBuffer/AbstractStringBuilder,
+  Appendable and AtomicBoolean. String regex APIs delegate to the actual engine.
+  Added UTF-16/code-point operations and Unicode 13 property tables, verified
+  over all code points, plus numeric string parsing and native environment lookup.
+  Normalizer and Unicode script/block dependencies remain absent. See REGEX-SUPPORT.md.
+- Actual Logback Duration produces the same values/text/exception classes as
+  standard Java. Xinbot passes regex compilation and property substitution and
+  reaches console appender construction during second-phase model processing.
+- Eight regex and supporting-runtime checks passed on ordinary and
+  ASan/UBSan/leak-detection builds, alongside all existing regression suites.
+  Both host builds stop at the same missing OutputStream during actual Xinbot
+  startup, with no sanitizer errors in the instrumented run.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement regex support. The real application now selects FIRST/SECOND/
-   DEPENDENCY_ANALYSIS using its actual PhaseIndicator annotations. During
-   ConfigurationModelHandler initialization it loads Logback Duration, which
-   calls Pattern.compile. Inspect Duration with javap and implement the actual
-   Pattern/Matcher behavior; do not replace configuration parsing with constants.
+1. Implement actual output streams and console byte output. ConsoleTarget's
+   initializer defines wrappers around System.out/System.err, requiring
+   java.io.OutputStream. Inspect ConsoleTarget and its nested classes with
+   javap. Preserve write/flush/close behavior and encoding; silently discarding
+   log output does not implement the requested runtime.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

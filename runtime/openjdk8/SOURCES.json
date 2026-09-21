@@ -6,6 +6,14 @@
       "upstream_path": "jdk/src/share/classes/java/io/ObjectStreamField.java",
       "sha256": "1e973cc45621856fb8c997a437d1986110ee2ca2a282ddc3cb6f3851ca568153"
     },
+    "java/lang/AbstractStringBuilder.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/AbstractStringBuilder.java",
+      "sha256": "75317b7fd28f38408a79ade5b5ca47d30dcc29be4ee25fe956d2cd926d1f028c"
+    },
+    "java/lang/Appendable.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Appendable.java",
+      "sha256": "cf925f4607b4c40430cbaed3ad19c753d5dfe24068644c990f400f934e82241d"
+    },
     "java/lang/Comparable.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Comparable.java",
       "sha256": "fa36a5187e874680520eb22bba1cd52657d1a3206ab050df0e3b986a19853c15"
@@ -25,6 +33,10 @@
     "java/lang/Iterable.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/Iterable.java",
       "sha256": "9d5216a4214a4b497faf47bfcdae81acc82f26222e5c04fe7a8702f95cafac1d"
+    },
+    "java/lang/StringBuffer.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/StringBuffer.java",
+      "sha256": "e5c14887ce9895987c88ce33bd7fda9b627bbc8d74e5eb555e8f0bbf30058d26"
     },
     "java/lang/TypeNotPresentException.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/TypeNotPresentException.java",
@@ -330,6 +342,10 @@
       "upstream_path": "jdk/src/share/classes/java/util/concurrent/TimeUnit.java",
       "sha256": "175333baad847ddb35a7e8fb2ba98ed407aed4aa9ab4d843bcae19aab69aac68"
     },
+    "java/util/concurrent/atomic/AtomicBoolean.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/atomic/AtomicBoolean.java",
+      "sha256": "2b851372e986a352ffc5c1dd2574ed3e9ccaf6ca0fd36b0f59a12730f2545bb7"
+    },
     "java/util/concurrent/atomic/AtomicInteger.java": {
       "upstream_path": "jdk/src/share/classes/java/util/concurrent/atomic/AtomicInteger.java",
       "sha256": "6ebb5935e51489e965961896127a4dda3e8cfd0c7bb80ebf8930adfbeb96b46b"
@@ -537,6 +553,30 @@
     "java/util/function/UnaryOperator.java": {
       "upstream_path": "jdk/src/share/classes/java/util/function/UnaryOperator.java",
       "sha256": "9f399c093fa3aff83456d7b2653ac91e0b49e84c7e5e33f8b70be3296a236f84"
+    },
+    "java/util/regex/ASCII.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/ASCII.java",
+      "sha256": "a30a588665b7679d244c8c2f17284003bef30d931623186db46befea94253b2d"
+    },
+    "java/util/regex/MatchResult.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/MatchResult.java",
+      "sha256": "f6e1a9db733d2c35c50c7aa74976ad519dee0ef356fa422b9839fa68f08431f7"
+    },
+    "java/util/regex/Matcher.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/Matcher.java",
+      "sha256": "957e93d66edda73428c1717d9ddae71916a232ba0c3aa797c8c8588a81b243fc"
+    },
+    "java/util/regex/Pattern.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/Pattern.java",
+      "sha256": "65423bc7a2f65a7f49c3b643794cc990ecc15cbd794072fb1638a78882b3859f"
+    },
+    "java/util/regex/PatternSyntaxException.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/PatternSyntaxException.java",
+      "sha256": "74955213fbd0d06ee7c19f4b0742e13396b9a19fb924ee578f71de355e7ce0fd"
+    },
+    "java/util/regex/UnicodeProp.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/regex/UnicodeProp.java",
+      "sha256": "4596c1f5849472f8cf5f12cc727676a68214d13c23c3fce70916ce9cf1889380"
     },
     "java/util/stream/AbstractPipeline.java": {
       "upstream_path": "jdk/src/share/classes/java/util/stream/AbstractPipeline.java",
@@ -777,6 +817,10 @@
     "sun/security/action/GetBooleanAction.java": {
       "upstream_path": "jdk/src/share/classes/sun/security/action/GetBooleanAction.java",
       "sha256": "bfcb7836e13e08cdbb7f3c6ed9041e81a95dfddfa28f5746a87529ec0850c4d6"
+    },
+    "sun/security/action/GetPropertyAction.java": {
+      "upstream_path": "jdk/src/share/classes/sun/security/action/GetPropertyAction.java",
+      "sha256": "9d4a0f22c32f09dfd33414833d0c324423184305f517daa5ee06e5ffd3afbedf"
     }
   }
 }

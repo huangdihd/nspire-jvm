@@ -358,11 +358,13 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/IncompatibleClassChangeError"))return "java/lang/LinkageError";
     if(!strcmp(n,"java/lang/VirtualMachineError"))return "java/lang/Error";
     if(!strcmp(n,"java/lang/OutOfMemoryError"))return "java/lang/VirtualMachineError";
+    if(!strcmp(n,"java/lang/StackOverflowError"))return "java/lang/VirtualMachineError";
     if(!strcmp(n,"java/lang/AssertionError")||!strcmp(n,"java/lang/InternalError"))return "java/lang/Error";
     if(!strcmp(n,"java/lang/InterruptedException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/IllegalThreadStateException"))return "java/lang/IllegalArgumentException";
     if(!strcmp(n,"java/lang/IllegalMonitorStateException"))return "java/lang/RuntimeException";
     if(!strcmp(n,"java/lang/IllegalStateException"))return "java/lang/RuntimeException";
+    if(!strcmp(n,"java/lang/NumberFormatException"))return "java/lang/IllegalArgumentException";
     if(!strcmp(n,"java/lang/Exception")) return "java/lang/Throwable";
     if(!strcmp(n,"java/lang/RuntimeException")) return "java/lang/Exception";
     if(!strcmp(n,"java/lang/IndexOutOfBoundsException")) return "java/lang/RuntimeException";
@@ -794,9 +796,13 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "lambda.inc"
 #include "indy.inc"
 #include "format.inc"
+#include "regex.inc"
 #include "split.inc"
 #include "search.inc"
 #include "builder.inc"
+#include "character.inc"
+#include "parse_number.inc"
+#include "environment.inc"
 #include "annotations.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
@@ -884,6 +890,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!isstatic&&!strcmp(n,"availableProcessors")&&!strcmp(d,"()I"))return iv(1);
     }
     if(!strcmp(cl,"java/lang/Integer")) {
+        if(isstatic){Value result=integer_text_helper(v,n,d,a,0,&handled);if(handled)return result;}
         if(isstatic&&!strcmp(n,"valueOf")&&!strcmp(d,"(I)Ljava/lang/Integer;")) {
             int32_t value=integer(a[0]);int cached=value>=-128&&value<=127;
             if(cached&&v->integer_cache[value+128])return rv(v->integer_cache[value+128]);
@@ -908,6 +915,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     }
     if(!strcmp(cl,"java/lang/Long")||!strcmp(cl,"java/lang/Double")) {
         int large=!strcmp(cl,"java/lang/Long");
+        if(isstatic&&large){Value result=integer_text_helper(v,n,d,a,1,&handled);if(handled)return result;}
+        if(!large&&isstatic&&!strcmp(n,"parseDouble")&&!strcmp(d,"(Ljava/lang/String;)D"))return parse_floating(v,obj(a[0]),0);
+        if(!large&&isstatic&&!strcmp(n,"valueOf")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/Double;")) {
+            Value value=parse_floating(v,obj(a[0]),0);if(v->exception)return none;Object *o=new_object(v,c,'w',1);o->data[0]=value;return rv(o);
+        }
         if(isstatic&&!strcmp(n,"valueOf")&&!strcmp(d,large?"(J)Ljava/lang/Long;":"(D)Ljava/lang/Double;")) {
             int64_t value=(int64_t)a[0].bits;int cached=large&&value>=-128&&value<=127;
             if(cached&&v->long_cache[value+128])return rv(v->long_cache[value+128]);
@@ -1079,6 +1091,12 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
     }
     if(!strcmp(cl,"java/lang/String")) {
+        if(!isstatic&&!strcmp(n,"toCharArray")&&!strcmp(d,"()[C")) {
+            int length=0;const unsigned char *p=(const unsigned char *)self->text;while(*p){utf_unit(&p);length++;}
+            Object *out=array_new(v,"[C",length);string_get_chars(v,self,0,length,out,0);return rv(out);
+        }
+        if(!isstatic&&!strcmp(n,"matches")&&!strcmp(d,"(Ljava/lang/String;)Z"))return regex_string(v,self,obj(a[1]),NULL,0,1);
+        if(!isstatic&&(!strcmp(n,"replaceAll")||!strcmp(n,"replaceFirst"))&&!strcmp(d,"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;"))return regex_string(v,self,obj(a[1]),obj(a[2]),0,!strcmp(n,"replaceAll")?2:3);
         if(!isstatic&&(!strcmp(n,"toLowerCase")||!strcmp(n,"toUpperCase"))&&(!strcmp(d,"()Ljava/lang/String;")||!strcmp(d,"(Ljava/util/Locale;)Ljava/lang/String;")))
             return rv(case_string(v,self,na==2?obj(a[1]):NULL,na==1,!strcmp(n,"toUpperCase")));
         if(!isstatic&&!strcmp(n,"split")&&(!strcmp(d,"(Ljava/lang/String;)[Ljava/lang/String;")||!strcmp(d,"(Ljava/lang/String;I)[Ljava/lang/String;")))return rv(split_string(v,self,obj(a[1]),na==3?integer(a[2]):0));
@@ -1095,12 +1113,19 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
         if(isstatic&&!strcmp(n,"format")&&!strcmp(d,"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))return rv(format_string(v,obj(a[0]),obj(a[1])));
         if(!strcmp(n,"<init>")&&!isstatic) {
+            if(!strcmp(d,"([III)V")) {
+                Object *points=nonnull(v,a[1]);if(!points)return none;if(points->kind!='a'||strcmp(points->array_desc,"[I"))fail(v,"String code-point constructor requires int[]");
+                int offset=integer(a[2]),length=integer(a[3]);if(offset<0||length<0||(size_t)offset>points->count||(size_t)length>points->count-(size_t)offset){throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;}
+                if((size_t)length>(META_LIMIT-1)/6)fail(v,"String code points exceed metadata limit");char *text=(char *)alloc(v,(size_t)length*6+1),*end=text;
+                for(int i=0;i<length;i++){unsigned point=(unsigned)integer(points->data[offset+i]);if(point>0x10ffff){throwing(v,"java/lang/IllegalArgumentException");break;}end+=case_write(end,point);}
+                if(!v->exception){*end=0;self->kind='s';set_text(v,self,text);}release(v,text);return none;
+            }
             if(!strcmp(d,"()V")){self->kind='s';set_text(v,self,"");return none;}
             if(!strcmp(d,"(Ljava/lang/String;)V")) {
                 Object *source=nonnull(v,a[1]);if(!source)return none;
                 self->kind='s';set_text(v,self,source->text);return none;
             }
-            if(!strcmp(d,"([C)V")||!strcmp(d,"([CII)V")) {
+            if(!strcmp(d,"([C)V")||!strcmp(d,"([CII)V")||!strcmp(d,"([CZ)V")) {
                 Object *chars=nonnull(v,a[1]);if(!chars)return none;
                 if(chars->kind!='a'||strcmp(chars->array_desc,"[C"))fail(v,"String constructor requires char[]");
                 int32_t off=na==4?integer(a[2]):0,len=na==4?integer(a[3]):(int32_t)chars->count;
@@ -1161,6 +1186,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             for(Object *o=v->objects;o;o=o->next)if(o->interned&&!strcmp(o->text,s))return rv(o);
             self->interned=1;return a[0];
         }
+        if(!strcmp(n,"getChars")&&(!strcmp(d,"(II[CI)V")||!strcmp(d,"([CI)V"))) {
+            int32_t begin=0,end=0;const unsigned char *p=(const unsigned char *)s;while(*p){utf_unit(&p);end++;}
+            if(na==5){begin=integer(a[1]);end=integer(a[2]);}
+            string_get_chars(v,self,begin,end,obj(a[na==5?3:1]),integer(a[na==5?4:2]));return none;
+        }
         if(!strcmp(n,"hashCode")&&!strcmp(d,"()I")) {
             uint32_t hash=0;const unsigned char *p=(const unsigned char *)s;
             while(*p)hash=31*hash+utf_unit(&p);return iv((int32_t)hash);
@@ -1188,6 +1218,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(isstatic&&!strcmp(n,"valueOf")&&(!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     }
     if(!strcmp(cl,"java/lang/StringBuilder")) {
+        if(!strcmp(n,"<init>")&&!strcmp(d,"(I)V")) {
+            int capacity=integer(a[1]);if(capacity<0){throwing(v,"java/lang/NegativeArraySizeException");return none;}
+            if((size_t)capacity>v->opt.heap_limit/2)fail(v,"StringBuilder capacity exceeds heap limit");set_text(v,self,"");return none;
+        }
+        if(!strcmp(n,"append")&&(!strcmp(d,"([C)Ljava/lang/StringBuilder;")||!strcmp(d,"([CII)Ljava/lang/StringBuilder;"))) {
+            Object *chars=obj(a[1]);builder_chars(v,self,chars,na==4?integer(a[2]):0,na==4?integer(a[3]):chars?(int)chars->count:0);return a[0];
+        }
         if(!strcmp(n,"append")&&(!strcmp(d,"(Ljava/lang/CharSequence;)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/CharSequence;II)Ljava/lang/StringBuilder;"))) {
             builder_sequence(v,self,obj(a[1]),na==4?integer(a[2]):0,na==4?integer(a[3]):0,na==2);return a[0];
         }
@@ -1216,6 +1253,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return rv(string(v,self->text?self->text:""));
     }
     if(!strcmp(cl,"java/lang/System")&&isstatic) {
+        if(!strcmp(n,"getenv")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;"))return rv(environment_get(v,obj(a[0])));
         if(!strcmp(n,"getSecurityManager")&&!strcmp(d,"()Ljava/lang/SecurityManager;"))return rv(NULL);
         int get=!strcmp(n,"getProperty"),set=!strcmp(n,"setProperty"),clear=!strcmp(n,"clearProperty");
         if((get||set||clear)&&
@@ -1279,6 +1317,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(cl,"java/lang/Double")&&!strcmp(d,"(D)Z"))return iv(isnan(dbl(a[0]))!=0);
     }
     if(isstatic&&!strcmp(cl,"java/lang/Float")) {
+        if(!strcmp(n,"parseFloat")&&!strcmp(d,"(Ljava/lang/String;)F"))return parse_floating(v,obj(a[0]),1);
         if((!strcmp(n,"floatToRawIntBits")||!strcmp(n,"floatToIntBits"))&&!strcmp(d,"(F)I"))return iv(!strcmp(n,"floatToIntBits")&&isnan(flt(a[0]))?0x7fc00000:(int32_t)a[0].bits);
         if(!strcmp(n,"intBitsToFloat")&&!strcmp(d,"(I)F"))return val((uint32_t)integer(a[0]),FLOAT);
     }
@@ -1289,6 +1328,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"longBitsToDouble")&&!strcmp(d,"(J)D"))return val(a[0].bits,DOUBLE);
     }
     if(!strcmp(cl,"java/lang/Character")&&isstatic) {
+        Value result=character_native(v,n,d,a,&handled);if(handled)return result;
         if((!strcmp(n,"toLowerCase")||!strcmp(n,"toUpperCase")||!strcmp(n,"toTitleCase"))&&(!strcmp(d,"(I)I")||!strcmp(d,"(C)C")))
             return iv((int32_t)case_simple((unsigned)integer(a[0]),!strcmp(n,"toLowerCase")?0:!strcmp(n,"toUpperCase")?1:2));
         if((!strcmp(n,"isLowerCase")||!strcmp(n,"isUpperCase")||!strcmp(n,"isTitleCase"))&&(!strcmp(d,"(I)Z")||!strcmp(d,"(C)Z")))
@@ -1586,6 +1626,8 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
                 Class *base=c;while(base&&!base->builtin)base=base->super;
                 if(op!=0xb7&&!stat&&obj(aa[0])->kind=='s'&&
                     (!strcmp(n,"equals")||!strcmp(n,"hashCode")||!strcmp(n,"toString")||!strcmp(n,"compareTo")||!strcmp(n,"length")||!strcmp(n,"charAt")||!strcmp(n,"subSequence")))base=obj(aa[0])->cls;
+                if(op!=0xb7&&!stat&&!strcmp(obj(aa[0])->cls->name,"java/lang/StringBuilder")&&
+                    (!strcmp(n,"length")||!strcmp(n,"charAt")||!strcmp(n,"subSequence")||!strcmp(n,"toString")))base=obj(aa[0])->cls;
                 if(!stat&&obj(aa[0])->kind=='e'&&(!strcmp(n,"hasMoreElements")||!strcmp(n,"nextElement")))base=obj(aa[0])->cls;
                 if(!stat&&obj(aa[0])->kind=='a'&&!strcmp(n,"clone"))base=load(v,"java/lang/Object");
                 if(op!=0xb7&&!stat&&(obj(aa[0])->kind=='w'||obj(aa[0])->kind=='B')&&(!strcmp(n,"equals")||!strcmp(n,"hashCode")||!strcmp(n,"toString")||!strcmp(n,"compareTo")||strstr(n,"Value")))base=obj(aa[0])->cls;

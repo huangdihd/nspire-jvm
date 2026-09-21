@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 194 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 205 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -48,16 +48,19 @@ and Ndless VM builds. The Java bridge is original code, not Xerces.
 JDK 17 Unicode case data and word boundaries:
 
 `vendor/openjdk17-casing/` preserves three unmodified OpenJDK source files,
-GPLv2 + Classpath exception LICENSE, Unicode/ICU notices, a generated table and
+GPLv2 + Classpath exception LICENSE, Unicode/ICU notices, generated tables and
 source/runtime hashes. The data were generated with the open-source Temurin
 17.0.20.1+1 runtime identified by its archive hash in SOURCES.json. The Temurin
 runtime is a local build dependency and is not redistributed.
 
 `src/case.inc` adapts the OpenJDK RuleBasedBreakIterator traversal and preserves
-its Oracle/Taligent/IBM notices. That file and the generated table retain GPLv2
+its Oracle/Taligent/IBM notices. That file and the generated tables retain GPLv2
 with the Classpath exception; they are not relicensed under the root MIT license.
 The corresponding C source, upstream Java references and original MIT-licensed
-table generator are all included. See CASE-SUPPORT.md for regeneration and scope.
+table generators are all included. See CASE-SUPPORT.md and REGEX-SUPPORT.md for
+regeneration and scope. character.inc adds Unicode character classifications
+and radix digits from the same pinned runtime; its native adapter is original
+MIT-licensed project code.
 
 Xinbot release audited (not redistributed in this package):
 https://github.com/huangdihd/xinbot/releases/tag/2.4.3-RELEASE
