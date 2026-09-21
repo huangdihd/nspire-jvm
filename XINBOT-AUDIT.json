@@ -1,0 +1,370 @@
+{
+  "jar": "xinbot-2.4.3-RELEASE.jar",
+  "sha256": "601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853",
+  "base_class_count": 10719,
+  "excluded_multi_release_classes": 11,
+  "class_versions": {
+    "50": {
+      "java_version": 6,
+      "classes": 667
+    },
+    "51": {
+      "java_version": 7,
+      "classes": 539
+    },
+    "52": {
+      "java_version": 8,
+      "classes": 7841
+    },
+    "53": {
+      "java_version": 9,
+      "classes": 78
+    },
+    "55": {
+      "java_version": 11,
+      "classes": 658
+    },
+    "61": {
+      "java_version": 17,
+      "classes": 915
+    },
+    "66": {
+      "java_version": 22,
+      "classes": 21
+    }
+  },
+  "constant_pool_entries": {
+    "InvokeDynamic": 5507,
+    "MethodHandle": 5788,
+    "Dynamic": 0
+  },
+  "classes_above_java17_sample": [
+    {
+      "class": "org/jline/terminal/impl/ffm/CLibrary$termios.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/CLibrary$winsize.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/CLibrary.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/FfmNativePty$1.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/FfmNativePty.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/FfmTerminalProvider.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$CHAR_INFO.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$CONSOLE_SCREEN_BUFFER_INFO.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$COORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$FOCUS_EVENT_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$INPUT_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$KEY_EVENT_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$MENU_EVENT_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$MOUSE_EVENT_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$SMALL_RECT.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32$WINDOW_BUFFER_SIZE_RECORD.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/Kernel32.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/NativeWinConsoleWriter.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/NativeWinSysTerminal$1.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/NativeWinSysTerminal.class",
+      "major": 66
+    },
+    {
+      "class": "org/jline/terminal/impl/ffm/WindowsAnsiWriter.class",
+      "major": 66
+    }
+  ],
+  "top_runtime_class_references": [
+    [
+      "java/lang/Object",
+      7238
+    ],
+    [
+      "java/lang/String",
+      2204
+    ],
+    [
+      "java/lang/StringBuilder",
+      1961
+    ],
+    [
+      "java/lang/invoke/MethodHandles",
+      1305
+    ],
+    [
+      "java/lang/invoke/MethodHandles$Lookup",
+      1303
+    ],
+    [
+      "java/lang/Exception",
+      1186
+    ],
+    [
+      "java/lang/Class",
+      1111
+    ],
+    [
+      "java/io/IOException",
+      1065
+    ],
+    [
+      "java/lang/Integer",
+      971
+    ],
+    [
+      "java/lang/IllegalArgumentException",
+      957
+    ],
+    [
+      "java/lang/Throwable",
+      870
+    ],
+    [
+      "java/util/Iterator",
+      816
+    ],
+    [
+      "java/util/List",
+      802
+    ],
+    [
+      "java/util/Map",
+      771
+    ],
+    [
+      "java/lang/invoke/StringConcatFactory",
+      636
+    ],
+    [
+      "java/lang/invoke/LambdaMetafactory",
+      620
+    ],
+    [
+      "java/lang/annotation/Annotation",
+      618
+    ],
+    [
+      "java/lang/Enum",
+      525
+    ],
+    [
+      "java/lang/UnsupportedOperationException",
+      525
+    ],
+    [
+      "java/lang/Math",
+      516
+    ],
+    [
+      "java/lang/IllegalStateException",
+      504
+    ],
+    [
+      "java/util/Objects",
+      492
+    ],
+    [
+      "java/io/Serializable",
+      477
+    ],
+    [
+      "java/util/ArrayList",
+      467
+    ],
+    [
+      "java/util/Map$Entry",
+      454
+    ],
+    [
+      "java/lang/Boolean",
+      451
+    ],
+    [
+      "java/util/Set",
+      408
+    ],
+    [
+      "java/util/Arrays",
+      384
+    ],
+    [
+      "java/lang/Long",
+      372
+    ],
+    [
+      "java/lang/System",
+      369
+    ],
+    [
+      "java/lang/AssertionError",
+      319
+    ],
+    [
+      "java/util/Collections",
+      310
+    ],
+    [
+      "java/util/Collection",
+      272
+    ],
+    [
+      "java/lang/NullPointerException",
+      257
+    ],
+    [
+      "java/util/HashMap",
+      246
+    ],
+    [
+      "java/lang/NoSuchFieldError",
+      239
+    ],
+    [
+      "java/lang/Runnable",
+      208
+    ],
+    [
+      "java/util/function/Consumer",
+      206
+    ],
+    [
+      "java/lang/Double",
+      203
+    ],
+    [
+      "java/lang/CharSequence",
+      198
+    ],
+    [
+      "java/lang/Character",
+      197
+    ],
+    [
+      "java/lang/Float",
+      191
+    ],
+    [
+      "java/util/NoSuchElementException",
+      182
+    ],
+    [
+      "java/lang/RuntimeException",
+      158
+    ],
+    [
+      "java/util/stream/Stream",
+      152
+    ],
+    [
+      "java/nio/ByteBuffer",
+      149
+    ],
+    [
+      "java/io/InputStream",
+      146
+    ],
+    [
+      "java/lang/CloneNotSupportedException",
+      138
+    ],
+    [
+      "java/lang/Thread",
+      136
+    ],
+    [
+      "java/util/function/IntConsumer",
+      134
+    ],
+    [
+      "java/lang/Short",
+      132
+    ],
+    [
+      "java/net/InetSocketAddress",
+      122
+    ],
+    [
+      "java/lang/Byte",
+      121
+    ],
+    [
+      "java/lang/Iterable",
+      119
+    ],
+    [
+      "java/lang/Cloneable",
+      118
+    ],
+    [
+      "java/lang/Record",
+      107
+    ],
+    [
+      "java/lang/runtime/ObjectMethods",
+      107
+    ],
+    [
+      "java/lang/NumberFormatException",
+      106
+    ],
+    [
+      "java/io/File",
+      105
+    ],
+    [
+      "java/io/OutputStream",
+      102
+    ]
+  ],
+  "scope": "Structural inventory only, not a compatibility verdict. Constant-pool entries are not execution counts; optional classes may never be loaded."
+}

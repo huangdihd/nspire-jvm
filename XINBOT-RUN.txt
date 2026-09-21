@@ -1,0 +1,21 @@
+Attempted on the Linux host interpreter using the real upstream release:
+  xinbot-2.4.3-RELEASE.jar
+  SHA-256: 601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853
+
+Command:
+  ./build/nspire-jvm -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
+
+Exit status: 1
+stderr:
+VM error: class not found: java/util/concurrent/ConcurrentHashMap
+  at org/slf4j/helpers/SubstituteLoggerFactory.<init>()V pc=10
+  at org/slf4j/helpers/SubstituteServiceProvider.<init>()V pc=9
+  at org/slf4j/LoggerFactory.<clinit>()V pc=8
+  at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
+
+The Class literal / getSimpleName failure has been resolved. Startup now
+reaches SLF4J initialization, still before Xinbot.main().
+No Minecraft connection was made and no account credentials were used.
+Fixing this first error alone does not supply the missing Java standard library,
+dynamic invocation, full threading semantics, reflection, plugin loading,
+or networking. Basic cooperative threads are now covered by separate host tests.

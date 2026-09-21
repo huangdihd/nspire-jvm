@@ -1,0 +1,20 @@
+Target build: PASS
+ARM GCC 13.2.1; Ndless SDK 9484d8da7c7a4dde9766138c2e42e1d1e3acfcd4
+ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
+Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
+genzehn --info: PASS
+  Application: Nspire JVM
+  Relocations: 1592
+  Zehn executable size: 160632 bytes
+  Bytes needed to load: 161560 (excluding runtime heap/stack/ZIP data)
+  Uses new lcd_blit API.
+
+Current host tests: 31/31 passed, ordinary build, including cooperative threads.
+Earlier snapshot: 26/26 passed, AddressSanitizer + UndefinedBehaviorSanitizer,
+with ASAN_OPTIONS=detect_leaks=1 and no sanitizer errors reported.
+Sanitizers have NOT been rerun on the current threading implementation.
+ARM context switching and timing have NOT been tested at runtime.
+
+Calculator execution: NOT TESTED.
+Firmware emulator execution: NOT TESTED.
+Complete Xinbot startup: FAIL (see XINBOT-RUN.txt).
