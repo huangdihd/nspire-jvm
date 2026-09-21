@@ -4,18 +4,18 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 2135
-  Zehn executable size: 216036 bytes
-  Bytes needed to load: 216964 (excluding runtime heap/stack/ZIP data)
+  Relocations: 2182
+  Zehn executable size: 219376 bytes
+  Bytes needed to load: 220304 (excluding runtime heap/stack/ZIP data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 5/5 OpenJDK library runs and
-8/8 loader/resource/service/reflection cases passed.
+9/9 loader/resource/connection/service/reflection cases passed.
 All three suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
-The real Xinbot attempt on the instrumented host stopped at the same unsupported
-URL.openConnection call, with no sanitizer diagnostics.
+The real Xinbot attempt on the instrumented host stopped at the same missing
+org.xml.sax.InputSource class, with no sanitizer errors.
 ARM context switching and timing have NOT been tested at runtime.
 Ndless RTC time is currently only second-resolution; see BUILD-NOTES.md.
 

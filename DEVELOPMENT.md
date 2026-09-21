@@ -26,18 +26,22 @@ The current interpreter and passing sample programs do not achieve that objectiv
   Integer/Boolean unboxing/widening and InvocationTargetException wrapping.
   Initialization precedes argument conversion, verified against standard Java.
 - Real Xinbot reads version properties, emits log status messages, sorts and
-  instantiates configurators and finds its XML resource. The next failure is
-  URL.openConnection in GenericXMLConfigurator (see XINBOT-RUN.txt), still
-  before Xinbot.main.
-- 45 basic checks, 5 OpenJDK runtime runs and 8 loader/service/reflection checks passed
+  instantiates configurators and opens its XML resource through URLConnection.
+  The next failure is the missing org.xml.sax.InputSource class in
+  GenericXMLConfigurator (see XINBOT-RUN.txt), still before Xinbot.main.
+- Added read-only classpath file/JAR connections, settings, content length and
+  close semantics, including uncached JAR streams closing their sibling streams.
+  Resource contents are bounded memory snapshots; classpath JARs must remain
+  unchanged during a run. HTTP and general URL creation remain unsupported.
+- 45 basic checks, 5 OpenJDK runtime runs and 9 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement classpath URLConnection and the actual XML configuration-reading
-   path used by Logback. Preserve real initialization; do not skip logging.
+1. Implement SAX APIs and the actual XML configuration-reading path used by
+   Logback. Preserve real initialization; do not skip logging.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

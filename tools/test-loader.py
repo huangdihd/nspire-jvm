@@ -33,6 +33,7 @@ def main():
         report.append('PASS '+label);print(report[-1],flush=True)
     check('StreamsTest',[app],'UTF-8 streams, byte windows, close and bounds')
     check('ReflectionTest',[app],'constructors, access, unboxing, GC roots and target exceptions')
+    check('ConnectionTest',[app,directory],'JAR/file connections, settings, stream lifetime and metadata')
     check('svc.ServiceTest',[app,other],'services across two JARs, duplicates, lazy init and reload')
     check('svc.ServiceTest',[app,directory],'services across JAR and directory')
     for label,config in [('syntax','svc.Bad Provider'),('missing','svc.Missing'),('type','svc.ServiceTest$NotProvider'),('constructor','svc.ServiceTest$Broken')]:

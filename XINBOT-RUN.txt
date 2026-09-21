@@ -7,8 +7,9 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: runtime method not implemented: java/net/URL.openConnection()Ljava/net/URLConnection;
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=8
+VM error: class not found: org/xml/sax/InputSource
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=0
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
   at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
   at ch/qos/logback/classic/util/DefaultJoranConfigurator.configure(Lch/qos/logback/classic/LoggerContext;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=12
   at ch/qos/logback/classic/util/ContextInitializer.invokeConfigure(Lch/qos/logback/classic/spi/Configurator;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=42
@@ -27,11 +28,12 @@ Startup passes ConcurrentHashMap, queue, atomic and thread-local setup. SLF4J
 reads its real service descriptor, instantiates the Logback provider, reads
 version properties, generates formatted status messages and sorts configurators.
 Constructor reflection creates the actual DefaultJoranConfigurator, which finds
-the XML resource in the upstream JAR. Execution stops while opening that URL,
-still before Xinbot.main(). No Minecraft connection was made and no account
-credentials were used.
+the XML resource in the upstream JAR. Its URL connection now opens the resource
+stream with caching disabled. Execution stops when constructing the SAX
+InputSource, still before Xinbot.main(). No Minecraft connection was made and
+no account credentials were used.
 The same stopping point was confirmed with ASan/UBSan/leak detection enabled;
-that direct run reported no sanitizer diagnostics.
-Classpath URLConnection and XML configuration are the next missing paths;
-general dynamic invocation, full reflection, I/O, networking and device
-verification remain. The application or its logging setup was not bypassed.
+that direct run reported no sanitizer errors.
+SAX and XML configuration are the next missing paths; general dynamic invocation,
+full reflection, I/O, networking and device verification remain. The application
+or its logging setup was not bypassed.

@@ -102,16 +102,22 @@ static Object *resource_stream(VM *v,Object *url) {
         if(stat(file,&info)||info.st_size<0||(uint64_t)info.st_size>8U*1024U*1024U){v->nr--;throwing(v,"java/io/FileNotFoundException");return NULL;}
         len=(size_t)info.st_size;
     }
-    Object *o=new_object(v,load(v,"java/io/ByteArrayInputStream"),'b',1);root(v,o);stream_buffer(v,o,len);
+    Object *o=new_object(v,load(v,"nspire/ResourceInputStream"),'j',1);root(v,o);stream_buffer(v,o,len);
     int ok;
     if(entry->is_zip)ok=mz_zip_reader_extract_to_mem(&entry->zip,(mz_uint)url->resource_index,o->buffer,len,0);
     else {FILE *f=fopen(file,"rb");ok=f&&(fread(o->buffer,1,len,f)==len);if(f)fclose(f);}
     v->nr-=2;if(!ok){throwing(v,"java/io/IOException");return NULL;}return o;
 }
+enum { CONNECTION_CONNECTED=1,CONNECTION_CACHES=2,CONNECTION_INPUT=4,CONNECTION_OUTPUT=8,CONNECTION_CLOSED=16 };
+static int resource_closed(Object *o) {
+    Object *owner=o->count?obj(o->data[0]):NULL;
+    return o->closed||(owner&&owner->kind=='U'&&(integer(owner->data[2])&CONNECTION_CLOSED));
+}
 static int stream_read(VM *v,Object *o) {
-    if(o->kind=='b') {
+    if(o->kind=='j'&&resource_closed(o)){throwing(v,"java/io/IOException");return -1;}
+    if(o->kind=='b'||o->kind=='j') {
         if(o->cursor>=o->buffer_size)return -1;
-        Object *array=o->count&&o->data[0].tag==REF?obj(o->data[0]):NULL;
+        Object *array=o->kind=='b'&&o->count&&o->data[0].tag==REF?obj(o->data[0]):NULL;
         return array?(int)(array->data[o->cursor++].bits&255):o->buffer[o->cursor++];
     }
     Method *m=method(o->cls,"read","()I");if(!m)fail(v,"InputStream.read is not implemented");
@@ -134,7 +140,7 @@ static int reader_read(VM *v,Object *o) {
     for(int i=0;i<extra;i++) {
         int b=stream_read(v,stream);
         if(b<0)return 0xfffd;
-        if((b&0xc0)!=0x80){if(stream->kind=='b')stream->cursor--;else fail(v,"UTF-8 pushback for custom streams is not implemented");return 0xfffd;}
+        if((b&0xc0)!=0x80){if(stream->kind=='b'||stream->kind=='j')stream->cursor--;else fail(v,"UTF-8 pushback for custom streams is not implemented");return 0xfffd;}
         cp=(cp<<6)|((unsigned)b&63);
     }
     if((extra==1&&cp<0x80)||(extra==2&&cp<0x800)||(extra==3&&cp<0x10000)||cp>0x10ffff||(cp>=0xd800&&cp<=0xdfff))return 0xfffd;
@@ -143,10 +149,37 @@ static int reader_read(VM *v,Object *o) {
 }
 static void reader_close(VM *v,Object *o) {
     if(o->kind=='b')return; /* ByteArrayInputStream.close has no effect. */
+    if(o->kind=='j') {
+        o->closed=1;Object *owner=o->count?obj(o->data[0]):NULL;
+        if(owner&&owner->kind=='U'&&!(integer(owner->data[2])&CONNECTION_CACHES))owner->data[2]=iv(integer(owner->data[2])|CONNECTION_CLOSED);
+        return;
+    }
     if(o->kind=='r'||o->kind=='R') {
         if(!o->closed){o->closed=1;reader_close(v,obj(o->data[0]));o->data[0]=rv(NULL);}return;
     }
     Method *m=method(o->cls,"close","()V");if(!m)fail(v,"stream close is not implemented");Value a=rv(o);execute(v,m,&a,1);
+}
+/* Classpaths are fixed for a VM run. Connections never cache decompressed JAR
+ * entry bytes: each JAR getInputStream call reads a fresh bounded snapshot.
+ * File connections retain one stream, matching the file protocol handler. */
+static Object *resource_connection(VM *v,Object *url) {
+    if(!url||url->kind!='u'||!url->resource_name)fail(v,"unsupported URL connection");
+    Object *o=new_object(v,load(v,v->paths[url->resource_path].is_zip?"nspire/JarConnection":"nspire/FileConnection"),'U',6);
+    o->data[0]=rv(url);o->data[1]=rv(NULL);o->data[2]=iv(CONNECTION_CACHES|CONNECTION_INPUT);
+    o->data[3]=iv(0);o->data[4]=iv(0);o->data[5]=val(0,LONG);return o;
+}
+static void connection_connect(VM *v,Object *o) {
+    int flags=integer(o->data[2]);if(flags&CONNECTION_CONNECTED)return;
+    Object *url=obj(o->data[0]);ClassPath *path=&v->paths[url->resource_path];
+    if(path->is_zip) {
+        mz_zip_archive_file_stat st;
+        if(!mz_zip_reader_file_stat(&path->zip,(mz_uint)url->resource_index,&st)){throwing(v,"java/io/FileNotFoundException");return;}
+        o->data[5]=val(st.m_uncomp_size,LONG);
+    } else {
+        Object *stream=resource_stream(v,url);if(v->exception)return;
+        o->data[1]=rv(stream);o->data[5]=val(stream->buffer_size,LONG);
+    }
+    o->data[2]=iv(flags|CONNECTION_CONNECTED);
 }
 static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,unsigned na,int stat,int *handled) {
     const char *cl=c->name;Object *self=stat?NULL:obj(a[0]);Value none=iv(0);*handled=1;
@@ -198,12 +231,47 @@ static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,u
         }
     }
     if(!strcmp(cl,"java/net/URL")) {
+        if(!strcmp(n,"openConnection")&&!strcmp(d,"()Ljava/net/URLConnection;"))return rv(resource_connection(v,self));
         if(!strcmp(n,"openStream")&&!strcmp(d,"()Ljava/io/InputStream;"))return rv(resource_stream(v,self));
         if((!strcmp(n,"toString")||!strcmp(n,"toExternalForm"))&&!strcmp(d,"()Ljava/lang/String;"))return rv(string(v,self->text));
         if(!strcmp(n,"getProtocol")&&!strcmp(d,"()Ljava/lang/String;"))return rv(string(v,v->paths[self->resource_path].is_zip?"jar":"file"));
     }
-    int byte_stream=!strcmp(cl,"java/io/InputStream")||!strcmp(cl,"java/io/ByteArrayInputStream");
-    int reader=!strcmp(cl,"java/io/Reader")||!strcmp(cl,"java/io/InputStreamReader")||!strcmp(cl,"java/io/BufferedReader");
+    if(self&&self->kind=='U') {
+        int flags=integer(self->data[2]);Object *url=obj(self->data[0]);
+        if(!strcmp(n,"getURL")&&!strcmp(d,"()Ljava/net/URL;"))return self->data[0];
+        if(!strcmp(n,"connect")&&!strcmp(d,"()V")){connection_connect(v,self);return none;}
+        if(!strcmp(n,"getInputStream")&&!strcmp(d,"()Ljava/io/InputStream;")) {
+            connection_connect(v,self);if(v->exception)return none;
+            if(flags&CONNECTION_CLOSED){throwing(v,"java/lang/IllegalStateException");return none;}
+            if(v->paths[url->resource_path].is_zip) {
+                Object *stream=resource_stream(v,url);if(stream)stream->data[0]=rv(self);return rv(stream);
+            }
+            return self->data[1];
+        }
+        if(!strcmp(n,"getOutputStream")&&!strcmp(d,"()Ljava/io/OutputStream;")){throwing(v,"java/net/UnknownServiceException");return none;}
+        if(!strcmp(n,"getEntryName")&&!strcmp(d,"()Ljava/lang/String;")&&v->paths[url->resource_path].is_zip)return rv(string(v,url->resource_name));
+        if((!strcmp(n,"getContentLength")&&!strcmp(d,"()I"))||(!strcmp(n,"getContentLengthLong")&&!strcmp(d,"()J"))) {
+            connection_connect(v,self);if(v->exception)return none;
+            return d[2]=='J'?self->data[5]:iv(self->data[5].bits>INT_MAX?-1:(int32_t)self->data[5].bits);
+        }
+        const char *getters[]={"getUseCaches","getDoInput","getDoOutput"};
+        const char *setters[]={"setUseCaches","setDoInput","setDoOutput"};
+        const int bits[]={CONNECTION_CACHES,CONNECTION_INPUT,CONNECTION_OUTPUT};
+        for(unsigned i=0;i<3;i++) {
+            if(!strcmp(n,getters[i])&&!strcmp(d,"()Z"))return iv(!!(flags&bits[i]));
+            if(!strcmp(n,setters[i])&&!strcmp(d,"(Z)V")) {
+                if((flags&CONNECTION_CONNECTED)&&!(i==0&&v->paths[url->resource_path].is_zip)){throwing(v,"java/lang/IllegalStateException");return none;}
+                self->data[2]=iv(integer(a[1])?flags|bits[i]:flags&~bits[i]);return none;
+            }
+        }
+        if((!strcmp(n,"getConnectTimeout")||!strcmp(n,"getReadTimeout"))&&!strcmp(d,"()I"))return self->data[!strcmp(n,"getConnectTimeout")?3:4];
+        if((!strcmp(n,"setConnectTimeout")||!strcmp(n,"setReadTimeout"))&&!strcmp(d,"(I)V")) {
+            if(integer(a[1])<0){throwing(v,"java/lang/IllegalArgumentException");return none;}
+            self->data[!strcmp(n,"setConnectTimeout")?3:4]=a[1];return none;
+        }
+    }
+    int byte_stream=!strcmp(cl,"java/io/InputStream")||!strcmp(cl,"java/io/ByteArrayInputStream")||(self&&(self->kind=='b'||self->kind=='j'));
+    int reader=!strcmp(cl,"java/io/Reader")||!strcmp(cl,"java/io/InputStreamReader")||!strcmp(cl,"java/io/BufferedReader")||(self&&(self->kind=='r'||self->kind=='R'));
     if((byte_stream||reader)&&!stat) {
         if(!strcmp(n,"<init>")) {
             if(!strcmp(cl,"java/io/ByteArrayInputStream")&&(!strcmp(d,"([B)V")||!strcmp(d,"([BII)V"))) {
@@ -230,12 +298,13 @@ static Value loader_native(VM *v,Class *c,const char *n,const char *d,Value *a,u
             Object *out=nonnull(v,a[1]);if(!out)return none;
             int32_t off=na==4?integer(a[2]):0,len=na==4?integer(a[3]):(int32_t)out->count;
             if(off<0||len<0||(size_t)off>out->count||(size_t)len>out->count-(size_t)off){throwing(v,"java/lang/IndexOutOfBoundsException");return none;}
-            if(reader&&self->closed){throwing(v,"java/io/IOException");return none;}
+            if((reader&&self->closed)||(self->kind=='j'&&resource_closed(self))){throwing(v,"java/io/IOException");return none;}
             if(byte_stream&&self->kind=='b'&&self->cursor>=self->buffer_size)return iv(-1);
             int32_t i=0;for(;i<len&&!v->exception;i++){int ch=byte_stream?stream_read(v,self):reader_read(v,self);if(ch<0)break;out->data[off+i]=iv(byte_stream?(int8_t)ch:ch);}
             return iv(i?i:len?-1:0);
         }
-        if(byte_stream&&self->kind=='b') {
+        if(byte_stream&&(self->kind=='b'||self->kind=='j')) {
+            if(self->kind=='j'&&resource_closed(self)){throwing(v,"java/io/IOException");return none;}
             if(!strcmp(n,"available")&&!strcmp(d,"()I"))return iv((int32_t)(self->buffer_size-self->cursor));
             if(!strcmp(n,"markSupported")&&!strcmp(d,"()Z"))return iv(1);
             if(!strcmp(n,"mark")&&!strcmp(d,"(I)V")){self->mark_cursor=self->cursor;return none;}

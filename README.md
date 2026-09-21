@@ -13,6 +13,7 @@
 - 内建 bootstrap/application 类加载器、线程 context loader、JAR/目录资源读取及 ServiceLoader 服务发现。
 - 字节码类的构造器查找与调用、参数类型查询、访问检查、Integer/Boolean 拆箱及部分拓宽转换、InvocationTargetException 包装。
 - 部分输入流与 UTF-8 Reader、资源 URL、Integer/Boolean 装箱缓存、数组和 Cloneable 对象浅复制。
+- 类路径 JAR/文件的只读 URLConnection：连接设置、内容长度、资源流关闭和无缓存 JAR 流的关闭联动。
 - `StringConcatFactory` 字符串拼接：支持引用、整数、long、char、boolean 和配方常量；对象转换调用实际的 toString。
 - String 的字符数组构造、Comparable/CharSequence、前后缀匹配；String.format 支持 `%s`、`%%`、`%n`、参数索引、宽度和字符串精度。
 - 读取 class-file version 45–61；只执行本解释器已实现的指令。
@@ -88,7 +89,7 @@ python3 tools/test-loader.py --vm build/nspire-jvm
 ```
 
 源码、固定版本和授权位于 `runtime/openjdk8/`，共 79 个上游源文件。
-本次有 45 项基础检查、5 项运行库对照运行和 8 项资源/服务/反射测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+本次有 45 项基础检查、5 项运行库对照运行和 9 项资源/连接/服务/反射测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -106,6 +107,7 @@ jar cf myapp.jar.tns -C classes .
 - 完整 Formatter：数字、日期、Locale、Formattable 和格式错误对应的 Java 异常仍未实现，遇到这些路径会给出 VM 诊断。构造器反射尚缺多数内建类构造器、其他装箱类型和 nestmate 访问规则。
 - 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
 - 完整 Java 标准类库、自定义 ClassLoader 命名空间和 defineClass、JNI、插件 JAR 动态加载。现有资源 API 只读启动时指定的类路径，单个资源最多 8 MiB。
+- 资源流会一次性读入内存，类路径 JAR 在一次运行期间须保持不变；URLConnection 尚不支持 HTTP、任意 URL 构造、完整元数据和 JAR 热替换。
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
@@ -133,14 +135,15 @@ ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 �
 当前实际结果：
 
 ```text
-VM error: runtime method not implemented: java/net/URL.openConnection()Ljava/net/URLConnection;
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=8
+VM error: class not found: org/xml/sax/InputSource
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=0
+  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
   at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已找到日志配置资源，停在 XML 配置入口的资源连接调用，尚未进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
-即使补齐这一调用，仍需实现 XML/其他运行库、动态调用、完整线程语义和网络支持。
+当前已打开日志配置资源流，停在 SAX InputSource 类加载处，尚未解析 XML 或进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
+仍需实现 SAX/XML 和其他运行库、动态调用、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 

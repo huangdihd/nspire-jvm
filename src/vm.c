@@ -309,6 +309,11 @@ static const char *wrapper_primitive(const char *name) {
 }
 static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/Object")) return "";
+    if(!strcmp(n,"java/lang/AutoCloseable")||!strcmp(n,"java/io/Closeable")||!strcmp(n,"java/net/URLConnection"))return "java/lang/Object";
+    if(!strcmp(n,"java/net/JarURLConnection")||!strcmp(n,"nspire/FileConnection"))return "java/net/URLConnection";
+    if(!strcmp(n,"nspire/JarConnection"))return "java/net/JarURLConnection";
+    if(!strcmp(n,"nspire/ResourceInputStream"))return "java/io/InputStream";
+    if(!strcmp(n,"java/net/UnknownServiceException"))return "java/io/IOException";
     if(!strcmp(n,"java/lang/reflect/AccessibleObject"))return "java/lang/Object";
     if(!strcmp(n,"java/lang/reflect/Executable"))return "java/lang/reflect/AccessibleObject";
     if(!strcmp(n,"java/lang/reflect/Constructor"))return "java/lang/reflect/Executable";
@@ -475,6 +480,12 @@ static Class *load(VM *v,const char *name) {
     const char *base=builtin_super(name);
     if(base) {
         c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->loading=0;
+        if(!strcmp(name,"java/lang/AutoCloseable")||!strcmp(name,"java/io/Closeable"))c->access=0x601;
+        if(!strcmp(name,"java/io/Closeable")||!strcmp(name,"java/io/InputStream")||!strcmp(name,"java/io/Reader")) {
+            c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,!strcmp(name,"java/io/Closeable")?"java/lang/AutoCloseable":"java/io/Closeable");
+        }
+        if(!strcmp(name,"java/net/URLConnection")||!strcmp(name,"java/net/JarURLConnection"))c->access=0x401;
+        if(!strcmp(name,"nspire/FileConnection")||!strcmp(name,"nspire/JarConnection"))c->slots=6;
         if(!strcmp(name,"java/lang/reflect/AnnotatedElement")||!strcmp(name,"java/lang/reflect/GenericDeclaration")||!strcmp(name,"java/lang/reflect/Member"))c->access=0x601;
         if(!strcmp(name,"java/lang/reflect/AccessibleObject")||!strcmp(name,"java/lang/reflect/GenericDeclaration")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,"java/lang/reflect/AnnotatedElement");
