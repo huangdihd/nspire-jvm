@@ -181,7 +181,9 @@ static uint64_t annotation_number_bits(Value value) {
 static Value annotation_virtual(VM *v,Object *o,const char *name,const char *desc,Value *args,unsigned count) {
     Method *m=method(o->cls,name,desc);if(!m)m=default_method(v,o->cls,name,desc);
     if(v->exception)return iv(0);if(m)return execute(v,m,args,count);
-    Class *base=o->cls;while(base&&!base->builtin)base=base->super;
+    /* Arrays inherit Object's implementations; their builtin class has no
+     * separately bound equals/hashCode/toString implementation. */
+    Class *base=o->cls;while(base&&(!base->builtin||base->component))base=base->super;
     if(!base)fail(v,"annotation member implementation is missing: %s",name);
     return native_call(v,base,name,desc,args,count,0);
 }

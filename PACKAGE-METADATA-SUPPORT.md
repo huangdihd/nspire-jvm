@@ -36,7 +36,7 @@ values, UTF-8 split across continuation lines, directory behavior, GC and absenc
 of unintended class initialization. All three pass on ordinary and ASan/UBSan
 builds with leak detection. They do not establish calculator execution.
 
-Unchanged Xinbot now reaches Version.from in its static initializer after reading
-its JAR's Implementation-Version (2.4.3-RELEASE). Loading Version fails because
-its superclass java.lang.Record is absent. Xinbot.main, network access and
-calculator execution remain unverified; see XINBOT-RUN.txt.
+Unchanged Xinbot reads its JAR's Implementation-Version (2.4.3-RELEASE).
+Record and integer parsing support now let Version.from complete, followed by
+entry into Xinbot.main. LangManager initialization stops at Map.of. Complete
+startup, networking and calculator execution remain unverified; see XINBOT-RUN.txt.

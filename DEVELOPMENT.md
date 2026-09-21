@@ -3,14 +3,15 @@
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
 The current interpreter and passing sample programs do not achieve that objective.
 
-Current checkpoint: genuine reflective Parameter metadata and package manifest
-metadata now let unchanged Xinbot pass Logback's parameter lookup and read its
-implementation version. It stops at missing java.lang.Record when resolving
-Version.from at Xinbot.<clinit> pc=31, before main. Dynamic JNI, generic/type-use
-reflection, target filesystem gaps and device execution remain incomplete.
-Next work is record classes and ObjectMethods bootstrap, followed by subsequent
-original application paths. See PARAMETER-SUPPORT.md,
-PACKAGE-METADATA-SUPPORT.md, CHECKPOINT.md and XINBOT-RUN.txt.
+Current checkpoint: javac record ObjectMethods, actual primitive floating text,
+and signed Integer/Long parsing now let unchanged Xinbot finish version
+initialization and enter Xinbot.main. It stops in LangManager.<clinit> at pc=35
+on java.util.Map.of (four pairs). The current diagnostic says Object.of because
+the missing-static-method fallback loses the symbolic interface owner.
+Next work is genuine immutable collection factory APIs and accurate static
+method resolution, then subsequent original application paths. Full startup,
+networking and calculator execution remain incomplete. See RECORD-SUPPORT.md,
+CHECKPOINT.md and XINBOT-RUN.txt.
 
 Development history (earlier stopping points below are historical):
 - Class mirrors, basic Class APIs and supplemental bootclasspath are implemented.

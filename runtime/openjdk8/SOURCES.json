@@ -1670,6 +1670,22 @@
       "upstream_path": "jdk/src/share/classes/sun/misc/Contended.java",
       "sha256": "ecf600d32ca268101d6b349bb196aeb03e4c34d2bc1143cbcbe782157a410bf2"
     },
+    "sun/misc/DoubleConsts.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/DoubleConsts.java",
+      "sha256": "a643fcd0308cbc7be3dbb43ff36b82306c7284954e0e9fa15fdd6ddcd6a83d25"
+    },
+    "sun/misc/FDBigInteger.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/FDBigInteger.java",
+      "sha256": "157803e2dccb445131f64fb20678749b66291d2f9d9cc153152e290c1a790360"
+    },
+    "sun/misc/FloatConsts.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/FloatConsts.java",
+      "sha256": "6139ead12fd355f43875220922be9fed5c274a11122a5b6933d7777b3f42014f"
+    },
+    "sun/misc/FloatingDecimal.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/FloatingDecimal.java",
+      "sha256": "d07d0d1ba68603d11023b61fadf6860f31f98c0e33663de771f3903587e5d0e2"
+    },
     "sun/misc/JavaIOFileDescriptorAccess.java": {
       "upstream_path": "jdk/src/share/classes/sun/misc/JavaIOFileDescriptorAccess.java",
       "sha256": "db2bb94ed9b22fb118dfb322e0e7d93e0134d43c18a1c670c716791346578643"

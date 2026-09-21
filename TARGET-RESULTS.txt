@@ -10,7 +10,7 @@ ELF Header:
   Version:                           0x1
   Entry point address:               0x0
   Start of program headers:          52 (bytes into file)
-  Start of section headers:          1516720 (bytes into file)
+  Start of section headers:          1523568 (bytes into file)
   Flags:                             0x5000200, Version5 EABI, soft-float ABI
   Size of this header:               52 (bytes)
   Size of program headers:           32 (bytes)
@@ -29,13 +29,13 @@ ELF Header:
          w __gnu_Unwind_Find_exidx
          w __libc_fini
    text	   data	    bss	    dec	    hex	filename
- 364748	 262994	    936	 628678	  997c6	/mnt/c/Users/hd201/Documents/Codex/2026-09-20/ban/outputs/nspire-jvm/build/nspire-jvm.elf
+ 369044	 264170	    936	 634150	  9ad26	/mnt/c/Users/hd201/Documents/Codex/2026-09-20/ban/outputs/nspire-jvm/build/nspire-jvm.elf
 Zehn header starts at byte 0x0
-12128	relocations
+12186	relocations
 8	flags
 12	bytes extra data
-677272	bytes needed to load this file
-676336	bytes Zehn executable file
+682976	bytes needed to load this file
+682040	bytes Zehn executable file
 Entry point:	0x0
 
 Application: Nspire JVM

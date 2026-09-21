@@ -69,6 +69,7 @@ Unbound application native methods now throw catchable UnsatisfiedLinkError,
 including through lambda bridges; see NATIVE-SUPPORT.md. Fatal cleanup tests
 use unsupported numeric String.format on main/child stacks. Real Xinbot passes
 its time formatter's internal serializable lambdas; the current whole-startup
-failure is missing java.lang.Record after actual Jansi extraction,
+failure is Map.of in LangManager initialization after actual Jansi extraction,
 delete-on-exit registration, native load-failure handling, parameter reflection
-and package version lookup. Record ObjectMethods bootstrap is not implemented.
+and package version lookup. The application now enters Xinbot.main. Javac
+record ObjectMethods sites are supported separately; see RECORD-SUPPORT.md.

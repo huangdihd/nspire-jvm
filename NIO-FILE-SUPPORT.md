@@ -83,8 +83,9 @@ Original Xinbot now copies Jansi's embedded Linux x86_64 libjansi.so to disk:
 18,976 bytes, SHA-256
 `249095f2a73e3d2ab348d9f1de659947d253c18cf6a2049f75296b5a0d6ee079`.
 The output matches the unchanged JAR entry byte for byte. It next stops at
-missing java.lang.Record after delete-on-exit registration, JNI load-failure
-handling, reflective parameter queries and package version lookup, before Xinbot.main. This host library
+Map.of in LangManager initialization after delete-on-exit registration, JNI
+load-failure handling, reflection, package version lookup and version parsing.
+This occurs inside Xinbot.main. This host library
 is not an ARM Ndless library and has not been loaded. See XINBOT-RUN.txt.
 
 Sources: [Files.copy implementation](https://github.com/openjdk/jdk8u/blob/f826be1da079fb8d44055a0d86021d13748f9c36/jdk/src/share/classes/java/nio/file/Files.java),

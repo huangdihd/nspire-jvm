@@ -55,11 +55,20 @@ StringOperations.join delegates both overloads to the original StringJoiner.
 
 
 Parameter and package metadata checkpoint: preserved Parameter,
-MalformedParametersException, Manifest and Attributes bring the original Java
-source count to 447. The VM reads real parameter attributes and JAR manifest
+MalformedParametersException, Manifest and Attributes supply the Java behavior.
+The runtime currently contains 451 original sources. The VM reads real parameter attributes and JAR manifest
 fields; Modifier and PackageInfo are original MIT adapters. Legacy high-byte
 String constructors support the original manifest parser. Rebuild both native
 VM and runtime.jar.tns. Scope and host checks are documented in
 PARAMETER-SUPPORT.md and PACKAGE-METADATA-SUPPORT.md. Current original-Xinbot
-execution stops at missing java.lang.Record before main; no calculator run is
+execution now reaches Xinbot.main and stops at Map.of in LangManager; no calculator run is
 established by the rebuilt ARM artifact.
+
+
+Record checkpoint: the original MIT Record base API and ObjectMethods intrinsic
+execute actual javac record fields. Four preserved OpenJDK sources provide
+FloatingDecimal, FDBigInteger, FloatConsts and DoubleConsts; the original Java
+source count is 451. Primitive floating text uses those bytecodes, with a 2 MiB
+heap for the broad conversion test (the static cache exceeded 256 KiB).
+Signed Integer/Long parsing and radix text also support actual Xinbot version
+parsing. Eight record/conversion checks and limitations are in RECORD-SUPPORT.md.

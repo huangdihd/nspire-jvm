@@ -73,8 +73,6 @@ NIO channels/files/selectors, non-UTF-8 InputStreamReader/PrintStream adapters,
 general writers, reference queues and complete buffer/library API coverage.
 No direct-memory operation is silently replaced with a heap allocation.
 
-The original whole Xinbot JAR now passes the earlier missing-Charset point,
-passes File initialization and component interface inspection, then stops at
-java.time.ZoneId in the original date formatter, still before Xinbot.main.
-Calculator and firmware-emulator
-execution remain unverified.
+The original whole Xinbot JAR now passes logging and version initialization,
+enters Xinbot.main and stops at Map.of in LangManager initialization.
+See XINBOT-RUN.txt. Calculator and firmware-emulator execution remain unverified.

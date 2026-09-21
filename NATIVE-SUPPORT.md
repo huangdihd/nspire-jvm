@@ -69,6 +69,6 @@ temporary-directory property, and enters Jansi's normal resource extraction.
 NIO FileSystems and the original Files.copy now extract the actual library
 with bytes matching the JAR entry. deleteOnExit and String.join now execute,
 and Jansi catches the actual UnsatisfiedLinkError. Parameter queries and package
-metadata now also execute; the next failure is missing java.lang.Record in
-Xinbot.<clinit>, before main. See XINBOT-RUN.txt. This does not establish a
+metadata now also execute, followed by record version parsing. Xinbot now enters
+main and stops at Map.of in LangManager initialization. See XINBOT-RUN.txt. This does not establish a
 working native library or successful full application startup.

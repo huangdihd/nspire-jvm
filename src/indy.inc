@@ -26,12 +26,18 @@ static void concat_value(VM *v,ConcatBuffer *b,Value value,char type) {
     } else s=as_text(v,value,text);
     concat_append(v,b,s,strlen(s));
 }
+static Value record_dynamic(VM *,Class *,CP *,const char *,Bootstrap *,Value *,unsigned);
 static Value invoke_dynamic(VM *v,Class *owner,CP *dynamic,const char *desc,Value *args,unsigned count) {
     if(dynamic->a>=owner->nbootstraps)fail(v,"invalid invokedynamic bootstrap index");
     Bootstrap *bootstrap=&owner->bootstraps[dynamic->a];CP *handle=cp(v,owner,bootstrap->handle,15);
     if(handle->a!=6)fail(v,"invokedynamic bootstrap handle kind is not implemented");
     CP *ref=cp(v,owner,handle->b,10),*nt=cp(v,owner,ref->b,12);
     const char *cl=classname(v,owner,ref->a),*name=utf(v,owner,nt->a);
+    if(!strcmp(cl,"java/lang/runtime/ObjectMethods")&&!strcmp(name,"bootstrap")) {
+        if(strcmp(utf(v,owner,nt->b),"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/TypeDescriptor;Ljava/lang/Class;Ljava/lang/String;[Ljava/lang/invoke/MethodHandle;)Ljava/lang/Object;"))
+            fail(v,"invalid ObjectMethods bootstrap descriptor");
+        return record_dynamic(v,owner,dynamic,desc,bootstrap,args,count);
+    }
     if(!strcmp(cl,"java/lang/invoke/LambdaMetafactory")&&(!strcmp(name,"metafactory")||!strcmp(name,"altMetafactory")))
         return lambda_capture(v,owner,dynamic,desc,bootstrap,!strcmp(name,"altMetafactory"),args,count);
     if(strcmp(cl,"java/lang/invoke/StringConcatFactory")||(strcmp(name,"makeConcat")&&strcmp(name,"makeConcatWithConstants")))

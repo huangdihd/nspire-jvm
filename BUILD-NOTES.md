@@ -139,7 +139,7 @@ ThreadPriorityTest 对照 Java 的接口行为，ThreadPriorityScheduleTest 单�
 
 ## 本机链接异常与临时目录
 
-运行库新增未修改的 OpenJDK UnsatisfiedLinkError，当前共 447 份原始 Java 源文件。
+运行库新增未修改的 OpenJDK UnsatisfiedLinkError，当前共 451 份原始 Java 源文件。
 未绑定 native 方法现在沿普通 Java 异常路径传播，反射和 lambda 使用相同入口。
 System/Runtime.load 系列明确抛出链接失败；尚未提供动态 JNI 加载器。
 库名映射、临时目录和 Integer/Long 进制转换的验证见 NATIVE-SUPPORT.md。
@@ -168,11 +168,20 @@ Ndless SDK 的 O_EXCL 判断错误已记录，目标端尚未提供原子 CREATE
 
 
 Parameter and package metadata checkpoint: preserved Parameter,
-MalformedParametersException, Manifest and Attributes bring the original Java
-source count to 447. The VM reads real parameter attributes and JAR manifest
+MalformedParametersException, Manifest and Attributes supply the Java behavior.
+The runtime currently contains 451 original sources. The VM reads real parameter attributes and JAR manifest
 fields; Modifier and PackageInfo are original MIT adapters. Legacy high-byte
 String constructors support the original manifest parser. Rebuild both native
 VM and runtime.jar.tns. Scope and host checks are documented in
 PARAMETER-SUPPORT.md and PACKAGE-METADATA-SUPPORT.md. Current original-Xinbot
-execution stops at missing java.lang.Record before main; no calculator run is
+execution now reaches Xinbot.main and stops at Map.of in LangManager; no calculator run is
 established by the rebuilt ARM artifact.
+
+
+Record checkpoint: the original MIT Record base API and ObjectMethods intrinsic
+execute actual javac record fields. Four preserved OpenJDK sources provide
+FloatingDecimal, FDBigInteger, FloatConsts and DoubleConsts; the original Java
+source count is 451. Primitive floating text uses those bytecodes, with a 2 MiB
+heap for the broad conversion test (the static cache exceeded 256 KiB).
+Signed Integer/Long parsing and radix text also support actual Xinbot version
+parsing. Eight record/conversion checks and limitations are in RECORD-SUPPORT.md.

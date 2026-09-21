@@ -2,42 +2,47 @@ Actual Linux host attempt using the unchanged upstream release:
   xinbot-2.4.3-RELEASE.jar
   SHA-256: 601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853
 
-Command (temporary directory is created before execution and removed afterward):
-  ./build/nspire-jvm --tmpdir <disposable-directory> -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
+Command (cwd and existing tmpdir are disposable directories):
+  <repo>/build/nspire-jvm --tmpdir <disposable-directory>/tmp -bootclasspath <repo>/dist/runtime.jar.tns -cp <path>/xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
 
 Exit status: 1
 stderr:
-Failed to load native library:jansi-2.4.3-7d5c8739dc144003-libjansi.so. osinfo: Linux/x86_64
+Failed to load native library:jansi-2.4.3-a8a100143dd4da39-libjansi.so. osinfo: Linux/x86_64
 java.lang.UnsatisfiedLinkError: Dynamic JNI library loading is not available in Nspire JVM
-VM error: class not found: java/lang/Record
-  at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=31
+VM error: runtime method not implemented: java/lang/Object.of(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/util/Map;
+  at xin/bbtt/mcbot/LangManager.<clinit>()V pc=35
+  at xin/bbtt/mcbot/Xinbot.main([Ljava/lang/String;)V pc=2
 
-The original application discovers SLF4J/Logback, processes its unchanged XML,
-and passes the ConsoleAppender reflective-parameter lookup. Its original
-withJansi=true configuration activates Jansi. Files.copy really extracts:
+The original application completes logging and version initialization and now
+enters Xinbot.main. Its call to LangManager.init at pc=2 triggers LangManager's
+static initializer, which stops at pc=35 on Map.of with four key/value pairs.
+javap of the unchanged LangManager class confirms the symbolic reference is
+java/util/Map.of, not Object.of. The VM's current missing-static-method fallback
+loses the interface owner in its diagnostic. Immutable collection factories and
+accurate missing-static-method resolution are next work.
+
+The actual JAR manifest supplies Implementation-Version: 2.4.3-RELEASE;
+Version.from now parses it into the application's genuine record class.
+Separate Java 17 comparisons exercise original Version accessors, comparison,
+generated equals/hashCode and invalid-version handling (RECORD-RESULTS.txt).
+They do not exercise Version's numeric String.format toString override.
+
+Jansi still extracts its exact embedded Linux x86_64 library:
   org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so
   Bytes: 18976
   SHA-256: 249095f2a73e3d2ab348d9f1de659947d253c18cf6a2049f75296b5a0d6ee079
-Both the extracted file and zero-byte .lck exist. The library matches the JAR
-entry byte for byte, but has NOT been loaded. Dynamic JNI is unsupported;
-Jansi catches the actual UnsatisfiedLinkError and its default graceful-failure
-logic returns to Logback. No Xinbot/Jansi class or configuration was modified.
+The library and zero-byte .lck exist; dynamic JNI loading is unsupported.
+Jansi catches the real UnsatisfiedLinkError through its default graceful-failure
+path. No Xinbot/Jansi class, configuration or entry point was replaced.
 
-Xinbot's static initializer now reads package implementation metadata through
-the actual JAR manifest (Implementation-Version: 2.4.3-RELEASE). At pc=31 it
-tries to call Version.from(String); loading that record class fails because
-java.lang.Record is not yet present. This does not verify Version.from itself.
+Ordinary and ASan/UBSan/leak-detection builds reproduce this result without
+sanitizer errors. Fatal interpreter errors skip Java shutdown hooks; the driver
+removes its disposable directory. JANSI-CLEANUP-RESULTS.txt separately verifies
+normal-return/System.exit cleanup using the original JansiLoader.
 
-Both ordinary and ASan/UBSan/leak-detection builds reproduce this result without
-sanitizer errors. Fatal interpreter errors skip Java shutdown hooks; extracted
-files remain until the driver removes the disposable directory. Separate actual
-JansiLoader checks verify normal-return/System.exit cleanup; see
-JANSI-CLEANUP-RESULTS.txt.
-
-This is still before Xinbot.main. Complete startup has NOT succeeded.
-No Minecraft connection was made and no account credentials were used.
-The Linux x86_64 library is NOT an ARM Ndless library. Calculator/firmware-emulator
-execution is NOT verified. Records/ObjectMethods bootstrap, generic reflection,
-target filesystem gaps, native dependencies, further JDK paths, real networking
-and device execution remain incomplete. See PARAMETER-SUPPORT.md and
-PACKAGE-METADATA-SUPPORT.md.
+Entering main is progress, NOT complete startup. No Minecraft connection was
+made and no credentials were used. This Linux library is NOT an ARM Ndless
+library. Calculator and firmware-emulator execution remain unverified.
+RecordComponent reflection, full Formatter, collection factories, other JDK
+paths, device filesystem gaps, JNI and networking remain incomplete.
+See RECORD-SUPPORT.md and CHECKPOINT.md.

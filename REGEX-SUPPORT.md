@@ -85,7 +85,7 @@ not corrected or simplified, including its treatment of unusual input.
 All eight checks passed on ordinary and ASan/UBSan/leak-detection builds,
 alongside the existing regression suites.
 
-Whole Xinbot startup now reaches second-phase log configuration and constructs
-its own JLineConsoleAppender. Bean discovery passes; it next fails at missing
-File in CoreConstants during property setup, before Xinbot.main.
+Whole Xinbot now completes log and version initialization, including actual
+Version.from regular-expression parsing. It enters Xinbot.main and stops at
+Map.of in LangManager initialization; see XINBOT-RUN.txt.
 Neither this component success nor ARM linking proves calculator execution.

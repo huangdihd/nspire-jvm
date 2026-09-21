@@ -40,6 +40,7 @@ typedef struct VM VM;
 typedef struct VmThread VmThread;
 typedef struct XmlParse XmlParse;
 typedef struct XmlMem XmlMem;
+typedef struct RecordShape RecordShape;
 typedef struct NativeDir { struct NativeDir *next;DIR *handle; } NativeDir;
 typedef struct LocalEntry { struct LocalEntry *next;Object *key,*value; } LocalEntry;
 typedef struct Property { struct Property *next;char *key,*value,*initial; } Property;
@@ -48,7 +49,7 @@ enum { INT=1, LONG, FLOAT, DOUBLE, REF };
 typedef struct Mem { struct Mem *next; size_t size; } Mem;
 typedef struct { uint8_t tag; uint16_t a, b; uint64_t bits; char *text; Object *intern; Class *lambda_class; } CP;
 typedef struct { uint16_t start, end, handler, type; } Handler;
-typedef struct { uint16_t handle,nargs;uint16_t *args; } Bootstrap;
+typedef struct { uint16_t handle,nargs;uint16_t *args;RecordShape *record_shape; } Bootstrap;
 typedef struct { unsigned char *bytes;size_t length;Object *cache; } AnnotationData;
 typedef struct {
     char *name, *desc; uint16_t flags, constant; size_t slot; Value value;
@@ -72,6 +73,8 @@ struct Class {
     VmThread *init_owner;
     int app_loader;
     unsigned source_path;
+    unsigned class_version;
+    AnnotationData record;
     Bootstrap *bootstraps;unsigned nbootstraps;
     AnnotationData annotations;Class *annotation_impl,*annotation_type;
     Method *reflection_methods;unsigned nreflection_methods;int reflection_loaded;
@@ -508,6 +511,18 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
             if(data==&m->parameters&&len!=1U+4U*r->p[r->pos])fail(r->v,"invalid MethodParameters attribute length");
             data->bytes=r->p+r->pos;data->length=len;
         } else if(f&&!strcmp(name,"ConstantValue")) f->constant=(uint16_t)readn(r,2);
+        else if(!m&&!f&&!strcmp(name,"Record")&&c->class_version>=60) {
+            if(c->record.bytes)fail(r->v,"duplicate Record attribute");
+            if(len<2)fail(r->v,"invalid Record attribute length");
+            c->record.bytes=r->p+r->pos;c->record.length=len;
+            unsigned components=readn(r,2);
+            for(unsigned i=0;i<components;i++) {
+                (void)utf(r->v,c,readn(r,2));(void)utf(r->v,c,readn(r,2));
+                unsigned nested=readn(r,2);
+                while(nested--){(void)utf(r->v,c,readn(r,2));unsigned size=readn(r,4);skip(r,size);}
+            }
+            if(r->pos!=end)fail(r->v,"invalid Record attribute size");
+        }
         else if(!m&&!f&&!strcmp(name,"BootstrapMethods")) {
             if(c->bootstraps)fail(r->v,"duplicate BootstrapMethods attribute");
             c->nbootstraps=readn(r,2);c->bootstraps=(Bootstrap *)alloc(r->v,c->nbootstraps*sizeof(Bootstrap));
@@ -635,6 +650,7 @@ static Class *load(VM *v,const char *name) {
     size_t length; unsigned char *data=class_bytes(v,c,name,&length);
     Reader r={v,data,length,0}; if(readn(&r,4)!=0xcafebabeU) fail(v,"not a class file: %s",name);
     unsigned minor=readn(&r,2), major=readn(&r,2);
+    c->class_version=major;
     if(major<45||major>61||minor==65535) fail(v,"unsupported class version %u.%u in %s (up to 61, no preview)",major,minor,name);
     c->nc=(uint16_t)readn(&r,2); if(!c->nc) fail(v,"empty constant pool");
     c->cp=(CP *)alloc(v,c->nc*sizeof(CP));
@@ -872,6 +888,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "environment.inc"
 #include "output.inc"
 #include "annotations.inc"
+#include "records.inc"
 #include "methods.inc"
 #include "parameters.inc"
 #include "boxing.inc"
@@ -1207,6 +1224,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
                 throwing(v,"java/lang/NoSuchFieldException");return none;
             }
             if(!strcmp(n,"desiredAssertionStatus")&&!strcmp(d,"()Z"))return iv(0);
+            if(!strcmp(n,"isRecord")&&!strcmp(d,"()Z"))return iv(record_class(target));
             if(!strcmp(n,"getName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,0));
             if(!strcmp(n,"getSimpleName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,1));
             if(!strcmp(n,"getCanonicalName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(canonical_name(v,target));

@@ -64,8 +64,7 @@ Limits:
   Annotation nesting is limited to 64. Generated implementation classes count
   toward the 2,048-class limit and the unchanged 16 MiB metadata budget.
 
-Actual Xinbot now passes annotation-based configuration phase selection and
-starts creating configuration handlers. Regex compilation and property
-substitution also pass. It constructs Xinbot's JLineConsoleAppender, completes
-bean discovery and next needs `java.io.File` in property substitution. This remains
-before Xinbot.main, without networking or calculator runtime verification.
+Actual Xinbot passes annotation-based configuration selection, logging setup
+and version parsing. It now enters Xinbot.main and stops at Map.of in LangManager
+initialization; see XINBOT-RUN.txt. Full startup, networking and calculator
+execution remain unverified.

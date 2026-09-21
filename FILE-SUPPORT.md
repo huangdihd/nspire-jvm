@@ -106,7 +106,8 @@ interfaces; a separate oracle test covers source order, inherited-only
 interfaces, arrays, primitives, annotations and reflective calls. Whole Xinbot
 now extracts Jansi's library through actual NIO copying, registers deletion and
 handles the JNI load failure, then passes reflective parameter and package
-metadata queries. It stops at missing java.lang.Record before Xinbot.main. See SHUTDOWN-SUPPORT.md and NIO-FILE-SUPPORT.md. Temporary-
+metadata queries and version parsing. It enters Xinbot.main and stops at
+Map.of in LangManager initialization. See SHUTDOWN-SUPPORT.md and NIO-FILE-SUPPORT.md. Temporary-
 directory configuration is described in NATIVE-SUPPORT.md.
 No full application or calculator run has completed. The unmodified JNI files
 beside the canonicalizer are references and are not compiled.

@@ -1,0 +1,9 @@
+PASS RecordTest (Java 17 output; real record fields, callbacks and GC)
+PASS RecordFloatingTest (Java 17 output; real record fields, callbacks and GC)
+PASS IntegralParsingTest (Java 17 output; real record fields, callbacks and GC)
+PASS malformed ObjectMethods names (Java rejects; VM explicitly diagnoses unsupported/invalid metadata)
+PASS malformed ObjectMethods handle (Java rejects; VM explicitly diagnoses unsupported/invalid metadata)
+PASS malformed ObjectMethods operation (Java rejects; VM explicitly diagnoses unsupported/invalid metadata)
+PASS isRecord requires the classfile Record attribute
+PASS XinbotRecordTest (Java 17 output; real record fields, callbacks and GC)
+Host checks only; full application startup, RecordComponent reflection, general MethodHandle APIs and calculator execution remain unverified.

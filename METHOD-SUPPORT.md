@@ -99,6 +99,6 @@ Each call returns a fresh array. InterfacesTest compares inheritance, interfaces
 annotations, primitives, arrays, mutation isolation and reflective invocation.
 
 Actual Xinbot completes appender bean discovery, parameter queries and package
-version lookup. It now stops while loading a record class because java.lang.Record
-is absent, before Xinbot.main. See XINBOT-RUN.txt for the current attempt.
+version lookup. Record support now lets it enter Xinbot.main; it stops in
+LangManager initialization at Map.of. See XINBOT-RUN.txt for the current attempt.
 No calculator or firmware-emulator execution is established by these host tests.

@@ -71,7 +71,7 @@ chunks are bounded independently of OpenJDK's encoder buffer size; callback
 chunk boundaries for long text are not identical. The full Throwable stack,
 suppression-disabled constructors and serialization remain incomplete.
 
-The actual application now creates its JLineConsoleAppender, completes bean
-discovery and next stops at missing File during property configuration. This
-is before Xinbot.main. No calculator or firmware-emulator execution is proven;
+The actual application completes logging and version initialization, then
+enters Xinbot.main and stops at Map.of in LangManager; see XINBOT-RUN.txt.
+No calculator or firmware-emulator execution is proven;
 host byte output does not establish the Ndless console's glyph rendering.
