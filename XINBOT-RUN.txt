@@ -7,11 +7,13 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: runtime method not implemented: java/lang/Class.getMethods()[Ljava/lang/reflect/Method;
-  at ch/qos/logback/core/joran/util/beans/BeanDescriptionFactory.create(Ljava/lang/Class;)Lch/qos/logback/core/joran/util/beans/BeanDescription; pc=26
-  at ch/qos/logback/core/joran/util/beans/BeanDescriptionCache.getBeanDescription(Ljava/lang/Class;)Lch/qos/logback/core/joran/util/beans/BeanDescription; pc=18
-  at ch/qos/logback/core/joran/util/PropertySetter.<init>(Lch/qos/logback/core/joran/util/beans/BeanDescriptionCache;Ljava/lang/Object;)V pc=23
-  at ch/qos/logback/core/model/processor/ImplicitModelHandler.handle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=40
+VM error: class not found: java/nio/charset/Charset
+  at ch/qos/logback/core/joran/util/StringToObjectConverter.isOfTypeCharset(Ljava/lang/Class;)Z pc=0
+  at ch/qos/logback/core/joran/util/StringToObjectConverter.canBeBuiltFromSimpleString(Ljava/lang/Class;)Z pc=51
+  at ch/qos/logback/core/joran/util/AggregationAssessor.computeRawAggregationType(Ljava/lang/reflect/Method;)Lch/qos/logback/core/util/AggregationType; pc=15
+  at ch/qos/logback/core/joran/util/AggregationAssessor.computeAggregationType(Ljava/lang/String;)Lch/qos/logback/core/util/AggregationType; pc=105
+  at ch/qos/logback/core/joran/util/PropertySetter.computeAggregationType(Ljava/lang/String;)Lch/qos/logback/core/util/AggregationType; pc=5
+  at ch/qos/logback/core/model/processor/ImplicitModelHandler.handle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=58
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=61
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
@@ -51,8 +53,10 @@ now reads the actual PhaseIndicator annotations and selects processing phases.
 It compiles Logback Duration's actual regex and substitutes configuration
 variables, including real native environment lookups. The second-phase
 traversal creates the application's JLineConsoleAppender and passes
-AtomicBoolean and ConsoleTarget initialization. BeanDescriptionFactory then
-requires Class.getMethods while discovering properties for configuration.
+AtomicBoolean and ConsoleTarget initialization. BeanDescriptionFactory now
+discovers the actual inherited public methods, including their parameter and
+return types. Property analysis queries the actual class package and then
+StringToObjectConverter requires java/nio/charset/Charset, which is not supplied.
 This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
@@ -68,6 +72,10 @@ classes against standard Java (LOGBACK-DURATION-RESULTS.txt).
 The original ConsoleTarget wrappers also pass a separate standard-Java
 comparison of byte output, flush, close and dynamic System.out/err replacement
 (LOGBACK-CONSOLE-RESULTS.txt).
-Class.getMethods is the next missing path. Full method reflection, additional
+The unchanged BeanDescriptionCache and BeanDescriptionFactory also pass a
+standard-Java component comparison of actual JLineConsoleAppender getters,
+setters and adders. Real setters change withJansi and name, and getters return
+those values (LOGBACK-BEAN-RESULTS.txt).
+Charset is the next missing path. Additional reflection, encoding,
 dynamic invocation, other I/O, networking and device verification
 remain. The application or its logging setup was not bypassed.

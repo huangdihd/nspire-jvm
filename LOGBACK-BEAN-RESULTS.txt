@@ -1,0 +1,31 @@
+PASS LogbackBeanTest (standard Java oracle)
+getter:class=java.lang.Object.getClass/0/java.lang.Class
+getter:context=ch.qos.logback.core.spi.ContextAwareBase.getContext/0/ch.qos.logback.core.Context
+getter:copyOfAttachedFiltersList=ch.qos.logback.core.UnsynchronizedAppenderBase.getCopyOfAttachedFiltersList/0/java.util.List
+getter:encoder=ch.qos.logback.core.OutputStreamAppender.getEncoder/0/ch.qos.logback.core.encoder.Encoder
+getter:immediateFlush=ch.qos.logback.core.OutputStreamAppender.isImmediateFlush/0/boolean
+getter:name=ch.qos.logback.core.UnsynchronizedAppenderBase.getName/0/java.lang.String
+getter:outputStream=ch.qos.logback.core.OutputStreamAppender.getOutputStream/0/java.io.OutputStream
+getter:started=ch.qos.logback.core.UnsynchronizedAppenderBase.isStarted/0/boolean
+getter:statusManager=ch.qos.logback.core.spi.ContextAwareBase.getStatusManager/0/ch.qos.logback.core.status.StatusManager
+getter:target=ch.qos.logback.core.ConsoleAppender.getTarget/0/java.lang.String
+getter:withJansi=ch.qos.logback.core.ConsoleAppender.isWithJansi/0/boolean
+setter:context=ch.qos.logback.core.spi.ContextAwareBase.setContext/1/void
+setter:encoder=ch.qos.logback.core.OutputStreamAppender.setEncoder/1/void
+setter:immediateFlush=ch.qos.logback.core.OutputStreamAppender.setImmediateFlush/1/void
+setter:layout=ch.qos.logback.core.OutputStreamAppender.setLayout/1/void
+setter:lineReader=xin.bbtt.mcbot.jLine.JLineConsoleAppender.setLineReader/1/void
+setter:name=ch.qos.logback.core.UnsynchronizedAppenderBase.setName/1/void
+setter:outputStream=ch.qos.logback.core.OutputStreamAppender.setOutputStream/1/void
+setter:target=ch.qos.logback.core.ConsoleAppender.setTarget/1/void
+setter:withJansi=ch.qos.logback.core.ConsoleAppender.setWithJansi/1/void
+adder:error=ch.qos.logback.core.spi.ContextAwareBase.addError/1/void
+adder:filter=ch.qos.logback.core.UnsynchronizedAppenderBase.addFilter/1/void
+adder:info=ch.qos.logback.core.spi.ContextAwareBase.addInfo/1/void
+adder:status=ch.qos.logback.core.spi.ContextAwareBase.addStatus/1/void
+adder:warn=ch.qos.logback.core.spi.ContextAwareBase.addWarn/1/void
+true
+reflection-console
+true
+
+Component check only; whole Xinbot startup is not verified.

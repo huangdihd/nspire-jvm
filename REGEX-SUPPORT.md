@@ -86,6 +86,6 @@ All eight checks passed on ordinary and ASan/UBSan/leak-detection builds,
 alongside the existing regression suites.
 
 Whole Xinbot startup now reaches second-phase log configuration and constructs
-its own JLineConsoleAppender. It next fails at Class.getMethods in
-BeanDescriptionFactory during property setup, before Xinbot.main.
+its own JLineConsoleAppender. Bean discovery passes; it next fails at missing
+Charset in StringToObjectConverter during property setup, before Xinbot.main.
 Neither this component success nor ARM linking proves calculator execution.

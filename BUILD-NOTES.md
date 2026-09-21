@@ -55,6 +55,7 @@ bash tools/build-local-sdk.sh
 - 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
 - 输出流检查：5 项 Java 8 对照、1 项真实 Logback 控制台包装类对照和 1 项未实现文件构造器检查，均通过普通构建与 ASan/UBSan/泄漏检测。比较实际 stdout/stderr 字节；并发检查仅过滤 ASan 关于 ucontext 的那条固定提示，仍检查所有内存错误，见 `OUTPUT-SUPPORT.md`。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
+- 方法反射与包查询：9 项检查包含标准 Java 对照、原始 Logback 属性发现和真实 setter/getter 调用，以及未实现内建方法的明确失败；全部通过普通构建与 ASan/UBSan/泄漏检测，见 `METHOD-SUPPORT.md`。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
 `dist/` 中的示例用于第一次实机验证；即使它通过，也不能据此声称完整 Xinbot 已经兼容。
@@ -69,6 +70,11 @@ bash tools/build-local-sdk.sh
 输出流测试也用该 JRE 作为 Java 8 行为对照，保留原始 FilterOutputStream 的
 双异常关闭顺序；原始 Xinbot/Logback 组件仍使用 Java 17 对照。基础示例现在也
 依赖运行库中的输出流父类，部署时需要 `dist/runtime.jar.tns` 和三行配置文件。
+
+内建类的反射声明表也来自上述固定 Java 8 `rt.jar`，包含名称、描述符、访问标志和
+声明异常，不含可执行字节码。用 `python3 tools/generate-builtin-methods.py --rt-jar /path/to/java8/lib/rt.jar`
+复现；生成器校验输入和输出哈希，授权及来源见 `vendor/openjdk8-api/`。
+这些声明不代表所有内建方法均可执行；缺失实现仍明确报错。
 
 当前 Ndless SDK 的 `_gettimeofday` 实现仅读取 RTC 秒数，微秒部分恒为零。
 计算器端定时等待和 `nanoTime` 的精度、单调性仍需要更换计时后端并做实机验证；

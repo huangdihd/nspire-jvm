@@ -35,7 +35,16 @@ headers and root license files remain intact. The additional Java adapter and
 provider selector and Locale subset in `runtime/nspire/` are original MIT-licensed project code,
 compiled into the same supplemental JAR with their own license and source hashes.
 
+Intrinsic reflection API declarations are preserved in `vendor/openjdk8-api/`.
+They are generated from the pinned Temurin 8u504-b01 build-time rt.jar and contain
+names, descriptors, access flags and declared exceptions, not method bytecode.
+Its NOTICE records the upstream artifact and source repository; SOURCES.json
+records input/output hashes. GPLv2 with the Classpath exception and the original
+license notices accompany the table. The original generator and C adapter use
+this project's MIT license. This data does not implement every declared API.
+
 Expat XML parser:
+
 https://github.com/libexpat/libexpat/releases/tag/R_2_8_4
 
 `vendor/expat/` contains unchanged library source files and upstream COPYING,

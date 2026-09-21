@@ -50,7 +50,8 @@ CountedCompleter/ForkJoinPool support is not yet present. Serializable-lambda
 bootstraps are still rejected; this also affects some Comparator factory methods.
 This is an OpenJDK 8 library, so newer Stream APIs such as toList are not supplied.
 
-Float/Byte/Short/Character wrapper APIs remain incomplete. Double object text
+Float/Byte/Short/Character now support basic reflection boxing and value access
+(METHOD-SUPPORT.md); their remaining APIs are incomplete. Float/Double object text
 formatting is explicitly rejected pending a Java-compatible conversion routine;
 the numeric object operations above do not imply formatting support. Numeric
 parsing, broad reflection and serialization also remain incomplete. Basic
@@ -61,5 +62,5 @@ and callback exceptions, not multiple stream-close failures.
 The existing class-count, metadata, stack and Java-heap budgets apply. Host
 success does not verify the ARM context switch, device timing or calculator
 memory use. Full Xinbot startup passes annotation phase selection and still
-fails later at Class.getMethods after creating the application's console appender;
+fails later at missing Charset after console appender creation and bean discovery;
 see XINBOT-RUN.txt.

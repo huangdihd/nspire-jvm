@@ -1,0 +1,10 @@
+PASS MethodDiscoveryTest (standard Java oracle)
+PASS MethodInvokeTest (standard Java oracle)
+PASS MethodAnnotationTest (standard Java oracle)
+PASS MethodAccessTest (standard Java oracle)
+PASS MethodInitializationTest (standard Java oracle)
+PASS MethodConversionTest (standard Java oracle)
+PASS PackageTest (standard Java oracle)
+PASS LogbackBeanTest (standard Java oracle)
+PASS explicit unsupported reflected intrinsic (sanitizer output checked)
+Host only; calculator execution not verified.

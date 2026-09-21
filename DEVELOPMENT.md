@@ -28,8 +28,8 @@ The current interpreter and passing sample programs do not achieve that objectiv
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
   It now executes its initial lambda bootstrap and parses the XML. The next
-  failure is Class.getMethods during BeanDescriptionFactory property setup,
-  after creating Xinbot's JLineConsoleAppender, still before Xinbot.main.
+  failure is missing Charset during StringToObjectConverter property analysis,
+  after appender creation and bean discovery, still before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -99,19 +99,27 @@ The current interpreter and passing sample programs do not achieve that objectiv
   The runtime JAR is now required even for the basic demo; its generated config
   and the basic-test commands include the bootclasspath. See OUTPUT-SUPPORT.md.
 - Original Logback ConsoleTarget wrappers write the expected bytes and retain
-  their dynamic System.out/err lookup. Actual Xinbot advances to Class.getMethods.
+  their dynamic System.out/err lookup. Actual Xinbot passes this console setup.
 - Seven output checks and the complete existing regression suite passed on
   ordinary and ASan/UBSan/leak-detection builds. Direct original-Xinbot runs of
-  both hosts stopped at Class.getMethods; the instrumented run had no sanitizer
+  both hosts stopped at missing Charset; the instrumented run had no sanitizer
   errors. The output tests document the known ASan ucontext warning separately.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
+- Added public/declared method discovery and real reflective invocation with
+  access checks, primitive widening, virtual dispatch, synchronization, static
+  initialization and target-exception wrapping. Added primitive wrappers and
+  basic package lookup. See METHOD-SUPPORT.md for remaining limitations.
+- Intrinsic reflection declarations come from a pinned Java 8 API table with
+  provenance and licenses. This metadata does not implement unavailable APIs.
+- Nine method/package checks pass on ordinary and ASan/UBSan/leak builds,
+  alongside all existing suites. Actual Logback bean discovery and real setter
+  calls match standard Java. Whole Xinbot now reaches missing Charset.
 
 Next work:
-1. Implement real method reflection for Logback's BeanDescriptionFactory,
-   starting with Class.getMethods and inherited/overridden public methods.
-   Inspect the original factory and PropertySetter with javap, then add
-   descriptor/type/access metadata and actual invocation where required.
+1. Implement real Charset support for Logback's StringToObjectConverter and
+   encoding paths, using the original bytecode to identify required conversion
+   and buffer behavior. Do not substitute an empty class or skip configuration.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate

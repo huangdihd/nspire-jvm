@@ -1,0 +1,21 @@
+This directory contains generated API declaration data from Eclipse Temurin
+8u504-b01's build-time rt.jar. The data contain method names, JVM descriptors,
+access flags and checked-exception names. No executable bytecode is copied.
+
+Upstream source repository: https://github.com/adoptium/jdk8u
+The JRE's release file identifies source revision 1358e1b273e2+.
+The OpenJDK copyright holders and upstream GPLv2 with Classpath exception
+notices are retained in LICENSE, ASSEMBLY_EXCEPTION and THIRD_PARTY_README.
+The declaration table is distributed under the same upstream terms; the
+original extraction script and VM adapter use the project's MIT license.
+
+Input artifact:
+https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jre_x64_linux_hotspot_8u504b01.tar.gz
+Archive SHA-256:
+52dcd578baca1d3e449ea86768a9129c0ee04d7b22565695498353cc66940c61
+The exact rt.jar and generated-data hashes are recorded in SOURCES.json.
+The JRE is a build dependency and is not distributed with the calculator VM.
+
+Reproduce with tools/generate-builtin-methods.py --rt-jar /path/to/lib/rt.jar.
+Its normal mode verifies the pinned input and output. --update is reserved for
+reviewed changes to the extractor or intrinsic-class registry.

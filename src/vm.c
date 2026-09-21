@@ -48,18 +48,20 @@ struct Method {
     Class *owner; char *name, *desc; uint16_t flags, locals, stack;
     unsigned char *code; uint32_t length; Handler *handlers; uint16_t nh;
     AnnotationData annotations,annotation_default;
+    char **exception_names;unsigned nexceptions;
 };
 struct Class {
     char *name; Class *super; CP *cp; uint16_t nc, nf, nm;
     Field *fields; Method *methods; size_t slots; int builtin, init, loading;
     Class **interfaces; uint16_t ni;
-    Object *mirror,*enum_constants,*enum_directory; Class *component;
+    Object *mirror,*enum_constants,*enum_directory,*package_object; Class *component;
     char *simple_name,*declaring_name; uint16_t access;int local_class;
     unsigned primitive;
     VmThread *init_owner;
     int app_loader;
     Bootstrap *bootstraps;unsigned nbootstraps;
     AnnotationData annotations;Class *annotation_impl,*annotation_type;
+    Method *reflection_methods;unsigned nreflection_methods;int reflection_loaded;
 };
 struct Object {
     Object *next, *grey; Class *cls; unsigned mark; char kind;
@@ -100,6 +102,7 @@ struct VM {
     Object *unsafe_instance,*runtime_instance;
     Object *app_loader,*java_lang_access;
     Object *integer_cache[256],*long_cache[256];
+    Object *small_cache[3][256];
     Property *properties;
     XmlParse *xml_parsers;XmlMem *xml_mem;size_t xml_bytes;
 };
@@ -176,6 +179,7 @@ static void collect(VM *v) {
     mark(v->unsafe_instance,&grey);mark(v->runtime_instance,&grey);
     mark(v->app_loader,&grey);mark(v->java_lang_access,&grey);
     for(unsigned i=0;i<256;i++){mark(v->integer_cache[i],&grey);mark(v->long_cache[i],&grey);}
+    for(unsigned i=0;i<3;i++)for(unsigned j=0;j<256;j++)mark(v->small_cache[i][j],&grey);
     for (unsigned i=0;i<v->nr;i++) mark(v->roots[i],&grey);
     for(VmThread *t=v->threads;t;t=t->next)if(t->state!=T_NEW&&t->state!=T_DONE) {
         mark(t->object,&grey);mark(t->waiting,&grey);
@@ -199,6 +203,7 @@ static void collect(VM *v) {
     for (int i=0;i<v->nclasses;i++) {
         Class *c=v->classes[i];
         mark(c->mirror,&grey);mark(c->enum_constants,&grey);mark(c->enum_directory,&grey);
+        mark(c->package_object,&grey);
         mark(c->annotations.cache,&grey);
         for(unsigned j=0;j<c->nm;j++)mark(c->methods[j].annotations.cache,&grey);
         for(unsigned j=0;j<c->nf;j++)mark(c->fields[j].annotations.cache,&grey);
@@ -324,6 +329,7 @@ static const char *wrapper_primitive(const char *name) {
     return NULL;
 }
 static const char *builtin_super(const char *n) {
+    if(!strcmp(n,"java/lang/Package"))return "java/lang/Object";
     if(!strcmp(n,"java/io/PrintStream"))return "java/io/FilterOutputStream";
     if(!strcmp(n,"java/lang/Object")) return "";
     if(!strcmp(n,"java/lang/AutoCloseable")||!strcmp(n,"java/io/Closeable")||!strcmp(n,"java/net/URLConnection"))return "java/lang/Object";
@@ -454,6 +460,10 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
                 if(h->start>=h->end||h->end>m->length||h->handler>=m->length) fail(r->v,"invalid exception table");
             }
             attributes(r,c,NULL,NULL);
+        } else if(m&&!strcmp(name,"Exceptions")) {
+            if(m->exception_names)fail(r->v,"duplicate Exceptions attribute");
+            m->nexceptions=readn(r,2);m->exception_names=(char **)alloc(r->v,m->nexceptions*sizeof(char *));
+            for(unsigned i=0;i<m->nexceptions;i++)m->exception_names[i]=classname(r->v,c,readn(r,2));
         } else if(f&&!strcmp(name,"ConstantValue")) f->constant=(uint16_t)readn(r,2);
         else if(!m&&!f&&!strcmp(name,"BootstrapMethods")) {
             if(c->bootstraps)fail(r->v,"duplicate BootstrapMethods attribute");
@@ -560,10 +570,10 @@ static Class *load(VM *v,const char *name) {
         if(!strcmp(name,"java/lang/Class")||!strcmp(name,"java/lang/String")||wrapper_primitive(name))c->access=0x11;
         if(wrapper_primitive(name)) {
             int boolean=!strcmp(name,"java/lang/Boolean");
-            int number=!strcmp(name,"java/lang/Integer")||!strcmp(name,"java/lang/Long")||!strcmp(name,"java/lang/Double");
+            int number=strcmp(name,"java/lang/Void")!=0;
             c->nf=boolean?4:number?2:1;c->fields=(Field *)alloc(v,c->nf*sizeof(Field));
             c->fields[0].name="TYPE";c->fields[0].desc="Ljava/lang/Class;";c->fields[0].flags=STATIC|0x11;c->fields[0].value=rv(NULL);
-            if(c->nf>=2){c->slots=1;c->fields[1].name="value";c->fields[1].desc=boolean?"Z":!strcmp(name,"java/lang/Long")?"J":!strcmp(name,"java/lang/Double")?"D":"I";c->fields[1].flags=0x12;c->fields[1].slot=0;
+            if(c->nf>=2){c->slots=1;c->fields[1].name="value";c->fields[1].desc=boolean?"Z":!strcmp(name,"java/lang/Long")?"J":!strcmp(name,"java/lang/Double")?"D":!strcmp(name,"java/lang/Byte")?"B":!strcmp(name,"java/lang/Short")?"S":!strcmp(name,"java/lang/Float")?"F":!strcmp(name,"java/lang/Character")?"C":"I";c->fields[1].flags=0x12;c->fields[1].slot=0;
                 c->ni=2;c->interfaces=(Class **)alloc(v,2*sizeof(Class *));c->interfaces[0]=load(v,"java/lang/Comparable");c->interfaces[1]=load(v,"java/io/Serializable");}
             if(boolean)for(unsigned i=2;i<4;i++){c->fields[i].name=i==2?"TRUE":"FALSE";c->fields[i].desc="Ljava/lang/Boolean;";c->fields[i].flags=STATIC|0x11;c->fields[i].value=rv(NULL);}
         }
@@ -726,6 +736,7 @@ static char *as_text(VM *v,Value a,char buf[128]) {
 static Value object_string(VM *v,Value value) {
     if(!obj(value))return rv(string(v,"null"));
     if(obj(value)->kind=='w'&&obj(value)->data[0].tag==DOUBLE)fail(v,"Double object text formatting is not implemented");
+    if(obj(value)->kind=='w'&&!strcmp(obj(value)->cls->name,"java/lang/Character"))return native_call(v,obj(value)->cls,"toString","()Ljava/lang/String;",&value,1,0);
     Method *m=method(obj(value)->cls,"toString","()Ljava/lang/String;");
     if(m) {
         Value result=execute(v,m,&value,1);
@@ -813,6 +824,8 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "environment.inc"
 #include "output.inc"
 #include "annotations.inc"
+#include "methods.inc"
+#include "boxing.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -822,6 +835,8 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     const char *cl=c->name; Value none=iv(0); Object *self=NULL;
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
+    loaded=method_reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
+    loaded=small_box_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
@@ -1487,7 +1502,7 @@ static void stackop(VM *v,Frame *f,unsigned op) {
     }
 }
 static Value execute(VM *v,Method *m,Value *args,unsigned count) {
-    if((m->flags&NATIVE)&&m->owner->builtin) {
+    if(m->owner->builtin) {
         if(++v->depth>MAX_DEPTH)fail(v,"maximum native call depth exceeded");
         unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
         Value result=native_call(v,m->owner,m->name,m->desc,args,count,!!(m->flags&STATIC));v->nr=saved;v->depth--;return result;

@@ -11,7 +11,7 @@ Implemented paths:
 - `Class.isAnnotation`, `getAnnotation`, `getDeclaredAnnotation`,
   `isAnnotationPresent`, `getAnnotations`, `getDeclaredAnnotations`,
   `getAnnotationsByType` and `getDeclaredAnnotationsByType`.
-- The same annotation queries on existing Field and Constructor mirrors.
+- The same annotation queries on existing Field, Constructor and bytecode Method mirrors.
   Class implements the AnnotatedElement/GenericDeclaration interfaces, so
   calls through those interfaces reach the same metadata.
 - Runtime retention, superclass-only `@Inherited` lookup, declared overrides,
@@ -48,10 +48,9 @@ python3 tools/test-annotations.py --vm build/nspire-jvm --xinbot /path/to/xinbot
 
 Limits:
 
-- Method lookup/invocation reflection, `Method.getDefaultValue`, parameter
-  annotations and type-use annotations are not implemented by this change.
-  Method mirrors currently expose names and declaring classes when returned
-  by AnnotationTypeMismatchException; this is not general Method reflection.
+- `Method.getDefaultValue`, parameter annotations and type-use annotations
+  remain unsupported. Method lookup/invocation is described in METHOD-SUPPORT.md;
+  intrinsic-method annotations are not imported and fail explicitly.
 - Annotation serialization, java.lang.reflect.Proxy APIs and custom class
   loader namespaces are unavailable. Serializable marking does not provide an
   object serialization implementation.
@@ -67,6 +66,6 @@ Limits:
 
 Actual Xinbot now passes annotation-based configuration phase selection and
 starts creating configuration handlers. Regex compilation and property
-substitution also pass. It constructs Xinbot's JLineConsoleAppender and next
-fails at `Class.getMethods` in BeanDescriptionFactory. This remains
+substitution also pass. It constructs Xinbot's JLineConsoleAppender, completes
+bean discovery and next needs `java.nio.charset.Charset`. This remains
 before Xinbot.main, without networking or calculator runtime verification.

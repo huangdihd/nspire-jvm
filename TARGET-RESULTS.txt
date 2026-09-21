@@ -4,9 +4,9 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 5506
-  Zehn executable size: 551792 bytes
-  Bytes needed to load: 552728 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 12020
+  Zehn executable size: 646464 bytes
+  Bytes needed to load: 647400 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
@@ -14,20 +14,21 @@ Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
 lambda runs, 3/3 casing checks, 6/6 stream/enum/boxing checks,
 6/6 annotation checks (including actual Logback phases), 8/8 regex and supporting
 runtime checks (including actual Logback Duration), 7/7 output checks (including
-actual Logback ConsoleTarget), 3/3 SAX tests and 1/1 actual Logback XML component
-test passed.
+actual Logback ConsoleTarget), 9/9 method/package checks (including actual
+Logback bean discovery and invocation), 3/3 SAX tests and 1/1 actual Logback XML
+component test passed.
 All suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
 The output concurrency test excludes only ASan's exact known ucontext warning
 from its stderr byte comparison; all other stderr remains compared.
 The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
-same missing Class.getMethods API in BeanDescriptionFactory,
+same missing java/nio/charset/Charset in StringToObjectConverter,
 with no sanitizer errors. Initial lambda creation/invocation, XML parsing,
 stream-based element path matching, actual annotation phase selection, regex
 compilation, environment substitution and AtomicBoolean initialization pass;
-execution creates Xinbot's JLineConsoleAppender and reaches property discovery,
-before Xinbot.main.
+execution creates Xinbot's JLineConsoleAppender, completes method discovery and
+package lookup, then reaches property conversion, before Xinbot.main.
 The ordinary and instrumented component checks read the same phases as standard
 Java from nine original Xinbot/Logback classes. Class capacity is now 2,048;
 the 16 MiB metadata budget remains enforced.

@@ -58,5 +58,6 @@ The tested Xinbot 2.4.3 release produces the same 27 events on Java and this VM.
 This is a component test. Actual Xinbot startup now also reaches XML parsing,
 then interprets configuration events, including stream-based path matching.
 Annotation phase selection, regex compilation and property substitution pass.
-It creates the console appender, then needs Class.getMethods for property setup.
+It creates the console appender and discovers its methods, then needs Charset
+for property conversion.
 Whole-application startup and calculator execution remain unverified.
