@@ -68,7 +68,7 @@ def main():
                 raise AssertionError(name+' output differs\n'+''.join(difflib.unified_diff(ref.splitlines(True),result.stdout.splitlines(True),fromfile='Java',tofile='Nspire JVM')))
             count+=1; report.append(f'PASS {name} ({"JAR" if cp==jar else "directory"})')
             print(report[-1],flush=True)
-    negative=[('UnsupportedTest',[],'invokedynamic'),('ThreadFailureTest',[],'invokedynamic'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
+    negative=[('UnsupportedTest',[],'serializable lambda protocol'),('ThreadFailureTest',[],'serializable lambda protocol'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
     # Split a real application across JARs; runtime resolution must find all
     # dependency classes, not just the entry point. Check boot precedence too.
     appjar,libjar=build/'split-app.jar',build/'split-lib.jar'

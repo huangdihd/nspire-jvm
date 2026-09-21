@@ -27,8 +27,9 @@ The current interpreter and passing sample programs do not achieve that objectiv
   Initialization precedes argument conversion, verified against standard Java.
 - Real Xinbot reads version properties, emits log status messages, sorts and
   instantiates configurators and opens its XML resource through URLConnection.
-  InputSource is now available. The next failure is LambdaMetafactory.metafactory
-  in ContextBase.fireConfigurationEvent (see XINBOT-RUN.txt), before Xinbot.main.
+  It now executes its initial lambda bootstrap and parses the XML. The next
+  failure is String.toLowerCase in ElementSelector.hashCode while building
+  configuration rules (see XINBOT-RUN.txt), before Xinbot.main.
 - Added read-only classpath file/JAR connections, settings, content length and
   close semantics, including uncached JAR streams closing their sibling streams.
   Resource contents are bounded memory snapshots; classpath JARs must remain
@@ -37,27 +38,35 @@ The current interpreter and passing sample programs do not achieve that objectiv
   UTF-8/UTF-16, internal entities, disabled external entities, errors and cleanup.
   The unchanged Logback SaxEventRecorder inside Xinbot produces the same 27
   events for its original logback.xml as standard Java in a component test.
-  Whole-application startup reaches a lambda before the parser; it still fails.
+  Whole-application startup now also reaches the parser, then fails in model setup.
   Parser limits and gaps are documented in XML-SUPPORT.md.
-- 45 basic checks, 5 OpenJDK runtime runs and 9 loader/service/reflection checks passed
+- Added lambda capture classes and interpreted bytecode adapters, marker/bridge
+  support, primitive widening, reference adaptation and constructor/method refs.
+  Default interface methods dispatch by specificity and initialize correctly;
+  private method references remain nonvirtual on Java 17 bytecode.
+  Serializable lambdas and general method-handle APIs remain unsupported.
+- Added the single-character String.split fast path with limit/empty-field and
+  UTF-16 behavior; other regular expressions still report an explicit failure.
+- 45 basic checks, 5 OpenJDK runtime runs and 10 loader/service/reflection checks passed
   on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
   resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
 - Three SAX test runs and the real Logback XML component run also passed on
   ordinary and ASan/UBSan/leak-detection builds, including an active-parser VM
   abort and nested readers with thread callbacks and a 64 KiB Java heap.
+- Two lambda runs (javac releases 8 and 17) passed with normal and instrumented
+  builds, using a 64 KiB heap. See LAMBDA-SUPPORT.md for limits and coverage.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement LambdaMetafactory and actual captured functional-interface calls
-   used by Logback configuration events. Preserve real initialization; do not
-   skip logging. Continue through XML model construction after that failure.
+1. Implement String case conversion and continue through Logback XML model
+   construction. Preserve real initialization; do not skip logging.
    Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate
    the calculator's precision or behavior when its wall clock changes.
 3. Expand Java native/library coverage from actual failures. Imported methods
-   still require APIs not provided here (streams, lambdas, fork/join,
+   still require APIs not provided here (streams, serializable lambdas, fork/join,
    serialization and others). Class-init failure semantics also remain partial.
 4. Dynamic invocation, reflection, NIO/TLS, plugin loading and the calculator's
    real network transport remain outstanding. The user's intended network

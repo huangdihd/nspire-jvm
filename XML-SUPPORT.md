@@ -55,5 +55,6 @@ callbacks with a 64 KiB Java heap and a fatal VM abort during a callback.
 `tools/test-logback-xml.py --xinbot /path/to/xinbot.jar` directly runs the actual
 Logback SaxEventRecorder bundled inside that JAR against its original logback.xml.
 The tested Xinbot 2.4.3 release produces the same 27 events on Java and this VM.
-This is a component test: actual Xinbot startup still encounters a missing lambda
-bootstrap before it reaches the parser, and calculator execution is not verified.
+This is a component test. Actual Xinbot startup now also reaches XML parsing,
+then encounters a missing String.toLowerCase in log configuration model setup.
+Whole-application startup and calculator execution remain unverified.

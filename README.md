@@ -16,7 +16,10 @@
 - 类路径 JAR/文件的只读 URLConnection：连接设置、内容长度、资源流关闭和无缓存 JAR 流的关闭联动。
 - Expat 2.8.4 驱动的 SAX XML 解析：命名空间、属性、UTF-8/UTF-16、内部实体、回调异常、错误定位和输入流关闭；真实 Logback 配置的事件结果已对照标准 Java。
 - `StringConcatFactory` 字符串拼接：支持引用、整数、long、char、boolean 和配方常量；对象转换调用实际的 toString。
+- 编译后的 `LambdaMetafactory` 调用：捕获变量、普通方法/构造器引用、参数转换、标记接口及桥接方法；生成的对象与方法参与现有 GC、异常和线程机制。可序列化 lambda 尚未支持。
+- 接口默认方法分派及初始化，包含 lambda 的继承默认方法；Java 17 私有方法引用保持直接调用原声明方法。
 - String 的字符数组构造、Comparable/CharSequence、前后缀匹配；String.format 支持 `%s`、`%%`、`%n`、参数索引、宽度和字符串精度。
+- String.split 的单字符分隔符路径：支持 limit、空字段、转义标点和 UTF-16；通用正则表达式尚未实现。
 - 读取 class-file version 45–61；只执行本解释器已实现的指令。
 - `int`、`long`、`float`、`double` 的主要运算、转换、分支、两类 switch、wide 局部变量。
 - 静态方法、实例方法、递归、继承、接口方法分派、静态初始化、实例与静态字段。
@@ -88,12 +91,13 @@ python3 tools/build-runtime.py --java8-home /path/to/java8
 python3 tools/test-runtime.py --vm build/nspire-jvm
 python3 tools/test-loader.py --vm build/nspire-jvm
 python3 tools/test-xml.py --vm build/nspire-jvm
+python3 tools/test-lambda.py --vm build/nspire-jvm
 # 可选：使用自己下载的真实 Xinbot 发布包测试其中的 Logback XML 组件
 python3 tools/test-logback-xml.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 ```
 
 源码、固定版本和授权位于 `runtime/openjdk8/`，共 102 个上游源文件；`runtime/nspire/` 是本项目编写的 XML 适配层。
-本次有 45 项基础检查、5 项运行库对照运行、9 项资源/连接/服务/反射测试、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+本次有 45 项基础检查、5 项运行库对照运行、10 项资源/连接/服务/反射/分割测试、2 项 lambda 对照运行、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -107,7 +111,7 @@ jar cf myapp.jar.tns -C classes .
 
 ## 尚未实现的关键功能
 
-- 通用 `invokedynamic`（包括 lambda）、MethodHandle、动态常量和完整反射（方法/字段反射、注解、泛型等）。字符串拼接暂不支持 float/double 的 Java 格式化。
+- 通用 `invokedynamic`、可序列化 lambda、MethodHandle API、动态常量和完整反射（方法/字段反射、注解、泛型等）。lambda 的支持边界见 `LAMBDA-SUPPORT.md`；字符串拼接暂不支持 float/double 的 Java 格式化。
 - 完整 Formatter：数字、日期、Locale、Formattable 和格式错误对应的 Java 异常仍未实现，遇到这些路径会给出 VM 诊断。构造器反射尚缺多数内建类构造器、其他装箱类型和 nestmate 访问规则。
 - 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
 - 完整 Java 标准类库、自定义 ClassLoader 命名空间和 defineClass、JNI、插件 JAR 动态加载。现有资源 API 只读启动时指定的类路径，单个资源最多 8 MiB。
@@ -141,15 +145,15 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 当前实际结果：
 
 ```text
-VM error: invokedynamic bootstrap not implemented: java/lang/invoke/LambdaMetafactory.metafactory
-  at ch/qos/logback/core/ContextBase.fireConfigurationEvent(Lch/qos/logback/core/spi/ConfigurationEvent;)V pc=5
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=8
+VM error: runtime method not implemented: java/lang/String.toLowerCase()Ljava/lang/String;
+  at ch/qos/logback/core/joran/spi/ElementSelector.hashCode()I pc=20
+  at java/util/HashMap.hash(Ljava/lang/Object;)I pc=9
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已打开日志配置资源流并创建 InputSource，停在配置事件使用的 lambda，尚未进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，进入日志配置模型的规则构建；停在 ElementSelector.hashCode 的大小写转换，尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
-仍需实现 lambda 等动态调用、其他运行库、完整线程语义和网络支持。
+仍需补齐大小写转换等运行库、更多动态调用路径、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -162,6 +166,7 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/threads.inc` 实现协作式调度与 monitor；`src/context.*`、`src/context_arm.S` 提供主机及 ARM 栈切换。
 `src/unsafe.inc` 为 OpenJDK 提供经过对象边界检查的字段访问和原子操作。
 `src/loader.inc` 实现类加载器与资源 API，`src/indy.inc` 实现字符串拼接 bootstrap。
+`src/lambda.inc` 生成 lambda 捕获对象和字节码桥接方法；`src/split.inc` 实现单字符分割路径。
 `src/reflection.inc` 实现构造器反射，`src/format.inc` 实现上述字符串格式化子集。
 `src/xml.inc` 与 `runtime/nspire/` 把 Expat 解析事件交给真实 Java SAX 回调。
 `src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。

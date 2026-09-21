@@ -1,0 +1,3 @@
+PASS Java 8 captures, method references, adaptation, bridges, defaults, exceptions, threads and GC
+PASS Java 17 captures, method references, adaptation, bridges, defaults, exceptions, threads and GC
+Host only; calculator execution not verified.

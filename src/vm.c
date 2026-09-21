@@ -36,7 +36,7 @@ typedef struct Property { struct Property *next;char *key,*value,*initial; } Pro
 typedef struct { uint64_t bits; unsigned char tag; } Value;
 enum { INT=1, LONG, FLOAT, DOUBLE, REF };
 typedef struct Mem { struct Mem *next; size_t size; } Mem;
-typedef struct { uint8_t tag; uint16_t a, b; uint64_t bits; char *text; Object *intern; } CP;
+typedef struct { uint8_t tag; uint16_t a, b; uint64_t bits; char *text; Object *intern; Class *lambda_class; } CP;
 typedef struct { uint16_t start, end, handler, type; } Handler;
 typedef struct { uint16_t handle,nargs;uint16_t *args; } Bootstrap;
 typedef struct {
@@ -342,6 +342,8 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/NoSuchFieldException"))return "java/lang/ReflectiveOperationException";
     if(!strcmp(n,"java/lang/CloneNotSupportedException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/Error"))return "java/lang/Throwable";
+    if(!strcmp(n,"java/lang/LinkageError"))return "java/lang/Error";
+    if(!strcmp(n,"java/lang/IncompatibleClassChangeError"))return "java/lang/LinkageError";
     if(!strcmp(n,"java/lang/VirtualMachineError"))return "java/lang/Error";
     if(!strcmp(n,"java/lang/OutOfMemoryError"))return "java/lang/VirtualMachineError";
     if(!strcmp(n,"java/lang/AssertionError")||!strcmp(n,"java/lang/InternalError"))return "java/lang/Error";
@@ -577,10 +579,35 @@ static int subtype(Class *c,Class *target) {
     for(unsigned i=0;i<c->ni;i++) if(subtype(c->interfaces[i],target)) return 1;
     return subtype(c->super,target);
 }
+static void default_candidates(Class *c,const char *n,const char *d,Class **seen,unsigned *visited,Method **found,unsigned *count) {
+    if(!c)return;for(unsigned i=0;i<*visited;i++)if(seen[i]==c)return;seen[(*visited)++]=c;
+    if(c->access&0x200)for(unsigned i=0;i<c->nm;i++) {
+        Method *m=&c->methods[i];if(!(m->flags&(STATIC|2))&&!strcmp(m->name,n)&&!strcmp(m->desc,d))found[(*count)++]=m;
+    }
+    for(unsigned i=0;i<c->ni;i++)default_candidates(c->interfaces[i],n,d,seen,visited,found,count);
+    default_candidates(c->super,n,d,seen,visited,found,count);
+}
+static Method *default_method(VM *v,Class *c,const char *n,const char *d) {
+    int any=0;for(Class *p=c;p;p=p->super)if(p->ni){any=1;break;}if(!any)return NULL;
+    Class **seen=(Class **)alloc(v,MAX_CLASSES*sizeof(Class *));Method **found=(Method **)alloc(v,MAX_CLASSES*sizeof(Method *));
+    unsigned visited=0,count=0;default_candidates(c,n,d,seen,&visited,found,&count);Method *result=NULL;
+    for(unsigned i=0;i<count;i++) {
+        int shadowed=0;for(unsigned j=0;j<count;j++)if(i!=j&&found[i]->owner!=found[j]->owner&&subtype(found[j]->owner,found[i]->owner)){shadowed=1;break;}
+        if(!shadowed&&!(found[i]->flags&0x400)) {
+            if(result&&result!=found[i]){release(v,seen);release(v,found);v->exception=new_object(v,load(v,"java/lang/IncompatibleClassChangeError"),'o',0);return NULL;}
+            result=found[i];
+        }
+    }
+    release(v,seen);release(v,found);return result;
+}
 static Field *field(VM *v,Class **owner,const char *n,const char *d) {
     for(Class *c=*owner;c;c=c->super) for(unsigned i=0;i<c->nf;i++)
         if(!strcmp(c->fields[i].name,n)&&!strcmp(c->fields[i].desc,d)) { *owner=c; return &c->fields[i]; }
     fail(v,"field not found: %s.%s:%s",(*owner)->name,n,d); return NULL;
+}
+static void initialize_default_interfaces(VM *v,Class *c) {
+    for(unsigned i=0;i<c->ni&&!v->exception;i++)initialize_default_interfaces(v,c->interfaces[i]);
+    for(unsigned i=0;i<c->nm&&!v->exception;i++)if(!(c->methods[i].flags&(STATIC|0x400|2))){initialize(v,c);break;}
 }
 static void initialize(VM *v,Class *c) {
     while(c->init==1&&c->init_owner!=v->current) {
@@ -590,6 +617,7 @@ static void initialize(VM *v,Class *c) {
     if(c->init==3) fail(v,"class initialization previously failed: %s",c->name);
     c->init=1;c->init_owner=v->current;
     if(c->super) initialize(v,c->super);
+    if(!(c->access&0x200))for(unsigned i=0;i<c->ni&&!v->exception;i++)initialize_default_interfaces(v,c->interfaces[i]);
     if(v->exception) { c->init=3; return; }
     if(!strcmp(c->name,"java/lang/System")) {
         for(unsigned i=0;i<2;i++) c->fields[i].value=rv(new_object(v,load(v,"java/io/PrintStream"),'o',0));
@@ -726,8 +754,10 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "reflection.inc"
 #include "loader.inc"
 #include "identifiers.inc"
+#include "lambda.inc"
 #include "indy.inc"
 #include "format.inc"
+#include "split.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -954,6 +984,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
     }
     if(!strcmp(cl,"java/lang/String")) {
+        if(!isstatic&&!strcmp(n,"split")&&(!strcmp(d,"(Ljava/lang/String;)[Ljava/lang/String;")||!strcmp(d,"(Ljava/lang/String;I)[Ljava/lang/String;")))return rv(split_string(v,self,obj(a[1]),na==3?integer(a[2]):0));
         const char *s=self&&self->text?self->text:"";
         if(isstatic&&!strcmp(n,"format")&&!strcmp(d,"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))return rv(format_string(v,obj(a[0]),obj(a[1])));
         if(!strcmp(n,"<init>")&&!isstatic) {
@@ -1383,7 +1414,13 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             unsigned na=nargs(v,d)+(stat?0:1);if(na>f->sp)fail(v,"not enough method arguments");
             Value *aa=f->stack+f->sp-na;Method *target=NULL;
             if(stat) {target=method(c,n,d);initialize(v,target?target->owner:c);if(v->exception)break;}
-            else {Object *o=nonnull(v,aa[0]);if(!o)break;target=method(op==0xb7?c:o->cls,n,d);}
+            else {
+                Object *o=nonnull(v,aa[0]);if(!o)break;Method *resolved=method(c,n,d);
+                /* Private methods are not virtual, even when newer javac uses
+                 * invokevirtual or a REF_invokeVirtual method handle. */
+                target=op==0xb7||(resolved&&(resolved->flags&2))?resolved:method(o->cls,n,d);
+                if(!target&&op!=0xb7)target=default_method(v,o->cls,n,d);if(v->exception)break;
+            }
             Value res;
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");

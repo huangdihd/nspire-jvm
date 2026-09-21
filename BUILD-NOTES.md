@@ -49,7 +49,7 @@ bash tools/build-local-sdk.sh
 ## 验证范围
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
-- 内存检查：当前 45 项基础检查、5 项运行库对照运行和 9 项资源/连接/服务/反射测试均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
+- 内存检查：当前 45 项基础检查、5 项运行库对照运行、10 项资源/连接/服务/反射/分割测试和 2 项 lambda 对照运行均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；预期失败的测试也检查 sanitizer 输出。
 - XML 检查：3 项 SAX 测试与 1 项真实 Logback XML 组件测试也通过上述检查；包含回调异常、嵌套解析、线程切换、GC 与解析中 VM 中止的资源清理。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**

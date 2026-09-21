@@ -4,20 +4,21 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 4821
-  Zehn executable size: 337696 bytes
-  Bytes needed to load: 338632 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 4929
+  Zehn executable size: 347488 bytes
+  Bytes needed to load: 348424 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 5/5 OpenJDK library runs,
-9/9 loader/resource/connection/service/reflection cases, 3/3 SAX tests and
-1/1 actual Logback XML component test passed.
+10/10 loader/resource/connection/service/reflection/split cases, 2/2 Java 8/17
+lambda runs, 3/3 SAX tests and 1/1 actual Logback XML component test passed.
 All suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
-The real Xinbot attempt on the instrumented host stopped at the same unsupported
-LambdaMetafactory.metafactory bootstrap in ContextBase.fireConfigurationEvent,
-with no sanitizer errors. This is before XML parsing and before Xinbot.main.
+The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
+same missing String.toLowerCase method in ElementSelector.hashCode, with no
+sanitizer errors. Initial lambda creation/invocation and XML parsing now pass;
+execution stops while building log configuration rules, before Xinbot.main.
 Separately, Xinbot's actual Logback SaxEventRecorder produced the same 27 events
 as standard Java from the original logback.xml. This does not prove full startup.
 Expat callback-abort cleanup was checked on both main and child fiber stacks.

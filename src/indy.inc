@@ -1,6 +1,5 @@
-/* Intrinsic implementation of the standard StringConcatFactory bootstrap.
- * Other bootstraps, including LambdaMetafactory, still fail explicitly.
- */
+/* Intrinsics for standard string-concatenation and lambda bootstrap protocols.
+ * Arbitrary application bootstraps are not supported. */
 typedef struct { char *data;size_t size,capacity; } ConcatBuffer;
 static void concat_append(VM *v,ConcatBuffer *b,const char *text,size_t len) {
     if(len>META_LIMIT-b->size-1)fail(v,"concatenated string exceeds metadata limit");
@@ -33,6 +32,8 @@ static Value invoke_dynamic(VM *v,Class *owner,CP *dynamic,const char *desc,Valu
     if(handle->a!=6)fail(v,"invokedynamic bootstrap handle kind is not implemented");
     CP *ref=cp(v,owner,handle->b,10),*nt=cp(v,owner,ref->b,12);
     const char *cl=classname(v,owner,ref->a),*name=utf(v,owner,nt->a);
+    if(!strcmp(cl,"java/lang/invoke/LambdaMetafactory")&&(!strcmp(name,"metafactory")||!strcmp(name,"altMetafactory")))
+        return lambda_capture(v,owner,dynamic,desc,bootstrap,!strcmp(name,"altMetafactory"),args,count);
     if(strcmp(cl,"java/lang/invoke/StringConcatFactory")||(strcmp(name,"makeConcat")&&strcmp(name,"makeConcatWithConstants")))
         fail(v,"invokedynamic bootstrap not implemented: %s.%s",cl,name);
     const char *result=strchr(desc,')');
