@@ -2,13 +2,15 @@ Actual Linux host attempt using the unchanged upstream release:
   xinbot-2.4.3-RELEASE.jar
   SHA-256: 601a870da7a4a617172c9fe145ea8bcbe8f7648deddd681e2c96d749cd14f853
 
-Command:
-  ./build/nspire-jvm -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
+Command (temporary directory is created before execution and removed afterward):
+  ./build/nspire-jvm --tmpdir <disposable-directory> -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
 
 Exit status: 1
 stderr:
-VM error: runtime method not implemented: java/lang/System.mapLibraryName(Ljava/lang/String;)Ljava/lang/String;
-  at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=36
+VM error: class not found: java/nio/file/FileSystems
+  at java/io/File.toPath()Ljava/nio/file/Path; pc=22
+  at org/fusesource/jansi/internal/JansiLoader.extractAndLoadLibraryFile(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Z pc=133
+  at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=247
   at org/fusesource/jansi/internal/JansiLoader.initialize()Z pc=35
   at org/fusesource/jansi/internal/CLibrary.<clinit>()V pc=0
   at org/fusesource/jansi/AnsiConsole.ansiStream(Z)Lorg/fusesource/jansi/AnsiPrintStream; pc=81
@@ -40,21 +42,22 @@ VM error: runtime method not implemented: java/lang/System.mapLibraryName(Ljava/
   at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
-The original application discovers its SLF4J provider, processes its Logback XML,
-annotations, reflection, charset and date converter initialization. Its unchanged
-withJansi=true configuration invokes AnsiConsole.systemInstall and ansiStream.
-The former FileDescriptor failure is resolved with preserved OpenJDK descriptors
-and file streams; real platform writes remain connected to System.out/err.
-The JansiLoader cleanup thread now receives priority 1 and starts through the
-actual cooperative scheduler. The next missing method is System.mapLibraryName
-in loadJansiNativeLibrary. No successful native library load is claimed.
+The original application discovers its SLF4J provider and processes its Logback
+XML, annotations, reflection, charset and date converter initialization. Its
+unchanged withJansi=true configuration invokes AnsiConsole.systemInstall.
+Library-name mapping, a real temporary-directory property and unsigned long
+formatting now let Jansi enter extractAndLoadLibraryFile. File.toPath fails
+because java.nio.file.FileSystems is missing, before Files.copy can copy the
+embedded native library. No successful JNI library load is claimed.
 
 The same stopping point was verified on ordinary and ASan/UBSan/leak-detection
-builds, with no sanitizer error. These observations remain separate from the
-file/console and Logback component differential tests.
+builds, with no sanitizer error or null temporary-directory exception. Each
+attempt used its own disposable directory; application cleanup saw only that
+fixture. The earlier Method.getParameters path depended on a caught temporary-
+directory NullPointerException and is not evidence of Jansi initialization.
 
 This is still before Xinbot.main. Complete startup has NOT succeeded.
 No Minecraft connection was made and no account credentials were used.
-Calculator/firmware-emulator execution is NOT verified. Jansi platform/native
-dependencies, further JDK paths, real network transport and device execution
-remain to be implemented and verified.
+Calculator/firmware-emulator execution is NOT verified. NIO file operations,
+Jansi platform/native dependencies, further JDK paths, real network transport
+and device execution remain to be implemented and verified.

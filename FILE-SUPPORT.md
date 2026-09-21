@@ -103,6 +103,7 @@ Original Logback headerBytes now returns bytes matching Java 17 with the same
 configured line separator. Class.getInterfaces returns a fresh array of direct
 interfaces; a separate oracle test covers source order, inherited-only
 interfaces, arrays, primitives, annotations and reflective calls. Whole Xinbot
-now reaches missing System.mapLibraryName in JansiLoader, before Xinbot.main.
+now reaches missing java.nio.file.FileSystems during Jansi extraction, before
+Xinbot.main. Temporary-directory configuration is described in NATIVE-SUPPORT.md.
 No full application or calculator run has completed. The unmodified JNI files
 beside the canonicalizer are references and are not compiled.

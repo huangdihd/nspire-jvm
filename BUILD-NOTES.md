@@ -135,3 +135,13 @@ Java 关闭后进程/SDK 的诊断句柄保留。Ndless 行输入使用共享缓
 ThreadPriorityTest 对照 Java 的接口行为，ThreadPriorityScheduleTest 单独验证
 本 VM 的 CPU 份额策略和低优先级进展，不声称 Java SE 规定固定份额。
 参考：https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#setPriority-int-
+
+
+## 本机链接异常与临时目录
+
+运行库新增未修改的 OpenJDK UnsatisfiedLinkError，共 379 份原始 Java 源文件。
+未绑定 native 方法现在沿普通 Java 异常路径传播，反射和 lambda 使用相同入口。
+System/Runtime.load 系列明确抛出链接失败；尚未提供动态 JNI 加载器。
+库名映射、临时目录和 Integer/Long 进制转换的验证见 NATIVE-SUPPORT.md。
+主机可用 --tmpdir，计算器使用配置第五行；目录必须由调用方准备。
+原始 Xinbot 的临时目录测试使用独立目录，记录见 XINBOT-RUN.txt。

@@ -1,0 +1,7 @@
+PASS LibraryNameTest (Linux Java oracle; VM heap 64 KiB)
+PASS NativeLoadTest (Linux Java oracle; VM heap 64 KiB)
+PASS NativeLinkageTest (Linux Java oracle; VM heap 64 KiB)
+PASS NativeThreadExceptionTest (Linux Java oracle; VM heap 64 KiB)
+PASS TempDirectoryTest (Linux Java oracle; VM heap 64 KiB)
+PASS UnsignedTextTest (Linux Java oracle; VM heap 64 KiB)
+Native library failure semantics only; dynamic JNI loading and device execution are not verified.

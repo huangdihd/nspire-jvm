@@ -73,7 +73,7 @@ def main():
     scheduled=run([vm,*boot,'-cp',jar,'ThreadPriorityScheduleTest']).stdout
     assert scheduled=='priority affects CPU share; low priority still progresses\n'
     count+=1;report.append('PASS VM weighted priority scheduling');print(report[-1],flush=True)
-    negative=[('UnsupportedTest',[],'unbound native method'),('ThreadFailureTest',[],'unbound native method'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
+    negative=[('UnsupportedTest',[],'UnsatisfiedLinkError'),('ThreadFailureTest',[],'String.format conversion is not implemented'),('UnsupportedFormatTest',[],'String.format conversion is not implemented'),('LoopTest',['--steps','1000'],'instruction budget')]
     # Split a real application across JARs; runtime resolution must find all
     # dependency classes, not just the entry point. Check boot precedence too.
     appjar,libjar=build/'split-app.jar',build/'split-lib.jar'

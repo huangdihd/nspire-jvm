@@ -1,3 +1,7 @@
+Historical checkpoint: commit 7262cda (FileDescriptor / console / priority).
+Counts and stopping points below describe that commit; see CHECKPOINT.md for
+the current state and XINBOT-RUN.txt for the latest actual application attempt.
+
 FileDescriptor / console / priority checkpoint
 
 Implemented:

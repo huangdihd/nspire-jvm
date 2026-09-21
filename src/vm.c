@@ -859,6 +859,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "boxing.inc"
 #include "charset.inc"
 #include "filesystem.inc"
+#include "linkage.inc"
 #include "time.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
@@ -880,6 +881,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
         xml_parse(v,self,obj(a[1]),integer(a[2]),integer(a[3]));return none;
     }
+    if(isstatic&&!strcmp(cl,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))return iv(1);
     if(isstatic&&!strcmp(cl,"java/security/AccessController")&&!strcmp(n,"doPrivileged")&&!strcmp(d,"(Ljava/security/PrivilegedAction;)Ljava/lang/Object;")) {
         /* This VM has no SecurityManager/protection-domain policy. Only the
          * no-context action overload is supported; the action really runs. */
@@ -972,6 +974,9 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!v->runtime_instance)v->runtime_instance=new_object(v,c,'o',0);return rv(v->runtime_instance);
         }
         if(!isstatic&&!strcmp(n,"availableProcessors")&&!strcmp(d,"()I"))return iv(1);
+        if(!isstatic&&(!strcmp(n,"load")||!strcmp(n,"loadLibrary"))&&!strcmp(d,"(Ljava/lang/String;)V")) {
+            library_load(v,obj(a[1]),!strcmp(n,"loadLibrary"));return none;
+        }
     }
     if(!strcmp(cl,"java/lang/Integer")) {
         if(isstatic){Value result=integer_text_helper(v,n,d,a,0,&handled);if(handled)return result;}
@@ -1382,6 +1387,10 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return rv(string(v,self->text?self->text:""));
     }
     if(!strcmp(cl,"java/lang/System")&&isstatic) {
+        if(!strcmp(n,"mapLibraryName")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;"))return rv(library_name(v,obj(a[0])));
+        if((!strcmp(n,"load")||!strcmp(n,"loadLibrary"))&&!strcmp(d,"(Ljava/lang/String;)V")) {
+            library_load(v,obj(a[0]),!strcmp(n,"loadLibrary"));return none;
+        }
         if(!strcmp(n,"setIn")&&!strcmp(d,"(Ljava/io/InputStream;)V")){c->fields[2].value=a[0];return none;}
         if((!strcmp(n,"setOut")||!strcmp(n,"setErr"))&&!strcmp(d,"(Ljava/io/PrintStream;)V")){c->fields[!strcmp(n,"setErr")].value=a[0];return none;}
         if(!strcmp(n,"getenv")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;"))return rv(environment_get(v,obj(a[0])));
@@ -1606,6 +1615,11 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
         Value result=annotation_invoke(v,m,args,count);v->nr=saved;v->depth--;return result;
     }
     Value result=iv(0);
+    if(m->flags&NATIVE) {
+        if(++v->depth>MAX_DEPTH)fail(v,"maximum native call depth exceeded");
+        unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
+        native_unlinked(v,m);v->nr=saved;v->depth--;return result;
+    }
     if(!m->code) fail(v,"method has no executable Code: %s.%s%s",m->owner->name,m->name,m->desc);
     if(++v->depth>MAX_DEPTH) fail(v,"maximum call depth %d exceeded",MAX_DEPTH);
     Frame *f=(Frame *)alloc(v,sizeof(Frame)); f->method=m;
@@ -1740,12 +1754,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             Value res;
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
-                if(target->flags&NATIVE) {
-                    if(target->owner->annotation_type||target->owner->builtin||platform_native_bound(target))res=execute(v,target,aa,na);
-                    else if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
-                    else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
-                    else fail(v,"unbound native method: %s.%s%s",c->name,n,d);
-                } else res=execute(v,target,aa,na);
+                res=execute(v,target,aa,na);
             } else if(!strcmp(c->name,"java/lang/System")&&!strcmp(n,"arraycopy")&&!strcmp(d,"(Ljava/lang/Object;ILjava/lang/Object;II)V")&&stat) res=arraycopy(v,aa);
             else {
                 Class *base=c;while(base&&!base->builtin)base=base->super;

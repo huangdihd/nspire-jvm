@@ -28,17 +28,30 @@ static Object *file_string(VM *v,const char *raw) {
     if(!v->exception)result=execute(v,method(bridge,"decode","([BIILjava/lang/String;)Ljava/lang/String;"),a,4);
     v->nr=saved;return obj(result);
 }
-static void filesystem_start(VM *v) {
+static void filesystem_property(VM *v,const char *key,const char *raw) {
     /* Initialize lazily through the existing UTF-8 reader: startup of a tiny
      * program should not need to load the entire charset library. */
-    char cwd[PATH_MAX+1];if(!getcwd(cwd,sizeof cwd))fail(v,"cannot read working directory: %s",strerror(errno));
-    size_t len=strlen(cwd);Object *stream=new_object(v,load(v,"java/io/ByteArrayInputStream"),'b',0);root(v,stream);
-    stream_buffer(v,stream,len);memcpy(stream->buffer,cwd,len);
+    size_t len=strlen(raw);if(len>(META_LIMIT-1)/3)fail(v,"filesystem property is too long");
+    Object *stream=new_object(v,load(v,"java/io/ByteArrayInputStream"),'b',0);root(v,stream);
+    stream_buffer(v,stream,len);memcpy(stream->buffer,raw,len);
     Object *reader=new_object(v,load(v,"java/io/InputStreamReader"),'r',1);root(v,reader);reader->data[0]=rv(stream);reader->pending=-1;
     char *text=(char *)alloc(v,len*3+1),*out=text;int ch;
     while(!v->exception&&(ch=reader_read(v,reader))>=0)out+=write_unit(out,(unsigned)ch);
-    *out=0;if(v->exception)fail(v,"cannot decode working directory");
-    Property *p=property(v,"user.dir",1);p->value=copy(v,text);p->initial=copy(v,text);release(v,text);v->nr-=2;
+    *out=0;if(v->exception)fail(v,"cannot decode filesystem property: %s",key);
+    Property *p=property(v,key,1);p->value=copy(v,text);p->initial=copy(v,text);release(v,text);v->nr-=2;
+}
+static void filesystem_start(VM *v) {
+    char cwd[PATH_MAX+1];if(!getcwd(cwd,sizeof cwd))fail(v,"cannot read working directory: %s",strerror(errno));
+    filesystem_property(v,"user.dir",cwd);
+    const char *temp=v->opt.temp_directory;
+    if(!temp) {
+#ifdef _TINSPIRE
+        temp=cwd;
+#else
+        temp="/tmp";
+#endif
+    }
+    filesystem_property(v,"java.io.tmpdir",temp);
 }
 static char *file_path(VM *v,Value value) {
     Object *file=nonnull(v,value);if(!file)return NULL;

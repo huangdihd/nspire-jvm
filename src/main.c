@@ -7,13 +7,13 @@
 static int cancelled(void) { return isKeyPressed(KEY_NSPIRE_ESC); }
 #endif
 int main(int argc, char **argv) {
-    VmOptions o = {"demo.jar.tns", "Demo", 8 * 1024 * 1024, 100000000ULL, NULL, NULL, NULL};
+    VmOptions o = {"demo.jar.tns", "Demo", 8 * 1024 * 1024, 100000000ULL, NULL, NULL, NULL, NULL};
     int first = 1, result;
 #ifdef _TINSPIRE
     enable_relative_paths(argv);
     o.cancelled = cancelled;
     /* Adjacent text config: one classpath and one main class, each on a line. */
-    char cp[512], mainname[256], bootcp[512], timezone[128];
+    char cp[512], mainname[256], bootcp[512], timezone[128], tempdir[512];
     FILE *f = fopen("jvm.cfg.tns", "rb");
     if (f) {
         if (fgets(cp, sizeof cp, f) && fgets(mainname, sizeof mainname, f)) {
@@ -26,6 +26,10 @@ int main(int argc, char **argv) {
                 if(fgets(timezone,sizeof timezone,f)){
                     timezone[strcspn(timezone,"\r\n")]=0;
                     if(*timezone)o.timezone=timezone;
+                    if(fgets(tempdir,sizeof tempdir,f)) {
+                        tempdir[strcspn(tempdir,"\r\n")]=0;
+                        if(*tempdir)o.temp_directory=tempdir;
+                    }
                 }
             }
         }
@@ -43,10 +47,11 @@ int main(int argc, char **argv) {
         else if (!strcmp(opt, "--heap")) o.heap_limit = (size_t)strtoull(v, NULL, 10);
         else if (!strcmp(opt, "--steps")) o.instruction_limit = strtoull(v, NULL, 10);
         else if (!strcmp(opt, "--timezone")) o.timezone = v;
+        else if (!strcmp(opt, "--tmpdir")) o.temp_directory = v;
         else { fprintf(stderr, "Unknown option: %s\n", opt); return 2; }
     }
     if (first >= argc) {
-        fputs("Usage: nspire-jvm [-bootclasspath runtime.jar] -cp 'app.jar;lib.jar' [--heap bytes] [--steps count] [--timezone ZoneId] Main [args...]\n", stderr);
+        fputs("Usage: nspire-jvm [-bootclasspath runtime.jar] -cp 'app.jar;lib.jar' [--heap bytes] [--steps count] [--timezone ZoneId] [--tmpdir directory] Main [args...]\n", stderr);
         return 2;
     }
     o.main_class = argv[first++];

@@ -10,6 +10,7 @@ typedef struct {
     int (*cancelled)(void);
     const char *bootclasspath; /* Supplemental runtime classes, searched first. */
     const char *timezone; /* Explicit region/offset; target defaults to UTC. */
+    const char *temp_directory; /* java.io.tmpdir; host /tmp, target launch cwd. */
 } VmOptions;
 int vm_run(const VmOptions *options, int argc, const char **argv);
 #endif

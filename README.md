@@ -1,6 +1,6 @@
 # Nspire JVM 0.1（实验版）
 
-> **控制台与描述符检查点。** 原始 OpenJDK 文件描述符、文件流和 InputStream 已接入平台读写；完整 Xinbot 推进到 Jansi 本机库加载，当前缺少 `System.mapLibraryName()`，仍未进入 main。验证范围见 [CHECKPOINT.md](CHECKPOINT.md)、[FILE-SUPPORT.md](FILE-SUPPORT.md)。
+> **本机链接异常与临时目录检查点。** 已实现库名映射、可捕获的本机链接错误和临时目录配置。原始 Xinbot 进入 Jansi 库文件提取流程，当前缺少 `java.nio.file.FileSystems`，仍未进入 main。动态 JNI 加载尚未实现。验证范围见 [CHECKPOINT.md](CHECKPOINT.md)、[NATIVE-SUPPORT.md](NATIVE-SUPPORT.md)。
 
 面向已安装 Ndless 的 TI-Nspire CX II CAS 的 C 字节码解释器。
 
@@ -37,6 +37,7 @@
 - `int`、`long`、`float`、`double` 的主要运算、转换、分支、两类 switch、wide 局部变量。
 - 静态方法、实例方法、递归、继承、接口方法分派、静态初始化、实例与静态字段。
 - 基本类型数组、对象数组、多维数组、类型检查和 `System.arraycopy`。
+- 本机库名映射、未绑定 native 方法的 UnsatisfiedLinkError（含反射和 lambda 调用）、可配置的 java.io.tmpdir，以及整数二/八/十六进制转换；动态 JNI 加载尚未实现，详见 `NATIVE-SUPPORT.md`。
 - Java 异常表，支持显式抛出、跨方法捕获，以及常见运行时异常。
 - 标记清扫 GC，根包括执行栈、局部变量、静态字段、字符串常量和本地临时引用。
 - 实验性协作式线程、Thread/Runnable、优先级继承及加权轮转、join/sleep/interrupt、可重入 monitor、synchronized 和 wait/notify；GC 扫描挂起线程的根。
@@ -81,6 +82,7 @@ runtime.jar.tns
 多个路径用分号分隔，计算器与主机采用相同规则。
 主机对应参数为 `-bootclasspath runtime.jar -cp 'app.jar;library.jar'`。
 第四行可选填时区，如 `Asia/Hong_Kong`；计算器默认 UTC。主机对应 `--timezone Asia/Hong_Kong`，详见 `TIME-SUPPORT.md`。
+第五行可选填已存在的临时目录；第四行不用时保留空行。主机对应 `--tmpdir directory`。默认值为主机 `/tmp`、计算器启动目录；VM 不自动创建或清空目录。
 补充运行库先于应用路径查找，但内建的基础类仍由 VM 提供；这尚不是完整的 Java ClassLoader 模型。
 JAR 的 Manifest `Main-Class` 尚未读取，需要显式指定入口类。
 这里的 `.jar.tns` 只是方便传输的 ZIP/JAR；启动器负责读取它，并没有把 JAR 转成原生代码。
@@ -114,6 +116,7 @@ python3 tools/test-loader.py --vm build/nspire-jvm
 python3 tools/test-xml.py --vm build/nspire-jvm
 python3 tools/test-lambda.py --vm build/nspire-jvm
 python3 tools/test-time.py --vm build/nspire-jvm --java /path/to/java8/bin/java
+python3 tools/test-native.py --vm build/nspire-jvm --java /path/to/java8/bin/java
 python3 tools/test-case.py --vm build/nspire-jvm
 python3 tools/test-stream.py --vm build/nspire-jvm
 python3 tools/test-annotations.py --vm build/nspire-jvm
@@ -132,8 +135,8 @@ python3 tools/test-methods.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 python3 tools/test-charset.py --vm build/nspire-jvm --java /path/to/java8/bin/java --xinbot /path/to/xinbot.jar
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`，共 378 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
-当前有 48 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、11 项文件系统/描述符/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。另有 8 项时间与日期组件检查；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 379 个未修改的上游源文件；`vendor/openjdk8-nio/` 另保存生成模板、工具和 55 个生成源码。`vendor/openjdk8-time/` 保存时区数据和两份原始加载器，修改后的加载器位于 `runtime/nspire/`，仍保留上游许可证。
+当前有 48 项基础检查、6 项运行库对照运行、11 项资源/连接/服务/反射/字符串测试、6 项 lambda/异常传播对照运行、3 项大小写检查、6 项流/枚举/装箱检查、6 项注解检查（含真实 Logback 阶段）、8 项正则及配套运行库检查（含真实 Logback Duration）、7 项输出流检查（含真实 Logback ConsoleTarget）、10 项方法反射及包查询检查（含真实 Logback 属性发现与调用）、8 项字符集/缓冲区/弱引用检查（含真实 Logback 正文与日志头编码）、11 项文件系统/描述符/句柄生命周期检查、3 项 SAX 测试和 1 项真实 Logback XML 组件测试通过普通构建及 ASan/UBSan/泄漏检查；具体结果见对应 RESULTS 文件。另有 8 项时间与日期组件检查及 6 项本机链接/临时目录/整数转换检查，普通构建及 ASan/UBSan/泄漏检查均通过；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -177,18 +180,19 @@ Expat 另有每个 VM 共计 8 MiB 的本机分配上限；每次 XML 解析的�
 尝试命令：
 
 ```sh
-./build/nspire-jvm -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
+mkdir -p build/xinbot-tmp
+./build/nspire-jvm --tmpdir build/xinbot-tmp -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
 ```
 
 当前实际结果：
 
 ```text
-VM error: runtime method not implemented: java/lang/System.mapLibraryName(Ljava/lang/String;)Ljava/lang/String;
-  at org/fusesource/jansi/internal/JansiLoader.loadJansiNativeLibrary()V pc=36
+VM error: class not found: java/nio/file/FileSystems
+  at java/io/File.toPath()Ljava/nio/file/Path; pc=22
 ```
 
 真实 SLF4J 服务发现已找到 Logback 提供者，读取版本属性、生成状态消息，并反射创建配置器。
-当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。现在成功创建 Xinbot 自身的 JLineConsoleAppender，BeanDescriptionFactory 已完成继承方法发现和类型查询。时间库、TZDB 和可序列化 lambda 协议现已让原始日期转换器完成初始化。实际 ConsoleAppender 随后按原始配置启用 Jansi，已创建描述符输出流并设置清理线程优先级，现在在本机库加载流程缺少 System.mapLibraryName；尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
+当前已创建并使用配置事件的 lambda，解析原始 XML，并使用真实 Stream.noneMatch 完成路径匹配。实际注解已用于选择配置处理阶段，Pattern 编译、环境变量替换和 AtomicBoolean 初始化已通过。现在成功创建 Xinbot 自身的 JLineConsoleAppender，BeanDescriptionFactory 已完成继承方法发现和类型查询。时间库、TZDB 和可序列化 lambda 协议现已让原始日期转换器完成初始化。实际 ConsoleAppender 随后按原始配置启用 Jansi，已创建描述符输出流并设置清理线程优先级，库名映射、临时目录和整数转换已让它进入库文件提取流程，现在 File.toPath 缺少 java.nio.file.FileSystems；尚未进入 Xinbot.main。完整堆栈见 `XINBOT-RUN.txt`。
 另行直接调用同一 Xinbot JAR 中未修改的 Logback SaxEventRecorder，已从原始 `logback.xml` 得到与标准 Java 一致的 27 个事件；见 `LOGBACK-XML-RESULTS.txt`。这是一项组件测试，完整启动仍未通过。
 真实 Logback 的 9 个相关类的注解阶段读取、Duration 时长解析及 ConsoleTarget 输出包装也与标准 Java 一致，见 `LOGBACK-ANNOTATION-RESULTS.txt`、`LOGBACK-DURATION-RESULTS.txt` 和 `LOGBACK-CONSOLE-RESULTS.txt`。原始属性发现与 setter/getter 调用见 `LOGBACK-BEAN-RESULTS.txt`，字符集属性转换和日志正文编码见 `LOGBACK-CHARSET-RESULTS.txt`。日志头编码也已通过对照。原始 CachingDateFormatter 的组件对照见 `LOGBACK-DATE-RESULTS.txt`。仍需补齐 Jansi 本机库加载与平台接口、剩余时间/时区接口、设备文件系统缺口、更多动态调用路径、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。

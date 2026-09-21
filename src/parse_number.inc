@@ -25,7 +25,15 @@ invalid:
 done:release(v,text);return result;
 }
 static Value integer_text_helper(VM *v,const char *name,const char *desc,Value *args,int large,int *handled) {
-    *handled=0;if(strcmp(name,"stringSize")&&strcmp(name,"getChars"))return iv(0);
+    *handled=0;
+    unsigned shift=!strcmp(name,"toHexString")?4:!strcmp(name,"toOctalString")?3:!strcmp(name,"toBinaryString")?1:0;
+    if(shift&&!strcmp(desc,large?"(J)Ljava/lang/String;":"(I)Ljava/lang/String;")) {
+        *handled=1;uint64_t value=large?args[0].bits:(uint32_t)args[0].bits;
+        char text[65];unsigned pos=64,mask=(1U<<shift)-1;text[pos]=0;
+        do{text[--pos]="0123456789abcdef"[value&mask];value>>=shift;}while(value);
+        return rv(string(v,text+pos));
+    }
+    if(strcmp(name,"stringSize")&&strcmp(name,"getChars"))return iv(0);
     if(strcmp(desc,large?"(J)I":"(I)I")&&strcmp(desc,large?"(JI[C)V":"(II[C)V"))return iv(0);
     *handled=1;char text[32];if(large)snprintf(text,sizeof text,"%lld",(long long)(int64_t)args[0].bits);else snprintf(text,sizeof text,"%ld",(long)integer(args[0]));
     size_t length=strlen(text);if(!strcmp(name,"stringSize"))return iv((int32_t)length);

@@ -65,6 +65,8 @@ Invalid metadata must reach javac's IllegalArgumentException. The check compares
 that root cause: Java 17 adds an InvalidObjectException wrapper around readResolve
 failures, while this runtime preserves the Java 8 implementation and its wrappers.
 
-The fatal cleanup tests now use explicitly unbound application native methods
-on the main and child stacks. Real Xinbot passes its time formatter's internal
-serializable lambdas; the current whole-startup failure is System.mapLibraryName in Jansi.
+Unbound application native methods now throw catchable UnsatisfiedLinkError,
+including through lambda bridges; see NATIVE-SUPPORT.md. Fatal cleanup tests
+use unsupported numeric String.format on main/child stacks. Real Xinbot passes
+its time formatter's internal serializable lambdas; the current whole-startup
+failure is missing java.nio.file.FileSystems during Jansi extraction.

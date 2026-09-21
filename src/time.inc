@@ -31,6 +31,8 @@ static int platform_native_bound(Method *method) {
     if(!(method->flags&NATIVE))return 0;const char *owner=method->owner->name;
     return !strcmp(owner,"java/io/UnixFileSystem")||!strcmp(owner,"java/util/TimeZone")||!strcmp(owner,"java/util/zip/CRC32")||
         !strcmp(owner,"java/io/FileDescriptor")||!strcmp(owner,"java/io/FileInputStream")||!strcmp(owner,"java/io/FileOutputStream")||
+        (!strcmp(owner,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(method->name,"VMSupportsCS8")&&!strcmp(method->desc,"()Z")&&(method->flags&STATIC))||
+        (!strcmp(owner,"nspire/xml/ExpatReader")&&!strcmp(method->name,"parse0")&&!strcmp(method->desc,"(Lorg/xml/sax/InputSource;ZZ)V")&&!(method->flags&STATIC))||
         (!strcmp(owner,"java/lang/StrictMath")&&(!strcmp(method->name,"sqrt")||!strcmp(method->name,"log"))&&!strcmp(method->desc,"(D)D"));
 }
 static Value time_native(VM *v,Class *c,const char *name,const char *desc,Value *a,int stat,int *handled) {

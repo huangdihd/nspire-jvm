@@ -3,8 +3,10 @@
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
 The current interpreter and passing sample programs do not achieve that objective.
 
-Current checkpoint: FileDescriptor and console streams are implemented; original
-Xinbot reaches System.mapLibraryName in JansiLoader, still before main. See
+Current checkpoint: native linkage errors, library-name mapping and temporary
+directory configuration are implemented. Original Xinbot reaches File.toPath in
+Jansi extraction and stops at missing java.nio.file.FileSystems, before main.
+Dynamic JNI loading is not implemented. See
 CHECKPOINT.md and XINBOT-RUN.txt for the latest evidence and remaining work.
 
 Development history (earlier stopping points below are historical):

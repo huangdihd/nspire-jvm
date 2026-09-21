@@ -1,7 +1,7 @@
 public class ThreadFailureTest {
-    private static native void missingNative();
     static class Worker extends Thread {
-        public void run() { missingNative(); }
+        // Exercise a real fatal interpreter abort, distinct from Java errors.
+        public void run() { String.format("%d",1); }
     }
     public static void main(String[] args) throws Exception {
         Thread t = new Worker(); t.start(); t.join();
