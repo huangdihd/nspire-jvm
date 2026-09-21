@@ -12,3 +12,6 @@ Makefile text eol=lf
 *.json text eol=lf
 *.zip binary
 *.tns binary
+# Preserve the exact upstream bytes recorded in the source hash manifests.
+runtime/openjdk8/** -text
+vendor/expat/** -text
