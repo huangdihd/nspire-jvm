@@ -42,6 +42,8 @@ with zipfile.ZipFile(ns.rt_jar) as z:
                 attr=cp[r.u(2)];data=r.take(r.u(4))
                 if attr=='Exceptions':
                     a=Reader(data);exceptions=[cp[cp[a.u(2)]] for _ in range(a.u(2))]
+                if attr=='MethodParameters' and n not in ('<init>','<clinit>'):
+                    raise RuntimeError('Intrinsic parameter names must be imported before changing the pinned API: '+name+'.'+n)
             if n not in ('<init>','<clinit>'):rows.append((name,n,d,flags,';'.join(exceptions)))
 out='/* Generated Java 8 API declarations; see NOTICE and SOURCES.json. */\n'
 out+='static const struct BuiltinMethodRecord { const char *owner,*name,*desc;unsigned flags;const char *exceptions; } builtin_method_records[] = {\n'
@@ -51,6 +53,6 @@ if manifest.exists() and not ns.update and json.loads(manifest.read_text())['gen
 if not dest.exists() or dest.read_bytes()!=data:dest.write_bytes(data)
 if not manifest.exists() or ns.update:
     old=json.loads(manifest.read_text()) if manifest.exists() else {}
-    old.update({'source':'Temurin 8u504-b01 JRE build-time rt.jar (API declarations only)','rt_jar_sha256':digest,'classes':len(names),'methods':len(rows),'files':old.get('files',{}),'generated':{'methods.inc':{'sha256':hashlib.sha256(data).hexdigest()}}})
+    old.update({'source':'Temurin 8u504-b01 JRE build-time rt.jar (API declarations only)','rt_jar_sha256':digest,'classes':len(names),'methods':len(rows),'method_parameters_attributes':0,'files':old.get('files',{}),'generated':{'methods.inc':{'sha256':hashlib.sha256(data).hexdigest()}}})
     manifest.write_text(json.dumps(old,indent=2)+'\n')
 print('Generated',len(rows),'method declarations for',len(names),'intrinsic classes')

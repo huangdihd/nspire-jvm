@@ -7,69 +7,37 @@ Command (temporary directory is created before execution and removed afterward):
 
 Exit status: 1
 stderr:
-Failed to load native library:jansi-2.4.3-103a9ef7831fc7e6-libjansi.so. osinfo: Linux/x86_64
+Failed to load native library:jansi-2.4.3-7d5c8739dc144003-libjansi.so. osinfo: Linux/x86_64
 java.lang.UnsatisfiedLinkError: Dynamic JNI library loading is not available in Nspire JVM
-VM error: runtime method not implemented: java/lang/reflect/Method.getParameters()[Ljava/lang/reflect/Parameter;
-  at ch/qos/logback/core/ConsoleAppender.lambda$wrapWithJansi$1(Ljava/lang/reflect/Method;)Z pc=1
-  at ch/qos/logback/core/ConsoleAppender$$Lambda$165.test(Ljava/lang/Object;)Z pc=5
-  at java/util/stream/ReferencePipeline$2$1.accept(Ljava/lang/Object;)V pc=8
-  at java/util/stream/ReferencePipeline$2$1.accept(Ljava/lang/Object;)V pc=21
-  at java/util/Spliterators$ArraySpliterator.tryAdvance(Ljava/util/function/Consumer;)Z pc=49
-  at java/util/stream/ReferencePipeline.forEachWithCancel(Ljava/util/Spliterator;Ljava/util/stream/Sink;)V pc=11
-  at java/util/stream/AbstractPipeline.copyIntoWithCancel(Ljava/util/stream/Sink;Ljava/util/Spliterator;)V pc=32
-  at java/util/stream/AbstractPipeline.copyInto(Ljava/util/stream/Sink;Ljava/util/Spliterator;)V pc=49
-  at java/util/stream/AbstractPipeline.wrapAndCopyInto(Ljava/util/stream/Sink;Ljava/util/Spliterator;)Ljava/util/stream/Sink; pc=13
-  at java/util/stream/FindOps$FindOp.evaluateSequential(Ljava/util/stream/PipelineHelper;Ljava/util/Spliterator;)Ljava/lang/Object; pc=14
-  at java/util/stream/AbstractPipeline.evaluate(Ljava/util/stream/TerminalOp;)Ljava/lang/Object; pc=88
-  at java/util/stream/ReferencePipeline.findAny()Ljava/util/Optional; pc=5
-  at ch/qos/logback/core/ConsoleAppender.wrapWithJansi(Ljava/io/OutputStream;)Ljava/io/OutputStream; pc=117
-  at ch/qos/logback/core/ConsoleAppender.start()V pc=35
-  at ch/qos/logback/core/model/processor/AppenderModelHandler.postHandle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=29
-  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=154
-  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
-  at ch/qos/logback/core/model/processor/DefaultProcessor$$Lambda$138.traverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=8
-  at ch/qos/logback/core/model/processor/DefaultProcessor.traversalLoop(Lch/qos/logback/core/model/processor/DefaultProcessor$TraverseMethod;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;Ljava/lang/String;)V pc=16
-  at ch/qos/logback/core/model/processor/DefaultProcessor.process(Lch/qos/logback/core/model/Model;)V pc=44
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.processModel(Lch/qos/logback/core/model/Model;)V pc=57
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Lorg/xml/sax/InputSource;)V pc=80
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/io/InputStream;Ljava/lang/String;)V pc=16
-  at ch/qos/logback/core/joran/GenericXMLConfigurator.doConfigure(Ljava/net/URL;)V pc=28
-  at ch/qos/logback/classic/util/DefaultJoranConfigurator.configureByResource(Ljava/net/URL;)V pc=46
-  at ch/qos/logback/classic/util/DefaultJoranConfigurator.configure(Lch/qos/logback/classic/LoggerContext;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=12
-  at ch/qos/logback/classic/util/ContextInitializer.invokeConfigure(Lch/qos/logback/classic/spi/Configurator;)Lch/qos/logback/classic/spi/Configurator$ExecutionStatus; pc=42
-  at ch/qos/logback/classic/util/ContextInitializer.autoConfig(Ljava/lang/ClassLoader;)V pc=205
-  at ch/qos/logback/classic/util/ContextInitializer.autoConfig()V pc=6
-  at ch/qos/logback/classic/spi/LogbackServiceProvider.initializeLoggerContext()V pc=11
-  at ch/qos/logback/classic/spi/LogbackServiceProvider.initialize()V pc=21
-  at org/slf4j/LoggerFactory.bind()V pc=37
-  at org/slf4j/LoggerFactory.performInitialization()V pc=0
-  at org/slf4j/LoggerFactory.getProvider()Lorg/slf4j/spi/SLF4JServiceProvider; pc=21
-  at org/slf4j/LoggerFactory.getILoggerFactory()Lorg/slf4j/ILoggerFactory; pc=0
-  at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
-  at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
+VM error: class not found: java/lang/Record
+  at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=31
 
-The original application discovers SLF4J/Logback and processes its unchanged XML,
-annotations, reflection, charset and date converter initialization. Its original
+The original application discovers SLF4J/Logback, processes its unchanged XML,
+and passes the ConsoleAppender reflective-parameter lookup. Its original
 withJansi=true configuration activates Jansi. Files.copy really extracts:
   org/fusesource/jansi/internal/native/Linux/x86_64/libjansi.so
   Bytes: 18976
   SHA-256: 249095f2a73e3d2ab348d9f1de659947d253c18cf6a2049f75296b5a0d6ee079
 Both the extracted file and zero-byte .lck exist. The library matches the JAR
 entry byte for byte, but has NOT been loaded. Dynamic JNI is unsupported;
-Jansi catches the actual UnsatisfiedLinkError and uses String.join while
-constructing its subsequent exception. Its own default graceful-failure logic
-returns to Logback, which stops at Method.getParameters. No property disables
-Jansi and no Xinbot/Jansi class or configuration was modified.
+Jansi catches the actual UnsatisfiedLinkError and its default graceful-failure
+logic returns to Logback. No Xinbot/Jansi class or configuration was modified.
 
-Both ordinary and ASan/UBSan/leak-detection builds reproduce this result,
-without sanitizer errors or a null temporary-directory exception. This fatal
-interpreter error skips Java shutdown hooks; temporary files remain until the
-driver removes its disposable directory. Separate actual JansiLoader component
-checks verify normal-return/System.exit cleanup; see JANSI-CLEANUP-RESULTS.txt.
+Xinbot's static initializer now reads package implementation metadata through
+the actual JAR manifest (Implementation-Version: 2.4.3-RELEASE). At pc=31 it
+tries to call Version.from(String); loading that record class fails because
+java.lang.Record is not yet present. This does not verify Version.from itself.
+
+Both ordinary and ASan/UBSan/leak-detection builds reproduce this result without
+sanitizer errors. Fatal interpreter errors skip Java shutdown hooks; extracted
+files remain until the driver removes the disposable directory. Separate actual
+JansiLoader checks verify normal-return/System.exit cleanup; see
+JANSI-CLEANUP-RESULTS.txt.
 
 This is still before Xinbot.main. Complete startup has NOT succeeded.
 No Minecraft connection was made and no account credentials were used.
 The Linux x86_64 library is NOT an ARM Ndless library. Calculator/firmware-emulator
-execution is NOT verified. Reflective Parameter metadata, target filesystem
-gaps, Jansi platform/native dependencies, further JDK paths, real network
-transport and device execution remain incomplete. See SHUTDOWN-SUPPORT.md.
+execution is NOT verified. Records/ObjectMethods bootstrap, generic reflection,
+target filesystem gaps, native dependencies, further JDK paths, real networking
+and device execution remain incomplete. See PARAMETER-SUPPORT.md and
+PACKAGE-METADATA-SUPPORT.md.

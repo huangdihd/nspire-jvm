@@ -151,7 +151,37 @@ static Object *reflection_package(VM *v,Class *c) {
     char *name=(char *)alloc(v,length+1);for(size_t i=0;i<length;i++)name[i]=c->name[i]=='/'?'.':c->name[i];
     Object *result=NULL;
     for(int i=0;i<v->nclasses;i++){Class *other=v->classes[i];if(other->app_loader==c->app_loader&&other->package_object&&!strcmp(other->package_object->text,name)){result=other->package_object;break;}}
-    if(!result){result=new_object(v,load(v,"java/lang/Package"),'k',0);set_text(v,result,name);}
+    if(!result){
+        result=new_object(v,load(v,"java/lang/Package"),'k',6);root(v,result);set_text(v,result,name);
+        /* Java loaders define the package on the first class definition, not
+         * on the first getPackage query. Select that class's actual origin. */
+        Class *first=NULL;
+        for(int i=0;i<v->nclasses;i++) {
+            Class *candidate=v->classes[i];const char *end=strrchr(candidate->name,'/');
+            size_t size=end?(size_t)(end-candidate->name):0;
+            if(candidate->source_path&&candidate->app_loader==c->app_loader&&size==length&&!strncmp(candidate->name,c->name,length)){first=candidate;break;}
+        }
+        if(first&&v->paths[first->source_path-1].is_zip) {
+            unsigned path=first->source_path-1;int index=resource_find(v,path,"META-INF/MANIFEST.MF");
+            if(index>=0) {
+                Object *url=resource_url(v,path,index,"META-INF/MANIFEST.MF");root(v,url);
+                Object *stream=resource_stream(v,url);root(v,stream);
+                if(!v->exception) {
+                    Class *helper=load(v,"nspire/reflect/PackageInfo");initialize(v,helper);
+                    if(!v->exception) {
+                        char *section=(char *)alloc(v,length+2);memcpy(section,c->name,length);if(length)section[length]='/';
+                        Object *key=string(v,section);release(v,section);Value args[]={rv(stream),rv(key)};
+                        Method *read=method(helper,"read","(Ljava/io/InputStream;Ljava/lang/String;)[Ljava/lang/String;");
+                        if(!read)fail(v,"package manifest adapter is missing");Object *values=obj(execute(v,read,args,2));
+                        if(!v->exception){if(!values||values->count!=6)fail(v,"invalid package manifest result");memcpy(result->data,values->data,6*sizeof(Value));}
+                    }
+                }
+                /* Classpath resource streams own a bounded memory snapshot. */
+                if(stream)stream->closed=1;v->nr-=2;
+            }
+        }
+        v->nr--;if(v->exception){release(v,name);return NULL;}
+    }
     release(v,name);c->package_object=result;return result;
 }
 static Value method_reflection_native(VM *v,Class *c,const char *name,const char *desc,Value *args,int stat,int *handled) {
@@ -163,6 +193,10 @@ static Value method_reflection_native(VM *v,Class *c,const char *name,const char
         if((!strcmp(name,"getMethod")||!strcmp(name,"getDeclaredMethod"))&&!strcmp(desc,"(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;")){*handled=1;return rv(reflection_lookup(v,self->represented,obj(args[1]),obj(args[2]),declared));}
     }
     if(self->kind=='k'&&!strcmp(name,"getName")&&!strcmp(desc,"()Ljava/lang/String;")){*handled=1;return rv(string(v,self->text));}
+    if(self->kind=='k'&&!strcmp(desc,"()Ljava/lang/String;")) {
+        const char *names[]={"getSpecificationTitle","getSpecificationVersion","getSpecificationVendor","getImplementationTitle","getImplementationVersion","getImplementationVendor"};
+        for(unsigned i=0;i<6;i++)if(!strcmp(name,names[i])){*handled=1;return self->data[i].tag==REF?self->data[i]:rv(NULL);}
+    }
     if(self->kind!='M'||!self->represented_method)return iv(0);Method *m=self->represented_method;*handled=1;
     if(m->owner->builtin&&strstr(name,"Annotation"))fail(v,"intrinsic method annotation metadata is not imported: %s.%s",m->owner->name,m->name);
     if(!strcmp(name,"invoke")&&!strcmp(desc,"(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"))return rv(reflection_invoke(v,self,obj(args[1]),obj(args[2])));

@@ -21,5 +21,6 @@
     "methods.inc": {
       "sha256": "926dda4a3249c99cf606e714ab17ee023eab950063d6d2987390b4dff2507d0b"
     }
-  }
+  },
+  "method_parameters_attributes": 0
 }

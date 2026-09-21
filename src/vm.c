@@ -58,6 +58,8 @@ struct Method {
     Class *owner; char *name, *desc; uint16_t flags, locals, stack;
     unsigned char *code; uint32_t length; Handler *handlers; uint16_t nh;
     AnnotationData annotations,annotation_default;
+    AnnotationData parameters,parameter_annotations;
+    char *signature;
     char **exception_names;unsigned nexceptions;
 };
 struct Class {
@@ -65,10 +67,11 @@ struct Class {
     Field *fields; Method *methods; size_t slots; int builtin, init, loading;
     Class **interfaces; uint16_t ni;
     Object *mirror,*enum_constants,*enum_directory,*package_object; Class *component;
-    char *simple_name,*declaring_name; uint16_t access;int local_class;
+    char *simple_name,*declaring_name; uint16_t access,inner_access;int local_class;
     unsigned primitive;
     VmThread *init_owner;
     int app_loader;
+    unsigned source_path;
     Bootstrap *bootstraps;unsigned nbootstraps;
     AnnotationData annotations;Class *annotation_impl,*annotation_type;
     Method *reflection_methods;unsigned nreflection_methods;int reflection_loaded;
@@ -79,6 +82,7 @@ struct Object {
     Class *represented;
     Field *represented_field;unsigned interned;
     Method *represented_method;int accessible;
+    Object *parameters_cache;
     VmThread *thread, *monitor_owner; unsigned monitor_depth;
     Object *thread_target;
     Object *cause,*suppressed;
@@ -237,6 +241,7 @@ static void collect(VM *v) {
         mark(o->thread_target,&grey);
         mark(o->cause,&grey);
         mark(o->suppressed,&grey);
+        mark(o->parameters_cache,&grey);
         if(o->thread)mark(o->thread->context_loader,&grey);
         if(o->thread)for(LocalEntry *e=o->thread->locals_map;e;e=e->next)mark(e->value,&grey);
         for(size_t i=0;i<o->count;i++) if(o->data[i].tag==REF&&!(o->kind=='W'&&i==0)) mark(obj(o->data[i]),&grey);
@@ -455,6 +460,7 @@ static unsigned char *class_bytes(VM *v,Class *cls,const char *name,size_t *len)
     int i;ClassPath *entry=find_class(v,name,&i,path);
     if(!entry)fail(v,"class not found: %s",name);
     cls->app_loader=(unsigned)(entry-v->paths)>=v->nbootpaths;
+    cls->source_path=(unsigned)(entry-v->paths)+1;
     if(entry->is_zip) {
         mz_zip_archive_file_stat st;
         if(i<0) fail(v,"class not found: %s (minimal built-in library only)",name);
@@ -492,6 +498,15 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
             if(m->exception_names)fail(r->v,"duplicate Exceptions attribute");
             m->nexceptions=readn(r,2);m->exception_names=(char **)alloc(r->v,m->nexceptions*sizeof(char *));
             for(unsigned i=0;i<m->nexceptions;i++)m->exception_names[i]=classname(r->v,c,readn(r,2));
+        } else if(m&&!strcmp(name,"Signature")) {
+            if(m->signature||len!=2)fail(r->v,"invalid method Signature attribute");
+            m->signature=utf(r->v,c,readn(r,2));
+        } else if(m&&(!strcmp(name,"MethodParameters")||!strcmp(name,"RuntimeVisibleParameterAnnotations"))) {
+            AnnotationData *data=!strcmp(name,"MethodParameters")?&m->parameters:&m->parameter_annotations;
+            if(data->bytes)fail(r->v,"duplicate %s attribute",name);
+            if(!len)fail(r->v,"empty %s attribute",name);
+            if(data==&m->parameters&&len!=1U+4U*r->p[r->pos])fail(r->v,"invalid MethodParameters attribute length");
+            data->bytes=r->p+r->pos;data->length=len;
         } else if(f&&!strcmp(name,"ConstantValue")) f->constant=(uint16_t)readn(r,2);
         else if(!m&&!f&&!strcmp(name,"BootstrapMethods")) {
             if(c->bootstraps)fail(r->v,"duplicate BootstrapMethods attribute");
@@ -506,10 +521,11 @@ static void attributes(Reader *r,Class *c,Method *m,Field *f) {
             unsigned entries=readn(r,2);
             while(entries--) {
                 unsigned inner=readn(r,2),outer=readn(r,2);
-                unsigned simple=readn(r,2); (void)readn(r,2);
+                unsigned simple=readn(r,2),inner_access=readn(r,2);
                 if(inner&&!strcmp(classname(r->v,c,inner),c->name)) {
                     c->simple_name=simple?utf(r->v,c,simple):"";
                     c->declaring_name=outer?classname(r->v,c,outer):NULL;
+                    c->inner_access=(uint16_t)inner_access;
                 }
             }
         }
@@ -857,6 +873,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "output.inc"
 #include "annotations.inc"
 #include "methods.inc"
+#include "parameters.inc"
 #include "boxing.inc"
 #include "charset.inc"
 #include "filesystem.inc"
@@ -874,6 +891,8 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
     int shutdown_handled;Value shutdown_result=shutdown_native(v,c,n,d,a,isstatic,&shutdown_handled);
     if(shutdown_handled)return shutdown_result;
+    int parameter_handled;Value parameter_result=parameter_native(v,c,n,d,a,isstatic,&parameter_handled);
+    if(parameter_handled)return parameter_result;
     int handled=0;Value loaded=reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=method_reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=small_box_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
@@ -1253,6 +1272,18 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
         if(isstatic&&!strcmp(n,"format")&&!strcmp(d,"(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String;"))return rv(format_string(v,obj(a[0]),obj(a[1])));
         if(!strcmp(n,"<init>")&&!isstatic) {
+            if(!strcmp(d,"([BI)V")||!strcmp(d,"([BIII)V")) {
+                int32_t offset=na==5?integer(a[3]):0,length=na==5?integer(a[4]):0;
+                if(na==5&&(offset<0||length<0)){throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;}
+                Object *bytes=nonnull(v,a[1]);if(!bytes)return none;
+                if(bytes->kind!='a'||strcmp(bytes->array_desc,"[B"))fail(v,"high-byte String constructor requires byte[]");
+                if(na!=5)length=(int32_t)bytes->count;
+                if((size_t)offset>bytes->count||(size_t)length>bytes->count-(size_t)offset){throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;}
+                if((size_t)length>(META_LIMIT-1)/3)fail(v,"String exceeds metadata limit");
+                char *text=(char *)alloc(v,(size_t)length*3+1),*end=text;unsigned high=(unsigned)integer(a[2])<<8;
+                for(int32_t i=0;i<length;i++)end+=write_unit(end,(uint16_t)(high|(integer(bytes->data[offset+i])&255)));
+                *end=0;self->kind='s';set_text(v,self,text);release(v,text);return none;
+            }
             if(!strcmp(d,"([III)V")) {
                 Object *points=nonnull(v,a[1]);if(!points)return none;if(points->kind!='a'||strcmp(points->array_desc,"[I"))fail(v,"String code-point constructor requires int[]");
                 int offset=integer(a[2]),length=integer(a[3]);if(offset<0||length<0||(size_t)offset>points->count||(size_t)length>points->count-(size_t)offset){throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;}

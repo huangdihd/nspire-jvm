@@ -30,7 +30,7 @@ comparison and formatting coverage of these classes remains partial. Float
 object text formatting fails explicitly, as Double formatting already does.
 
 Intrinsic classes get reflection declarations from
-`vendor/openjdk8-api/methods.inc`: 1,610 method records for 94 names referenced by
+`vendor/openjdk8-api/methods.inc`: 1,535 method records for 93 names referenced by
 the intrinsic registry and its parent mappings. Names, descriptors, modifiers
 and checked exceptions come from the pinned Temurin 8u504-b01 rt.jar. The table
 does not copy implementation bytecode or add implementations for those APIs.
@@ -53,8 +53,9 @@ Class.getPackage and Package.getName derive the package from the loaded class
 name. Package objects are cached and shared within the VM's bootstrap/application
 loader scopes and remain GC roots. Primitive and array classes return null;
 ordinary classes in the unnamed package get an empty-name package, matching the
-Java 17 reference. Manifest/version/sealing metadata and package annotations are
-not provided; their APIs do not return invented values.
+Java 17 reference. Six specification/implementation fields now read the actual
+JAR manifest; see PACKAGE-METADATA-SUPPORT.md for package overrides, definition
+order and limits. Sealing and package annotations remain unsupported.
 
 ```sh
 python3 tools/test-methods.py --vm build/nspire-jvm
@@ -80,7 +81,9 @@ actual JLineConsoleAppender, compares all getter/setter/adder mappings, then
 invokes real setters for withJansi and name and reads the changed values through
 their getters. This is a component test, not a replacement application entry.
 
-Remaining gaps include generic signatures, Parameter/type-use metadata,
+Parameter objects, names/flags and direct parameter annotations are now supported;
+see PARAMETER-SUPPORT.md. Remaining gaps include generic signature resolution,
+repeatable parameter annotations and type-use metadata,
 Method.toString/toGenericString/getDefaultValue, full nestmate/module access
 rules, caller-sensitive intrinsic protocols and custom loader namespaces.
 Intrinsic-method annotations are not imported and fail explicitly. Signature
@@ -95,7 +98,7 @@ array Cloneable/Serializable interfaces and an empty array for primitive types.
 Each call returns a fresh array. InterfacesTest compares inheritance, interfaces,
 annotations, primitives, arrays, mutation isolation and reflective invocation.
 
-Actual Xinbot completes appender bean discovery, package lookup and its
-NoAutoStart annotation walk through direct interfaces. Charset and File are now
-supplied; it next needs java.time.ZoneId in date formatting, before Xinbot.main.
+Actual Xinbot completes appender bean discovery, parameter queries and package
+version lookup. It now stops while loading a record class because java.lang.Record
+is absent, before Xinbot.main. See XINBOT-RUN.txt for the current attempt.
 No calculator or firmware-emulator execution is established by these host tests.

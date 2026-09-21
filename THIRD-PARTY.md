@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 443 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 447 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.

@@ -1,0 +1,13 @@
+PASS ParameterTest without MethodParameters (Java 8 output, GC and defensive copies)
+PASS ModifierTest without MethodParameters (Java 8 output, GC and defensive copies)
+PASS ParameterTest with MethodParameters (Java 8 output, GC and defensive copies)
+PASS ModifierTest with MethodParameters (Java 8 output, GC and defensive copies)
+PASS classfile zero-name (Java 8 result/exception)
+PASS classfile bad-name (Java 8 result/exception)
+PASS classfile bad-index (Java 8 result/exception)
+PASS classfile bad-flags (Java 8 result/exception)
+PASS classfile wrong-count (Java 8 result/exception)
+PASS classfile valid-flags (Java 8 result/exception)
+PASS classfile annotation-count (Java 8 result/exception)
+PASS generic Signature preserved and unsupported generic reflection fails explicitly
+Host only; full generic/type-annotation reflection and calculator execution are not verified.

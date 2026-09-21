@@ -68,8 +68,7 @@ The original Xinbot attempt now gets past mapLibraryName and the missing
 temporary-directory property, and enters Jansi's normal resource extraction.
 NIO FileSystems and the original Files.copy now extract the actual library
 with bytes matching the JAR entry. deleteOnExit and String.join now execute,
-and Jansi catches the actual UnsatisfiedLinkError. The next missing operation
-is Method.getParameters. See SHUTDOWN-SUPPORT.md and XINBOT-RUN.txt. This
-new attempt reaches that operation after the real extraction/load-failure path;
-the historical attempt reached it via a missing-property NullPointerException.
-Neither attempt establishes successful Jansi initialization.
+and Jansi catches the actual UnsatisfiedLinkError. Parameter queries and package
+metadata now also execute; the next failure is missing java.lang.Record in
+Xinbot.<clinit>, before main. See XINBOT-RUN.txt. This does not establish a
+working native library or successful full application startup.

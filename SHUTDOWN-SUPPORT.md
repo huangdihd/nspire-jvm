@@ -2,7 +2,7 @@
 
 The unchanged OpenJDK 8 Shutdown, ApplicationShutdownHooks and DeleteOnExitHook
 classes execute their actual bytecode. IdentityHashMap and ThreadDeath are
-also preserved from the same pinned revision; the runtime now contains 443
+also preserved from the same pinned revision; the runtime now contains 447
 original Java sources. Per-file hashes and licenses remain in runtime/openjdk8.
 
 System.exit and Runtime.exit run registered application hooks as interpreter
@@ -73,9 +73,9 @@ iterator behavior, and GC during callbacks. Run tools/test-string-join.py with
 
 The unchanged Xinbot JAR now passes delete-on-exit registration and String.join.
 Jansi extracts the exact original Linux x86_64 library, then handles the real
-UnsatisfiedLinkError from unsupported dynamic JNI loading. Execution reaches
-Logback's Method.getParameters call, which remains unimplemented. This occurs
-before Xinbot.main. Because this is a fatal interpreter error, its extracted
+UnsatisfiedLinkError from unsupported dynamic JNI loading. Execution now passes
+Logback's Method.getParameters call and reads actual package metadata. It stops
+at missing java.lang.Record in Xinbot version initialization, before main. Because this is a fatal interpreter error, its extracted
 files remain until the test driver's disposable-directory cleanup. This does
 not demonstrate Jansi initialization, a working native library, network access
 or calculator execution. See XINBOT-RUN.txt for the actual attempt.

@@ -52,3 +52,14 @@ Preserved OpenJDK shutdown hooks and delete-on-exit now execute in the VM.
 The runtime includes IdentityHashMap and ThreadDeath dependencies; native
 lifetime integration and host verification are described in SHUTDOWN-SUPPORT.md.
 StringOperations.join delegates both overloads to the original StringJoiner.
+
+
+Parameter and package metadata checkpoint: preserved Parameter,
+MalformedParametersException, Manifest and Attributes bring the original Java
+source count to 447. The VM reads real parameter attributes and JAR manifest
+fields; Modifier and PackageInfo are original MIT adapters. Legacy high-byte
+String constructors support the original manifest parser. Rebuild both native
+VM and runtime.jar.tns. Scope and host checks are documented in
+PARAMETER-SUPPORT.md and PACKAGE-METADATA-SUPPORT.md. Current original-Xinbot
+execution stops at missing java.lang.Record before main; no calculator run is
+established by the rebuilt ARM artifact.

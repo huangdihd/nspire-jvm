@@ -246,6 +246,14 @@
       "upstream_path": "jdk/src/share/classes/java/lang/invoke/SerializedLambda.java",
       "sha256": "9762a44a3c1335d7cf4c8d7236dc5ae8e31f98dab9c0952568ffd56fabd3352a"
     },
+    "java/lang/reflect/MalformedParametersException.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/reflect/MalformedParametersException.java",
+      "sha256": "6e2e3e34e06c016531d4c2a651e2250235a83fc7fcd611f54969d043172507cd"
+    },
+    "java/lang/reflect/Parameter.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/reflect/Parameter.java",
+      "sha256": "ffda9cc1d2bd13434e1a48058bd67eb421ca0202a52f8ea3fdce2a04d74b6da0"
+    },
     "java/math/BigDecimal.java": {
       "upstream_path": "jdk/src/share/classes/java/math/BigDecimal.java",
       "sha256": "0f2841a42b20c24021f5e024263cd886286e3adb953c318ebe69fc9c336a49a1"
@@ -1381,6 +1389,14 @@
     "java/util/function/UnaryOperator.java": {
       "upstream_path": "jdk/src/share/classes/java/util/function/UnaryOperator.java",
       "sha256": "9f399c093fa3aff83456d7b2653ac91e0b49e84c7e5e33f8b70be3296a236f84"
+    },
+    "java/util/jar/Attributes.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/jar/Attributes.java",
+      "sha256": "5c1da62b84bc675f350deee80d6d28f2f63d75c42603b0a5cc0f4cba63edc1df"
+    },
+    "java/util/jar/Manifest.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/jar/Manifest.java",
+      "sha256": "3429a784d3ed458d1b15e593a39c2160fa3388b127062d8ee9192041dec95719"
     },
     "java/util/regex/ASCII.java": {
       "upstream_path": "jdk/src/share/classes/java/util/regex/ASCII.java",

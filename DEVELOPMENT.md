@@ -3,12 +3,14 @@
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
 The current interpreter and passing sample programs do not achieve that objective.
 
-Current checkpoint: preserved shutdown hooks, delete-on-exit and String.join
-now allow Xinbot to pass Jansi extraction and its JNI load-failure handling.
-It next stops at Method.getParameters in ConsoleAppender, before main. Dynamic
-JNI loading, target filesystem gaps and device execution remain incomplete.
-Next work is real reflective Parameter metadata and subsequent original
-application paths. See SHUTDOWN-SUPPORT.md, CHECKPOINT.md and XINBOT-RUN.txt.
+Current checkpoint: genuine reflective Parameter metadata and package manifest
+metadata now let unchanged Xinbot pass Logback's parameter lookup and read its
+implementation version. It stops at missing java.lang.Record when resolving
+Version.from at Xinbot.<clinit> pc=31, before main. Dynamic JNI, generic/type-use
+reflection, target filesystem gaps and device execution remain incomplete.
+Next work is record classes and ObjectMethods bootstrap, followed by subsequent
+original application paths. See PARAMETER-SUPPORT.md,
+PACKAGE-METADATA-SUPPORT.md, CHECKPOINT.md and XINBOT-RUN.txt.
 
 Development history (earlier stopping points below are historical):
 - Class mirrors, basic Class APIs and supplemental bootclasspath are implemented.

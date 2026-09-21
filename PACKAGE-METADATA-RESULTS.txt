@@ -1,0 +1,4 @@
+PASS first definition sample.First: Java 8 package identity, six manifest fields, sections, folded UTF-8, absence and GC
+PASS first definition sample.Second: Java 8 package identity, six manifest fields, sections, folded UTF-8, absence and GC
+PASS legacy high-byte String constructors (Java 8 unsigned bytes, UTF-16, slices and exception precedence)
+Application packages on host classpaths; sealing, signing, custom loaders and device execution are not verified.
