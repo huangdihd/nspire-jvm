@@ -1,5 +1,6 @@
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class CollectionsTest {
     static final class Key {
@@ -35,5 +36,12 @@ public class CollectionsTest {
         HashSet<String> set = new HashSet<String>(list);
         System.out.println(set.add("value30")); System.out.println(set.size());
         System.gc(); System.out.println(plain.get("key17"));
+        CopyOnWriteArrayList<String> cow=new CopyOnWriteArrayList<String>();
+        cow.add("before");Iterator<String> snapshot=cow.iterator();cow.add("after");
+        System.out.println(snapshot.next());System.out.println(snapshot.hasNext());
+        CopyOnWriteArrayList<String> cloned=(CopyOnWriteArrayList<String>)cow.clone();
+        cloned.remove("before");System.out.println(cow.size());System.out.println(cloned.size());
+        String[] source={"one","two"};String[] copied=source.clone();copied[0]="changed";
+        System.out.println(source[0]);System.out.println(copied[0]);
     }
 }

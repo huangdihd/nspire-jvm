@@ -9,7 +9,10 @@
 ## 已实现
 
 - 从多个 JAR/ZIP 或目录读取 `.class`，支持 `.jar.tns` 文件名和独立补充运行库。
-- 基础 `Class` 对象：类字面量、getClass、类名、父类、组件类型、isAssignableFrom、isInstance、cast 和单参数 forName。
+- 基础 `Class` 对象：类字面量、getClass、类名、父类、组件类型、isAssignableFrom、isInstance、cast 和 forName。
+- 内建 bootstrap/application 类加载器、线程 context loader、JAR/目录资源读取及 ServiceLoader 服务发现；支持公开无参构造器实例化。
+- 部分输入流与 UTF-8 Reader、资源 URL、Integer 装箱缓存、数组和 Cloneable 对象浅复制。
+- `StringConcatFactory` 字符串拼接：支持引用、整数、long、char、boolean 和配方常量；对象转换调用实际的 toString。
 - 读取 class-file version 45–61；只执行本解释器已实现的指令。
 - `int`、`long`、`float`、`double` 的主要运算、转换、分支、两类 switch、wide 局部变量。
 - 静态方法、实例方法、递归、继承、接口方法分派、静态初始化、实例与静态字段。
@@ -18,7 +21,7 @@
 - 标记清扫 GC，根包括执行栈、局部变量、静态字段、字符串常量和本地临时引用。
 - 实验性协作式线程、Thread/Runnable、join/sleep/interrupt、可重入 monitor、synchronized 和 wait/notify；GC 扫描挂起线程的根。
 - ThreadLocal/InheritableThreadLocal 的隔离、初始值、构造时继承、移除和弱键清理。
-- OpenJDK 8 集合补充库：已对照验证 HashMap、ConcurrentHashMap、ArrayList、HashSet、原子变量、ReentrantLock/Condition 和 LinkedBlockingQueue 的部分路径。
+- OpenJDK 8 集合补充库：已对照验证 HashMap、ConcurrentHashMap、ArrayList、HashSet、CopyOnWriteArrayList、原子变量、ReentrantLock/Condition 和 LinkedBlockingQueue 的部分路径。
 - 运行库所需的字段句柄、原子 CAS/更新、park/unpark 和系统属性；不提供任意本机地址访问。
 - 很小的内建运行库：部分 Object、String、StringBuilder、System、PrintStream、Math 方法。
 - 执行指令预算和 Ndless 下的 ESC 中断检查。
@@ -78,9 +81,11 @@ python3 tools/test.py --vm build/nspire-jvm
 ```sh
 python3 tools/build-runtime.py --java8-home /path/to/java8
 python3 tools/test-runtime.py --vm build/nspire-jvm
+python3 tools/test-loader.py --vm build/nspire-jvm
 ```
 
-源码、固定版本和授权位于 `runtime/openjdk8/`。本次有 38 项基础检查和 2 个运行库对照程序通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+源码、固定版本和授权位于 `runtime/openjdk8/`，共 71 个上游源文件。
+本次有 42 项基础检查、2 个运行库对照程序和 7 项资源/服务加载测试通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
 计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
 
 制作自己的简单示例：
@@ -94,9 +99,9 @@ jar cf myapp.jar.tns -C classes .
 
 ## 尚未实现的关键功能
 
-- `invokedynamic`、MethodHandle、动态常量和完整反射（方法/字段反射、注解、泛型等）。
+- 通用 `invokedynamic`（包括 lambda）、MethodHandle、动态常量和完整反射（方法/字段反射、注解、泛型等）。字符串拼接暂不支持 float/double 的 Java 格式化。
 - 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
-- 完整 Java 标准类库、ClassLoader 扩展、JNI、资源加载、插件 JAR 动态加载。
+- 完整 Java 标准类库、自定义 ClassLoader 命名空间和 defineClass、JNI、插件 JAR 动态加载。现有资源 API 只读启动时指定的类路径，单个资源最多 8 MiB。
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
 - 完整 Unicode/字符串 API 和 Java 浮点数的精确文本格式规则。
@@ -124,17 +129,13 @@ ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 �
 当前实际结果：
 
 ```text
-VM error: runtime method not implemented: java/lang/Class.getClassLoader()Ljava/lang/ClassLoader;
-  at org/slf4j/LoggerFactory.findServiceProviders()Ljava/util/List; pc=10
-  at org/slf4j/LoggerFactory.bind()V pc=0
-  at org/slf4j/LoggerFactory.performInitialization()V pc=0
-  at org/slf4j/LoggerFactory.getProvider()Lorg/slf4j/spi/SLF4JServiceProvider; pc=21
-  at org/slf4j/LoggerFactory.getILoggerFactory()Lorg/slf4j/ILoggerFactory; pc=0
-  at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
-  at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
+VM error: class not found: java/util/Properties
+  at ch/qos/logback/core/util/CoreVersionUtil.getCoreVersionBySelfDeclaredProperties()Ljava/lang/String; pc=0
+  at ch/qos/logback/classic/util/ContextInitializer.checkVersions()V pc=0
 ```
 
-即使补齐这一项，仍需实现上列的运行库、动态调用、完整线程语义和网络支持。
+真实 SLF4J 服务发现已找到并实例化 Logback 提供者，当前停在日志初始化的版本读取阶段，尚未进入 Xinbot.main；完整堆栈见 `XINBOT-RUN.txt`。
+即使补齐 Properties，仍需实现上列的运行库、动态调用、完整线程语义和网络支持。
 JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另含部分可选的 Java 22 FFM 类。
 这不意味着每次启动都会加载所有类，也不意味着仅凭这些可选类就能断定最低 Java 版本是 22。
 
@@ -146,4 +147,6 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 `src/vm.c` 是解释器、类加载器、对象堆和最小运行库；`src/main.c` 是主机/Ndless 入口。
 `src/threads.inc` 实现协作式调度与 monitor；`src/context.*`、`src/context_arm.S` 提供主机及 ARM 栈切换。
 `src/unsafe.inc` 为 OpenJDK 提供经过对象边界检查的字段访问和原子操作。
+`src/loader.inc` 实现类加载器与资源 API，`src/indy.inc` 实现字符串拼接 bootstrap。
+`src/identifiers.inc` 是由 `tools/GenerateIdentifiers.java` 生成的 Java 标识符字符范围表。
 `vendor/miniz.*` 仅用于读取压缩 JAR。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。

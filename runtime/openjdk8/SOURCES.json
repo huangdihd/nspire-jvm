@@ -206,6 +206,22 @@
       "upstream_path": "jdk/src/share/classes/java/lang/Enum.java",
       "sha256": "9c7c0281768c55d669361da6e8680812a2bbb8dcee2943834d267653a3068611"
     },
+    "java/util/ServiceLoader.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ServiceLoader.java",
+      "sha256": "e727912e93700d5760724ff9aa506fad06e537a0d373200790838ec986c7871d"
+    },
+    "java/util/ServiceConfigurationError.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ServiceConfigurationError.java",
+      "sha256": "74c91a97d4910948e3a36a655f039a567e41e3b2aed1f67f18cc1e338f0e356e"
+    },
+    "java/util/concurrent/CopyOnWriteArrayList.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/CopyOnWriteArrayList.java",
+      "sha256": "30026d65ef30facaa5f8025a55db468dd82a8340ef5494ec53f4c365508f801b"
+    },
+    "java/util/concurrent/CopyOnWriteArraySet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/CopyOnWriteArraySet.java",
+      "sha256": "a12c87c9534c4444b5b8f4ba27a9a9db17af7a7d7aeb752243d5427d978af09e"
+    },
     "java/util/function/Consumer.java": {
       "upstream_path": "jdk/src/share/classes/java/util/function/Consumer.java",
       "sha256": "78ad089a7f066f07815a9eaa4aed9214c24891633e9e3f66c266cf477a0d8377"

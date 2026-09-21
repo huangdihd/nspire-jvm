@@ -24,6 +24,10 @@ PASS ThreadLocalTest (directory)
 PASS ThreadLocalTest (JAR)
 PASS PropertiesTest (directory)
 PASS PropertiesTest (JAR)
+PASS BoxingTest (directory)
+PASS BoxingTest (JAR)
+PASS ConcatTest (directory)
+PASS ConcatTest (JAR)
 PASS split application/runtime classpath
 PASS split application/runtime classpath
 PASS boot classpath precedence
@@ -31,4 +35,4 @@ PASS fail-fast UnsupportedTest
 PASS fail-fast ThreadFailureTest
 PASS fail-fast LoopTest
 PASS six truncated class files
-38 checks passed. Host only; no calculator execution verified.
+42 checks passed. Host only; no calculator execution verified.

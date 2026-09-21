@@ -10,24 +10,28 @@ The current interpreter and passing sample programs do not achieve that objectiv
   discarded native thread records and fatal errors on child stacks were fixed.
 - Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
   construction-time childValue, weak-key cleanup and clearing on termination.
-- Imported 67 unchanged OpenJDK 8 source files with their full license notices,
+- Imported 71 unchanged OpenJDK 8 source files with their full license notices,
   pinned revision and per-file hashes; build with tools/build-runtime.py.
 - Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
   park/unpark, declared-field lookup, string hashing/comparison and properties.
-- Real Xinbot now gets through ConcurrentHashMap, LinkedBlockingQueue and MDC
-  initialization. The next failure is Class.getClassLoader during SLF4J service
-  discovery (see XINBOT-RUN.txt); Xinbot.main has not been reached.
-- 38 basic checks plus 2 OpenJDK runtime programs passed on ordinary and
-  ASan/UBSan/leak-detection builds. Tests include concurrent CHM resizing, tree
-  bins, atomic counts, blocking queues and reentrant lock conditions.
+- Added bootstrap/application loader objects, context-loader inheritance, actual
+  classpath resources, UTF-8 readers, Class.newInstance and OpenJDK ServiceLoader.
+  Custom loader namespaces and defineClass remain unsupported.
+- Added Integer boxing/cache, Cloneable copies, copy-on-write collections and
+  limited StringConcatFactory bootstrap support with virtual toString conversion.
+- Real Xinbot instantiates its Logback provider and starts initialization. The
+  next failure is java.util.Properties while reading version metadata (see
+  XINBOT-RUN.txt); Xinbot.main has not been reached.
+- 42 basic checks, 2 OpenJDK runtime programs and 7 loader/service checks passed
+  on ordinary and ASan/UBSan/leak-detection builds. Tests include concurrent CHM
+  resizing, tree bins, atomic counts, queues, locks, resources and provider errors.
 - ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
   has happened; successful linking does not prove device behavior.
 
 Next work:
-1. Implement actual loader objects and JAR resource access for ServiceLoader.
-   Do not return a fake successful logger binding or discard service providers.
-   Loader namespaces, reflection constructors and provider discovery must work
-   consistently with the real upstream JAR.
+1. Implement java.util.Properties and the actual version-resource reading path
+   used by Logback. Preserve real provider initialization; do not skip logging.
+   Loader namespaces, general reflection and additional I/O APIs are still partial.
 2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
    and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate
    the calculator's precision or behavior when its wall clock changes.

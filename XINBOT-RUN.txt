@@ -7,17 +7,26 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: runtime method not implemented: java/lang/Class.getClassLoader()Ljava/lang/ClassLoader;
-  at org/slf4j/LoggerFactory.findServiceProviders()Ljava/util/List; pc=10
-  at org/slf4j/LoggerFactory.bind()V pc=0
+VM error: class not found: java/util/Properties
+  at ch/qos/logback/core/util/CoreVersionUtil.getCoreVersionBySelfDeclaredProperties()Ljava/lang/String; pc=0
+  at ch/qos/logback/classic/util/ContextInitializer.checkVersions()V pc=0
+  at ch/qos/logback/classic/util/ContextInitializer.autoConfig(Ljava/lang/ClassLoader;)V pc=6
+  at ch/qos/logback/classic/util/ContextInitializer.autoConfig()V pc=6
+  at ch/qos/logback/classic/spi/LogbackServiceProvider.initializeLoggerContext()V pc=11
+  at ch/qos/logback/classic/spi/LogbackServiceProvider.initialize()V pc=21
+  at org/slf4j/LoggerFactory.bind()V pc=37
   at org/slf4j/LoggerFactory.performInitialization()V pc=0
   at org/slf4j/LoggerFactory.getProvider()Lorg/slf4j/spi/SLF4JServiceProvider; pc=21
   at org/slf4j/LoggerFactory.getILoggerFactory()Lorg/slf4j/ILoggerFactory; pc=0
   at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 
-Startup now passes ConcurrentHashMap, queue, atomic and thread-local setup and
-reaches SLF4J service discovery, still before Xinbot.main(). No Minecraft
-connection was made and no account credentials were used.
-The failing ClassLoader API is only the next missing dependency; dynamic
-invocation, reflection, resources, networking and device verification remain.
+Startup passes ConcurrentHashMap, queue, atomic and thread-local setup. SLF4J
+reads its real service descriptor, instantiates the Logback provider and calls
+initialize(). StringConcatFactory builds its version-resource names. Execution
+then stops at Properties, still before Xinbot.main(). No Minecraft connection
+was made and no account credentials were used.
+The same stopping point was confirmed with ASan/UBSan/leak detection enabled;
+that direct run reported no sanitizer diagnostics.
+Properties is only the next missing dependency; general dynamic invocation,
+reflection, additional I/O, networking and device verification remain.

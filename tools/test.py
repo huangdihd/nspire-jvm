@@ -38,9 +38,9 @@ def main():
     vm = str(Path(ns.vm).resolve())
     build=ROOT/'build'/'tests'; build.mkdir(parents=True, exist_ok=True)
     javac,java=tool('javac'),tool('java')
-    old=[p for p in (ROOT/'tests').glob('*.java') if p.name not in ('ModernTest.java','UnsupportedTest.java')]
+    old=[p for p in (ROOT/'tests').glob('*.java') if p.name not in ('ModernTest.java','UnsupportedTest.java','ConcatTest.java')]
     run([javac,'--release','8','-encoding','UTF-8','-d',path_for(javac,build),*[path_for(javac,p) for p in old]])
-    for name in ('ModernTest','UnsupportedTest'):
+    for name in ('ModernTest','UnsupportedTest','ConcatTest'):
         run([javac,'--release','17','-d',path_for(javac,build),path_for(javac,ROOT/'tests'/f'{name}.java')])
     # Exercise wide local indices and wide iinc using genuine javac bytecode.
     source='public class WideTest { public static void main(String[] args) {\n'
@@ -51,7 +51,7 @@ def main():
     jar=build/'tests.jar'
     with zipfile.ZipFile(jar,'w',zipfile.ZIP_DEFLATED) as z:
         for p in sorted(build.glob('*.class')): z.write(p,p.name)
-    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[])]
+    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[]),('BoxingTest',[]),('ConcatTest',[])]
     count=0
     report=[]
     for name,args in cases:

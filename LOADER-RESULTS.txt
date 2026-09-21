@@ -1,0 +1,8 @@
+PASS UTF-8 streams, byte windows, close and bounds
+PASS services across two JARs, duplicates, lazy init and reload
+PASS services across JAR and directory
+PASS service error: syntax
+PASS service error: missing
+PASS service error: type
+PASS service error: constructor
+Host only; calculator execution not verified.
