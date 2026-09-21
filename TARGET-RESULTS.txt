@@ -4,16 +4,16 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 1592
-  Zehn executable size: 160632 bytes
-  Bytes needed to load: 161560 (excluding runtime heap/stack/ZIP data)
+  Relocations: 1751
+  Zehn executable size: 171100 bytes
+  Bytes needed to load: 172028 (excluding runtime heap/stack/ZIP data)
   Uses new lcd_blit API.
 
-Current host tests: 31/31 passed, ordinary build, including cooperative threads.
-Earlier snapshot: 26/26 passed, AddressSanitizer + UndefinedBehaviorSanitizer,
-with ASAN_OPTIONS=detect_leaks=1 and no sanitizer errors reported.
-Sanitizers have NOT been rerun on the current threading implementation.
+Current host tests: 38/38 basic checks and 2/2 OpenJDK library programs passed.
+Both suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
+builds, with ASAN_OPTIONS=detect_leaks=1 and no sanitizer errors reported.
 ARM context switching and timing have NOT been tested at runtime.
+Ndless RTC time is currently only second-resolution; see BUILD-NOTES.md.
 
 Calculator execution: NOT TESTED.
 Firmware emulator execution: NOT TESTED.

@@ -18,6 +18,18 @@ Ndless and nspire-io are external build dependencies with their own licenses.
 The source archive does not relicense either project. See BUILD-NOTES.md for
 the exact task-local build procedure and any compatibility changes.
 
+OpenJDK supplemental class library:
+https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
+
+`runtime/openjdk8/` contains 67 unmodified Java source files, their per-file
+copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
+ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
+path and SHA-256. These files are not relicensed under this project's MIT license.
+`dist/runtime.jar.tns` is compiled from those sources using tools/build-runtime.py;
+it embeds the notices and source manifest. The corresponding sources are in
+this repository and the source ZIP. A separate Java 8 rt.jar is used only for
+compile-time API signatures and is not redistributed or copied into the JAR.
+
 Xinbot release audited (not redistributed in this package):
 https://github.com/huangdihd/xinbot/releases/tag/2.4.3-RELEASE
 

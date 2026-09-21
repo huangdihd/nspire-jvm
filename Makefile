@@ -9,12 +9,12 @@ NDLESS_LD ?= nspire-ld
 .PHONY: all host ndless test clean
 all: host
 host: build/nspire-jvm
-build/nspire-jvm: $(SOURCES) src/vm.h src/context.h src/threads.inc vendor/miniz.h Makefile
+build/nspire-jvm: $(SOURCES) src/vm.h src/context.h src/threads.inc src/unsafe.inc vendor/miniz.h Makefile
 	mkdir -p build
 	$(CC) $(COMMON) $(WARN) $(CFLAGS) $(SOURCES) -lm -o $@
 
 ndless: dist/nspire-jvm.tns
-build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc Makefile
+build/ndless/%.o: %.c src/vm.h src/context.h src/threads.inc src/unsafe.inc Makefile
 	mkdir -p $(dir $@)
 	$(NDLESS_CC) $(COMMON) $(WARN) -Os -marm -ffunction-sections -fdata-sections -c $< -o $@
 build/ndless/%.o: %.S

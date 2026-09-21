@@ -17,6 +17,9 @@
 - Java 异常表，支持显式抛出、跨方法捕获，以及常见运行时异常。
 - 标记清扫 GC，根包括执行栈、局部变量、静态字段、字符串常量和本地临时引用。
 - 实验性协作式线程、Thread/Runnable、join/sleep/interrupt、可重入 monitor、synchronized 和 wait/notify；GC 扫描挂起线程的根。
+- ThreadLocal/InheritableThreadLocal 的隔离、初始值、构造时继承、移除和弱键清理。
+- OpenJDK 8 集合补充库：已对照验证 HashMap、ConcurrentHashMap、ArrayList、HashSet、原子变量、ReentrantLock/Condition 和 LinkedBlockingQueue 的部分路径。
+- 运行库所需的字段句柄、原子 CAS/更新、park/unpark 和系统属性；不提供任意本机地址访问。
 - 很小的内建运行库：部分 Object、String、StringBuilder、System、PrintStream、Math 方法。
 - 执行指令预算和 Ndless 下的 ESC 中断检查。
 
@@ -70,6 +73,16 @@ python3 tools/test.py --vm build/nspire-jvm
 在 WSL 没有 Linux JDK 时，脚本也会查找 `/mnt/c/Program Files/Java/*/bin/` 下的 Windows JDK。
 本次实际使用的工具链与兼容修改记录在 `BUILD-NOTES.md`。
 
+重建 `dist/runtime.jar.tns` 需要额外准备一个 Java 8 JRE/JDK，其 `rt.jar` 仅用来提供编译接口：
+
+```sh
+python3 tools/build-runtime.py --java8-home /path/to/java8
+python3 tools/test-runtime.py --vm build/nspire-jvm
+```
+
+源码、固定版本和授权位于 `runtime/openjdk8/`。本次有 38 项基础检查和 2 个运行库对照程序通过普通构建及 ASan/UBSan；这不等同于完整标准库兼容性测试。
+计算器程序需要补充库时，把 `runtime.jar.tns` 也传入同一文件夹，并将其名称写入 `jvm.cfg.tns` 第三行。
+
 制作自己的简单示例：
 
 ```sh
@@ -82,7 +95,7 @@ jar cf myapp.jar.tns -C classes .
 ## 尚未实现的关键功能
 
 - `invokedynamic`、MethodHandle、动态常量和完整反射（方法/字段反射、注解、泛型等）。
-- 完整线程语义、java.util.concurrent 并发库、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
+- 完整线程语义及并发库兼容性、NIO、socket、TLS、DNS、联网驱动。现有线程后端仅经过主机测试，ARM 切换代码尚未实机验证。
 - 完整 Java 标准类库、ClassLoader 扩展、JNI、资源加载、插件 JAR 动态加载。
 - 字节码安全验证器、Java SE/TCK 兼容性；本版只用于可信的自己编译的程序。
 - JAR Manifest 自动入口、多版本 JAR 选择。
@@ -105,16 +118,19 @@ ZIP 中央目录等第三方分配不计入这两个预算。最多加载 512 �
 尝试命令：
 
 ```sh
-./build/nspire-jvm -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
+./build/nspire-jvm -bootclasspath dist/runtime.jar.tns -cp xinbot-2.4.3-RELEASE.jar xin.bbtt.mcbot.Xinbot
 ```
 
 当前实际结果：
 
 ```text
-VM error: class not found: java/util/concurrent/ConcurrentHashMap
-  at org/slf4j/helpers/SubstituteLoggerFactory.<init>()V pc=10
-  at org/slf4j/helpers/SubstituteServiceProvider.<init>()V pc=9
-  at org/slf4j/LoggerFactory.<clinit>()V pc=8
+VM error: runtime method not implemented: java/lang/Class.getClassLoader()Ljava/lang/ClassLoader;
+  at org/slf4j/LoggerFactory.findServiceProviders()Ljava/util/List; pc=10
+  at org/slf4j/LoggerFactory.bind()V pc=0
+  at org/slf4j/LoggerFactory.performInitialization()V pc=0
+  at org/slf4j/LoggerFactory.getProvider()Lorg/slf4j/spi/SLF4JServiceProvider; pc=21
+  at org/slf4j/LoggerFactory.getILoggerFactory()Lorg/slf4j/ILoggerFactory; pc=0
+  at org/slf4j/LoggerFactory.getLogger(Ljava/lang/String;)Lorg/slf4j/Logger; pc=0
   at xin/bbtt/mcbot/Xinbot.<clinit>()V pc=5
 ```
 
@@ -129,4 +145,5 @@ JAR 中含 10,719 个基础类、5,507 个 InvokeDynamic 常量池条目，另�
 
 `src/vm.c` 是解释器、类加载器、对象堆和最小运行库；`src/main.c` 是主机/Ndless 入口。
 `src/threads.inc` 实现协作式调度与 monitor；`src/context.*`、`src/context_arm.S` 提供主机及 ARM 栈切换。
+`src/unsafe.inc` 为 OpenJDK 提供经过对象边界检查的字段访问和原子操作。
 `vendor/miniz.*` 仅用于读取压缩 JAR。授权和来源见 `LICENSE`、`THIRD-PARTY.md`。

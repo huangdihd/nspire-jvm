@@ -1,0 +1,3 @@
+PASS CollectionsTest (OpenJDK runtime JAR)
+PASS ConcurrentLibraryTest (OpenJDK runtime JAR)
+Host only; calculator execution not verified.

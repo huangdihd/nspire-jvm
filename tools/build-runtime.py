@@ -1,0 +1,45 @@
+"""Build the supplemental class library from its preserved upstream sources."""
+from pathlib import Path
+import argparse, hashlib, json, subprocess, tempfile, zipfile
+from test import ROOT, tool, path_for
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--java8-home', required=True, type=Path,
+                    help='JDK/JRE 8 directory; rt.jar supplies build-time signatures only')
+    ns = ap.parse_args()
+    candidates = [ns.java8_home / 'jre/lib/rt.jar', ns.java8_home / 'lib/rt.jar']
+    rt = next((p for p in candidates if p.is_file()), None)
+    if rt is None: ap.error('--java8-home must contain jre/lib/rt.jar or lib/rt.jar')
+    javac = tool('javac')
+    source = ROOT / 'runtime' / 'openjdk8'
+    build = ROOT / 'build'
+    build.mkdir(parents=True, exist_ok=True)
+    files = sorted(source.rglob('*.java'))
+    manifest = json.loads((source / 'SOURCES.json').read_text())
+    assert {p.relative_to(source).as_posix() for p in files} == set(manifest['files']), 'Source manifest does not match input files'
+    for path, record in manifest['files'].items():
+        if hashlib.sha256((source / path).read_bytes()).hexdigest() != record['sha256']:
+            raise RuntimeError(f'Upstream source hash changed: {path}; document changes before rebuilding')
+    # Compile the actual OpenJDK declarations against matching Java 8 APIs,
+    # including package-private helpers and Unsafe. Do not redistribute rt.jar.
+    archive = ROOT / 'dist' / 'runtime.jar.tns'
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    # A fresh output directory prevents removed sources leaving stale classes
+    # in the distributed JAR. TemporaryDirectory cleans only its own directory.
+    with tempfile.TemporaryDirectory(prefix='runtime-', dir=build) as temp:
+        output = Path(temp)
+        cmd = [javac, '-J-Duser.language=en', '-source', '8', '-target', '8',
+               '-bootclasspath', path_for(javac, rt), '-XDignore.symbol.file',
+               '-encoding', 'UTF-8', '-d', path_for(javac, output)]
+        args = output / 'sources.txt'
+        args.write_text('\n'.join('"' + path_for(javac, p).replace('\\', '/') + '"' for p in files))
+        subprocess.run(cmd + ['@' + path_for(javac, args)], check=True)
+        with zipfile.ZipFile(archive, 'w', zipfile.ZIP_DEFLATED) as z:
+            for p in sorted(output.rglob('*.class')):
+                z.write(p, p.relative_to(output).as_posix())
+            for name in ('LICENSE', 'ASSEMBLY_EXCEPTION', 'THIRD_PARTY_README', 'SOURCES.json'):
+                z.write(source / name, 'META-INF/openjdk8/' + name)
+    print(f'Built {archive.name}: {archive.stat().st_size} bytes')
+
+if __name__ == '__main__': main()

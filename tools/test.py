@@ -51,20 +51,20 @@ def main():
     jar=build/'tests.jar'
     with zipfile.ZipFile(jar,'w',zipfile.ZIP_DEFLATED) as z:
         for p in sorted(build.glob('*.class')): z.write(p,p.name)
-    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[])]
+    cases=[('Demo',[]),('CoreTest',['one','two']),('NumericTest',[]),('GcTest',[]),('ModernTest',[]),('WideTest',[]),('ClassTest',[]),('SyncTest',[]),('ThreadTest',[]),('ThreadGcTest',[]),('ThreadLifecycleTest',[]),('ThreadLocalTest',[]),('PropertiesTest',[])]
     count=0
     report=[]
     for name,args in cases:
         ref=run([java,'-cp',path_for(java,build),name,*args]).stdout
         for cp in (build,jar):
-            cmd=[vm,'-cp',cp,'--heap','32768' if name in ('GcTest','ThreadGcTest') else '8388608',name,*args]
+            cmd=[vm,'-cp',cp,'--heap','32768' if name in ('GcTest','ThreadGcTest','ThreadLocalTest') else '8388608',name,*args]
             result=run(cmd)
             if result.stdout!=ref:
                 import difflib
                 raise AssertionError(name+' output differs\n'+''.join(difflib.unified_diff(ref.splitlines(True),result.stdout.splitlines(True),fromfile='Java',tofile='Nspire JVM')))
             count+=1; report.append(f'PASS {name} ({"JAR" if cp==jar else "directory"})')
             print(report[-1],flush=True)
-    negative=[('UnsupportedTest',[],'invokedynamic'),('LoopTest',['--steps','1000'],'instruction budget')]
+    negative=[('UnsupportedTest',[],'invokedynamic'),('ThreadFailureTest',[],'invokedynamic'),('LoopTest',['--steps','1000'],'instruction budget')]
     # Split a real application across JARs; runtime resolution must find all
     # dependency classes, not just the entry point. Check boot precedence too.
     appjar,libjar=build/'split-app.jar',build/'split-lib.jar'

@@ -1,0 +1,274 @@
+{
+  "repository": "https://github.com/openjdk/jdk8u",
+  "revision": "f826be1da079fb8d44055a0d86021d13748f9c36",
+  "files": {
+    "java/lang/Iterable.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Iterable.java",
+      "sha256": "9d5216a4214a4b497faf47bfcdae81acc82f26222e5c04fe7a8702f95cafac1d"
+    },
+    "java/lang/Comparable.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Comparable.java",
+      "sha256": "fa36a5187e874680520eb22bba1cd52657d1a3206ab050df0e3b986a19853c15"
+    },
+    "java/io/ObjectStreamField.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ObjectStreamField.java",
+      "sha256": "1e973cc45621856fb8c997a437d1986110ee2ca2a282ddc3cb6f3851ca568153"
+    },
+    "sun/misc/Contended.java": {
+      "upstream_path": "jdk/src/share/classes/sun/misc/Contended.java",
+      "sha256": "ecf600d32ca268101d6b349bb196aeb03e4c34d2bc1143cbcbe782157a410bf2"
+    },
+    "java/util/AbstractCollection.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractCollection.java",
+      "sha256": "36a1ebd90c8578e3f58234360bf98fb15910b9615886de7eb36637c634d20c3c"
+    },
+    "java/util/AbstractMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractMap.java",
+      "sha256": "f6e0750288834c5287170aaec7133cf36d702959f960cdb5d81af1b4f65b3cab"
+    },
+    "java/util/AbstractSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractSet.java",
+      "sha256": "d2f27dd4e1d8838acf53c79dc0d6c92dfb815dad54a2cba6cd266de6b4a68920"
+    },
+    "java/util/AbstractList.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractList.java",
+      "sha256": "fe67d80c84316baba9a2c9f1905fbeda1b3953ebeb7a76021dc5d0a37bb9d11b"
+    },
+    "java/util/AbstractSequentialList.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractSequentialList.java",
+      "sha256": "f6cc3c1f53f39e1b73ada8311b10aad4bd5f0edd1b73b387aa205ea212a46dd3"
+    },
+    "java/util/Collection.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Collection.java",
+      "sha256": "b5147b57d95df72b4249e8cc330529d1c989c3e2a6e856958b4a98d92858f2e5"
+    },
+    "java/util/Map.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Map.java",
+      "sha256": "f6d3a0d3582f4e73e8c091f76aa4aac8e774d0d75b71e347b030905410e67355"
+    },
+    "java/util/Set.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Set.java",
+      "sha256": "e6e876a4a82dc266d35baa15c4705ce614b13e06f5a5989dd14daec712267eba"
+    },
+    "java/util/List.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/List.java",
+      "sha256": "b145032f95cbb1bd650599c374a1209bbed305f7a5434c63c9bb09c28a76a5d4"
+    },
+    "java/util/Iterator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Iterator.java",
+      "sha256": "73182aaad2ad7a648542ffef8999e44aa06985005d3acb8326335d910e1739ad"
+    },
+    "java/util/ListIterator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ListIterator.java",
+      "sha256": "f86860d6826c24f555befc614ce05835ec831d2bba988ddb87f244fe2d2987ad"
+    },
+    "java/util/Enumeration.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Enumeration.java",
+      "sha256": "e38b99d9d05582bb60b1444d485ef143833f89a2723b63d4d0437bebf35c4ce1"
+    },
+    "java/util/Queue.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Queue.java",
+      "sha256": "8160e72264c81db5943e265c9b8b95758df8f77cf35b5b0a6d3c20b5994ae481"
+    },
+    "java/util/AbstractQueue.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/AbstractQueue.java",
+      "sha256": "cd1d6e78f7631f47c66908d7b83acc9e9e92fb3bab60e0f97cb9610ff65d3b3f"
+    },
+    "java/util/Deque.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Deque.java",
+      "sha256": "bd84e8fbadd27ffa057cdbc8445b5420316e26f1de242cf72d7fa517b7f81329"
+    },
+    "java/util/RandomAccess.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/RandomAccess.java",
+      "sha256": "e2c5d51e0f15708dc0b8c254fb2947e704217ab6637156f6003fc9d7f2afc1b3"
+    },
+    "java/util/Comparator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Comparator.java",
+      "sha256": "d7f2336f617c63b5f670d2130c9399f28089f27ad835447b5a6fdaf6a2cfe27b"
+    },
+    "java/util/Objects.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Objects.java",
+      "sha256": "cf2ec1ef20ab7e3a4a6e6d41e72482cd6ea49ead694fd2cdee7921a34a287171"
+    },
+    "java/util/Arrays.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Arrays.java",
+      "sha256": "152e9aa5584d49ff84d7c55f30ef4bd2440b570c0693a312d306015f9cb00ff4"
+    },
+    "java/util/Collections.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Collections.java",
+      "sha256": "da9060bf94e798187704cbb765f9f2969728cedc6546bb8d2611639287ae3211"
+    },
+    "java/util/HashMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/HashMap.java",
+      "sha256": "99bc29f1b15d98f14e039a6108ccfe978044187246d5c4a2463605c2d989350a"
+    },
+    "java/util/LinkedHashMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/LinkedHashMap.java",
+      "sha256": "8ad752760d043dbd6dac97717a0d3910308300f6a1d69f0838998ed2ba945587"
+    },
+    "java/util/HashSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/HashSet.java",
+      "sha256": "32a4cab33709b42efa3b7424de9e57d4f3581c3bad4e144a02d343822c741e05"
+    },
+    "java/util/LinkedHashSet.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/LinkedHashSet.java",
+      "sha256": "87c9bcc4ed083ee4c4215419a9217ee692640ebd9db5dd148819cbc9ab7f240e"
+    },
+    "java/util/ArrayList.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ArrayList.java",
+      "sha256": "9446d5e23cf06943f54fa71b7fe0723423a63538c1892ac18e52a20c88490fd7"
+    },
+    "java/util/LinkedList.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/LinkedList.java",
+      "sha256": "cb87a8029c10ddcff04c2ba40a1549ad202a34eddc7fba7898065acc0ac4421d"
+    },
+    "java/util/NoSuchElementException.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/NoSuchElementException.java",
+      "sha256": "ea4c58ae9185c8642a38e3045a401d32b78ed3ab667bee10d51ad0826a303161"
+    },
+    "java/util/ConcurrentModificationException.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/ConcurrentModificationException.java",
+      "sha256": "70010a838f6289bc1310ca6cc085a98da5109294f5d8d1c3587d1e12e6282cd8"
+    },
+    "java/util/Spliterator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Spliterator.java",
+      "sha256": "4680fd5cb32d4707c8c783bc0f484061d2f0329d5422bc10c53b26fce3dda6bd"
+    },
+    "java/util/Spliterators.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Spliterators.java",
+      "sha256": "7e1c7af5c1a6dc7c070501a36d3f0ac0928ba2752f4403ac70fb58dd9bfb14f7"
+    },
+    "java/util/concurrent/ConcurrentMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/ConcurrentMap.java",
+      "sha256": "7b85e1c6e803e45944a5d4de33e89e49fbdb08cc02c82314a3fda2cd1ce41ef7"
+    },
+    "java/util/concurrent/ConcurrentHashMap.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/ConcurrentHashMap.java",
+      "sha256": "6d05b052b27690020aa98c0dd9943be3ebb0182e11ab2d215ff2468003e0232b"
+    },
+    "java/util/concurrent/BlockingQueue.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/BlockingQueue.java",
+      "sha256": "e3dfbc2d0b606bbdd81d66cbd8f351bc0c50ac1def64cd93334e4ed10589a78b"
+    },
+    "java/util/concurrent/LinkedBlockingQueue.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/LinkedBlockingQueue.java",
+      "sha256": "e7326661dfbe539f6c95c330bf72c088146326684bed1b4948d8e1919ecbe416"
+    },
+    "java/util/concurrent/TimeUnit.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/TimeUnit.java",
+      "sha256": "175333baad847ddb35a7e8fb2ba98ed407aed4aa9ab4d843bcae19aab69aac68"
+    },
+    "java/util/concurrent/locks/Lock.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/Lock.java",
+      "sha256": "73450558d20d01d85462e9c85cb539e88cec7a0bf1fc5a76400f626a513aa141"
+    },
+    "java/util/concurrent/locks/Condition.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/Condition.java",
+      "sha256": "cc96e07495b5941bae4113cdcb1462133aa6b6d7baeadcacee84f0f21bc95415"
+    },
+    "java/util/concurrent/locks/ReentrantLock.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/ReentrantLock.java",
+      "sha256": "82f06401f262d43ef6d2b63ea2fa3263c75167934e5da58e2883233ac16bdcba"
+    },
+    "java/util/concurrent/locks/AbstractOwnableSynchronizer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/AbstractOwnableSynchronizer.java",
+      "sha256": "1883e4f1e03d8926619e7d5588c59bceec8f5dafd401131fdf2fb7287c5d4592"
+    },
+    "java/util/concurrent/locks/AbstractQueuedSynchronizer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/AbstractQueuedSynchronizer.java",
+      "sha256": "ab0d9fdf4cf3a6164fa52c76d7d9e5f0218c688f9d0e7a1428f980c4e472c0b5"
+    },
+    "java/util/concurrent/locks/LockSupport.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/locks/LockSupport.java",
+      "sha256": "923de677f833038a966e0ad772a6bbc5aeb3ce15fda16ac01a878a390f15e065"
+    },
+    "java/util/concurrent/atomic/AtomicInteger.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/atomic/AtomicInteger.java",
+      "sha256": "6ebb5935e51489e965961896127a4dda3e8cfd0c7bb80ebf8930adfbeb96b46b"
+    },
+    "java/util/concurrent/atomic/AtomicLong.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/atomic/AtomicLong.java",
+      "sha256": "658fcca242304054376a86160246981abf5dbb32d6ff4a535d08cc99bb3ab44c"
+    },
+    "java/util/concurrent/atomic/AtomicReference.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/atomic/AtomicReference.java",
+      "sha256": "832480abcd75a61754f2fa4594e37bfa3d57bca125d5a5e431ec23cab1e32e1d"
+    },
+    "java/util/concurrent/ThreadLocalRandom.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/concurrent/ThreadLocalRandom.java",
+      "sha256": "24b78d3c6dcbfcf9c1be10809920de5a9f6f24cb2f964c11a2b05ddacc86f6c0"
+    },
+    "java/util/Random.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/Random.java",
+      "sha256": "b7afdb37e16dcc82e54804df0bd8d041ae1c8bbd10eefbdf9c9441859f8067c2"
+    },
+    "java/lang/Enum.java": {
+      "upstream_path": "jdk/src/share/classes/java/lang/Enum.java",
+      "sha256": "9c7c0281768c55d669361da6e8680812a2bbb8dcee2943834d267653a3068611"
+    },
+    "java/util/function/Consumer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/Consumer.java",
+      "sha256": "78ad089a7f066f07815a9eaa4aed9214c24891633e9e3f66c266cf477a0d8377"
+    },
+    "java/util/function/BiConsumer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/BiConsumer.java",
+      "sha256": "a6aeb7e3fc47903199ffd5db79d99ece11402a7d8d5336105370ae5171df1e9d"
+    },
+    "java/util/function/Function.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/Function.java",
+      "sha256": "e571de19d29164230773b9d1e532179c0dd5b41250e461999c0fe34d529b99e6"
+    },
+    "java/util/function/BiFunction.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/BiFunction.java",
+      "sha256": "4cc8916f3529f2d308cd9d04a2debc9bfa823d71f7249ba5ef98d25b8d3f47b2"
+    },
+    "java/util/function/UnaryOperator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/UnaryOperator.java",
+      "sha256": "9f399c093fa3aff83456d7b2653ac91e0b49e84c7e5e33f8b70be3296a236f84"
+    },
+    "java/util/function/BinaryOperator.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/BinaryOperator.java",
+      "sha256": "a4f475ce561ff65f32b05990b0476ba1db22bc207ece9c7c910d9113acffb4ec"
+    },
+    "java/util/function/Predicate.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/Predicate.java",
+      "sha256": "5dbd0edaa34cded07a10604e29cde1fc77525a190841b1eb891853ee909c1e54"
+    },
+    "java/util/function/BiPredicate.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/BiPredicate.java",
+      "sha256": "f2d7329fcc478ad54fc6c67053a83e7ea2f1e58a370b92004d849a9d7c5579cb"
+    },
+    "java/util/function/Supplier.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/Supplier.java",
+      "sha256": "171d5ee2ab1288ee3d90379e0be7bd54f1cbae8669a8de9d2b730f67204da3a4"
+    },
+    "java/util/function/IntFunction.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/IntFunction.java",
+      "sha256": "4d2e85c28eef9014d5342434074dae1b68406ac9d2c7f3c92b144f9cc60b9b0b"
+    },
+    "java/util/function/ToIntFunction.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/ToIntFunction.java",
+      "sha256": "12c3e49fc4a611de2c385a81e62cf95054ad0e5e9566511b661680ea3db88f64"
+    },
+    "java/util/function/ToLongFunction.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/ToLongFunction.java",
+      "sha256": "ff0e767ba23360196f186f633fc3519a8f7296a8310087446872a1f557a1e864"
+    },
+    "java/util/function/ToDoubleFunction.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/ToDoubleFunction.java",
+      "sha256": "f749ae8b4b0cb370f785430a0c19be8cef78bb4cb13cca2d020fef8628eb2bb0"
+    },
+    "java/util/function/IntConsumer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/IntConsumer.java",
+      "sha256": "7d463566778f2338a2e66d008acce2907e526713c7b19b6e1c6310d3cbe1b433"
+    },
+    "java/util/function/LongConsumer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/LongConsumer.java",
+      "sha256": "dce550710f1ad99466f720061511d50018eaab0cf7c587816931195c7a0a9a7c"
+    },
+    "java/util/function/DoubleConsumer.java": {
+      "upstream_path": "jdk/src/share/classes/java/util/function/DoubleConsumer.java",
+      "sha256": "77c42e3127e3b0e0d74a137bc01abc74b2ea0944b2a30d523a25d3d3a8d81b85"
+    }
+  }
+}

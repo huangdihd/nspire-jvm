@@ -49,8 +49,20 @@ bash tools/build-local-sdk.sh
 ## 验证范围
 
 - 主机运行：标准 Java 对照测试，包括目录和压缩 JAR；见 `TEST-RESULTS.txt`。
-- 内存检查：加入协作式线程之前的 26 项测试通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测；当前线程版本尚未重新完成这些检查。
+- 内存检查：当前 38 项基础检查和 2 个运行库对照程序均通过 AddressSanitizer、UndefinedBehaviorSanitizer 与泄漏检测。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
 `dist/` 中的示例用于第一次实机验证；即使它通过，也不能据此声称完整 Xinbot 已经兼容。
+
+## 补充运行库
+
+固定 OpenJDK 8 提交及逐文件校验记录见 `runtime/openjdk8/SOURCES.json`。
+使用 JDK 17 javac 的 `-source 8 -target 8`，并以 Java 8 `rt.jar` 为 bootclasspath。
+本次编译接口来自 Temurin 8u504-b01 的 Linux x64 JRE 压缩包，SHA-256：
+`52dcd578baca1d3e449ea86768a9129c0ee04d7b22565695498353cc66940c61`。
+该 JRE 仅是构建依赖；计算器执行的是本项目解释器和重新编译的补充类库。
+
+当前 Ndless SDK 的 `_gettimeofday` 实现仅读取 RTC 秒数，微秒部分恒为零。
+计算器端定时等待和 `nanoTime` 的精度、单调性仍需要更换计时后端并做实机验证；
+主机定时测试使用 CLOCK_MONOTONIC，不能证明计算器定时行为。

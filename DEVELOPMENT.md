@@ -1,40 +1,43 @@
 # Active objective and next work
 
 Objective remains: run actual Xinbot on a TI-Nspire CX II CAS through Ndless.
-It is NOT achieved by the current interpreter or by passing sample programs.
+The current interpreter and passing sample programs do not achieve that objective.
 
 2026-09-21 progress:
-- Implemented class mirrors, primitive/array class identity and basic Class APIs.
-- Differential ClassTest covers static-init timing, nested/anonymous class names,
-  array covariance, primitive identity, missing forName exceptions and GC identity.
-- Added semicolon-separated classpaths and supplemental bootclasspath, including
-  calculator config's optional third line. Built-ins remain VM-owned.
-- Actual Xinbot now enters SLF4J initialization; next missing class is
-  java/util/concurrent/ConcurrentHashMap (see XINBOT-RUN.txt).
-- Implemented cooperative Thread/Runnable execution, reentrant monitors,
-  synchronized methods/blocks, wait/notify, sleep/join/interrupt and GC roots
-  for suspended threads. Host uses ucontext; Ndless uses ARM stack switching.
-- Host 31 checks pass. The new threading changes have not yet been checked
-  with ASan/UBSan; the earlier 26-check snapshot passed those checks.
-- ARM build inspection is recorded in TARGET-RESULTS.txt. Successful linking
-  does not establish that context switching works on the calculator.
+- Class mirrors, basic Class APIs and supplemental bootclasspath are implemented.
+- Cooperative Thread/Runnable execution, monitors, wait/notify, join/sleep and
+  interrupt are supported with GC roots for suspended threads. Main-thread join,
+  discarded native thread records and fatal errors on child stacks were fixed.
+- Added ThreadLocal and InheritableThreadLocal: per-thread values, initialValue,
+  construction-time childValue, weak-key cleanup and clearing on termination.
+- Imported 67 unchanged OpenJDK 8 source files with their full license notices,
+  pinned revision and per-file hashes; build with tools/build-runtime.py.
+- Implemented checked Unsafe field/array handles, 32/64-bit/reference atomics,
+  park/unpark, declared-field lookup, string hashing/comparison and properties.
+- Real Xinbot now gets through ConcurrentHashMap, LinkedBlockingQueue and MDC
+  initialization. The next failure is Class.getClassLoader during SLF4J service
+  discovery (see XINBOT-RUN.txt); Xinbot.main has not been reached.
+- 38 basic checks plus 2 OpenJDK runtime programs passed on ordinary and
+  ASan/UBSan/leak-detection builds. Tests include concurrent CHM resizing, tree
+  bins, atomic counts, blocking queues and reentrant lock conditions.
+- ARM Zehn was rebuilt and inspected. No calculator or firmware-emulator run
+  has happened; successful linking does not prove device behavior.
 
-Next meaningful implementation work:
-1. Select a runtime-class source with clear per-file licensing; do not assume
-   a repository-level MIT label applies to all imported Java classes.
-   Inspected miniJVM's ConcurrentHashMap is GPLv2 with Classpath exception, but
-   its ReentrantLock header carries a different older Sun notice. No runtime
-   class sources from that candidate have been copied into this deliverable.
-2. Validate ARM context switching and timing on device. Expand threading checks
-   for lifecycle edge cases (including joining the main thread), class-init
-   contention, failure cleanup and sanitizer fiber-stack integration.
-3. Supply collections/concurrency runtime classes and required native atomic,
-   parking and time operations; re-run the upstream JAR after each step.
-4. Dynamic invocation/lambdas, reflection, service/resource discovery, NIO/TLS,
-   plugin loading and a real calculator network transport remain outstanding.
-5. Verify on device or a suitable emulator; neither has happened yet.
+Next work:
+1. Implement actual loader objects and JAR resource access for ServiceLoader.
+   Do not return a fake successful logger binding or discard service providers.
+   Loader namespaces, reflection constructors and provider discovery must work
+   consistently with the real upstream JAR.
+2. Replace the Ndless timing backend: the SDK's _gettimeofday reads RTC seconds
+   and returns tv_usec=0. Current host CLOCK_MONOTONIC tests do not validate
+   the calculator's precision or behavior when its wall clock changes.
+3. Expand Java native/library coverage from actual failures. Imported methods
+   still require APIs not provided here (streams, lambdas, fork/join,
+   serialization and others). Class-init failure semantics also remain partial.
+4. Dynamic invocation, reflection, NIO/TLS, plugin loading and the calculator's
+   real network transport remain outstanding. The user's intended network
+   connection has been asked about; do not assume an answer.
+5. Verify on device or a suitable emulator and measure memory/performance.
 
-No claim is made that a boot JAR from desktop Java can just be copied in and work.
-The loader currently supplies one class namespace, not loader-specific identity
-or full parent delegation. The network transport must keep Xinbot execution on
-the calculator as requested; remote execution is not a replacement objective.
+Xinbot execution must remain on the calculator. A future network bridge may
+forward transport only; running Xinbot remotely does not achieve this objective.

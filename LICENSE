@@ -22,3 +22,6 @@ SOFTWARE.
 
 vendor/miniz.c and vendor/miniz.h retain their upstream copyright and license
 notices and are not covered by the copyright attribution above.
+
+runtime/openjdk8/ is separately licensed OpenJDK code. Its original notices
+and GPLv2 + Classpath exception terms are preserved there; see THIRD-PARTY.md.

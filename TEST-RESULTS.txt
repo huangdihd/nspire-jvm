@@ -18,10 +18,17 @@ PASS ThreadTest (directory)
 PASS ThreadTest (JAR)
 PASS ThreadGcTest (directory)
 PASS ThreadGcTest (JAR)
+PASS ThreadLifecycleTest (directory)
+PASS ThreadLifecycleTest (JAR)
+PASS ThreadLocalTest (directory)
+PASS ThreadLocalTest (JAR)
+PASS PropertiesTest (directory)
+PASS PropertiesTest (JAR)
 PASS split application/runtime classpath
 PASS split application/runtime classpath
 PASS boot classpath precedence
 PASS fail-fast UnsupportedTest
+PASS fail-fast ThreadFailureTest
 PASS fail-fast LoopTest
 PASS six truncated class files
-31 checks passed. Host only; no calculator execution verified.
+38 checks passed. Host only; no calculator execution verified.

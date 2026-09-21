@@ -5,7 +5,7 @@
 #define THREAD_STACK_SIZE (256U*1024U)
 #define MAX_LIVE_THREADS 32U
 static void thread_entry(void *opaque);
-static int thread_alive(VmThread *t) {return t&&t->state!=T_NEW&&t->state!=T_DONE;}
+static int thread_alive(VmThread *t) {return t&&!t->finished&&t->state!=T_NEW&&t->state!=T_DONE;}
 static int workers_alive(VM *v) {
     for(VmThread *t=v->threads;t;t=t->next)if(t!=v->main_thread&&!t->daemon&&thread_alive(t))return 1;
     return 0;
@@ -17,6 +17,16 @@ static void save_thread(VM *v,VmThread *t) {
 static void restore_thread(VM *v,VmThread *t) {
     v->current=t;v->frame=t->frame;v->depth=t->depth;v->exception=t->exception;v->nr=t->nr;
     memcpy(v->roots,t->roots,t->nr*sizeof(Object *));
+}
+static void abort_vm(VM *v) {
+    /* Never longjmp across fiber stacks: return to the saved main C stack first. */
+    if(v->current&&v->main_thread&&v->current!=v->main_thread) {
+        VmThread *old=v->current;v->fatal=1;save_thread(v,old);
+        restore_thread(v,v->main_thread);
+        vm_context_switch(&old->context,&v->main_thread->context);
+        abort();
+    }
+    longjmp(v->abort,1);
 }
 static void schedule(VM *v) {
     VmThread *old=v->current;
@@ -31,7 +41,7 @@ static void schedule(VM *v) {
             case T_DRAIN:if(!workers_alive(v))t->state=T_RUN;break;
             case T_JOIN:if(!thread_alive(t->joining)){t->state=T_RUN;break;}
                 /* fall through */
-            case T_SLEEP:case T_WAIT:
+            case T_SLEEP:case T_WAIT:case T_PARK:
                 if(t->interrupted||(t->deadline&&now>=t->deadline))t->state=T_RUN;
                 else if(t->deadline)timed=1;
                 break;
@@ -43,7 +53,9 @@ static void schedule(VM *v) {
             if(next->state==T_RUN) {
                 if(next==old)return;
                 save_thread(v,old);restore_thread(v,next);
-                vm_context_switch(&old->context,&next->context);return;
+                vm_context_switch(&old->context,&next->context);
+                if(v->fatal)longjmp(v->abort,1);
+                return;
             }
             next=next->next?next->next:v->threads;
         }while(next!=start);

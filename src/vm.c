@@ -26,6 +26,8 @@ typedef struct Object Object;
 typedef struct Method Method;
 typedef struct VM VM;
 typedef struct VmThread VmThread;
+typedef struct LocalEntry { struct LocalEntry *next;Object *key,*value; } LocalEntry;
+typedef struct Property { struct Property *next;char *key,*value,*initial; } Property;
 typedef struct { uint64_t bits; unsigned char tag; } Value;
 enum { INT=1, LONG, FLOAT, DOUBLE, REF };
 typedef struct Mem { struct Mem *next; size_t size; } Mem;
@@ -51,6 +53,7 @@ struct Object {
     Object *next, *grey; Class *cls; unsigned mark; char kind;
     size_t count, bytes; Value *data; char *text; char *array_desc;
     Class *represented;
+    Field *represented_field;unsigned interned;
     VmThread *thread, *monitor_owner; unsigned monitor_depth;
     Object *thread_target;
 };
@@ -59,12 +62,13 @@ typedef struct Frame {
     size_t sp; uint32_t pc, ip;
     Object *method_lock;
 } Frame;
-enum { T_NEW,T_RUN,T_MONITOR,T_WAIT,T_SLEEP,T_JOIN,T_CLASS,T_DRAIN,T_DONE };
+enum { T_NEW,T_RUN,T_MONITOR,T_WAIT,T_SLEEP,T_JOIN,T_CLASS,T_DRAIN,T_PARK,T_DONE };
 struct VmThread {
     VmThread *next;VM *vm;VmContext context;void *stack;
     Object *object,*waiting,*exception;Class *waiting_class;VmThread *joining;
     Frame *frame;Object *roots[256];unsigned nr;int depth,state,interrupted,daemon;
-    unsigned id;uint64_t deadline;
+    unsigned id;uint64_t deadline;int finished,permit;
+    LocalEntry *locals_map;
 };
 typedef struct { char *path; mz_zip_archive zip; int is_zip; } ClassPath;
 struct VM {
@@ -73,15 +77,18 @@ struct VM {
     Object *objects, *exception; size_t heap, threshold; Frame *frame;
     Object *roots[256]; unsigned nr;
     ClassPath paths[32]; unsigned npaths; uint64_t steps;
-    VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;
+    VmThread *threads,*current,*main_thread;unsigned next_thread_id,live_threads;int fatal;
+    Object *unsafe_instance,*runtime_instance;
+    Property *properties;
 };
+static void abort_vm(VM *v);
 static void fail(VM *v, const char *fmt, ...) {
     va_list a; va_start(a, fmt); fputs("VM error: ", stderr); vfprintf(stderr, fmt, a);
     va_end(a); fputc('\n', stderr);
     for (Frame *f=v->frame; f; f=f->prev)
         fprintf(stderr, "  at %s.%s%s pc=%u\n", f->method->owner->name,
                 f->method->name, f->method->desc, (unsigned)f->ip);
-    longjmp(v->abort, 1);
+    abort_vm(v);
 }
 static void *alloc(VM *v, size_t n) {
     if (n > META_LIMIT || v->metadata > META_LIMIT-n) fail(v, "metadata limit exceeded");
@@ -96,8 +103,33 @@ static void release(VM *v, void *p) {
     while (*q && *q!=m) q=&(*q)->next;
     if (*q) { *q=m->next; v->metadata-=m->size; free(m); }
 }
+static void clear_locals(VM *v,VmThread *t) {
+    while(t->locals_map){LocalEntry *e=t->locals_map;t->locals_map=e->next;release(v,e);}
+}
 static char *copy(VM *v, const char *s) {
     size_t n=strlen(s)+1; char *r=(char *)alloc(v,n); memcpy(r,s,n); return r;
+}
+static Property *property(VM *v,const char *key,int create) {
+    for(Property *p=v->properties;p;p=p->next)if(!strcmp(p->key,key))return p;
+    if(!create)return NULL;
+    Property *p=(Property *)alloc(v,sizeof *p);p->key=copy(v,key);p->next=v->properties;v->properties=p;return p;
+}
+static void init_properties(VM *v) {
+    const char *pairs[]={"java.vm.name","Nspire JVM","java.vm.version","0.1",
+        "java.vm.vendor","Nspire JVM contributors","java.class.version","61.0",
+        "file.separator","/","path.separator",";","line.separator","\n","file.encoding","UTF-8",
+#ifdef _TINSPIRE
+        "os.name","Ndless","os.arch","arm",
+#else
+        "os.name","Linux",
+#if UINTPTR_MAX > UINT32_MAX
+        "os.arch","amd64",
+#else
+        "os.arch","x86",
+#endif
+#endif
+        NULL};
+    for(unsigned i=0;pairs[i];i+=2){Property *p=property(v,pairs[i],1);p->value=copy(v,pairs[i+1]);p->initial=copy(v,pairs[i+1]);}
 }
 static Value val(uint64_t x, int t) { Value a; a.bits=x; a.tag=(unsigned char)t; return a; }
 static Value iv(int32_t x) { return val((uint32_t)x,INT); }
@@ -118,6 +150,7 @@ static void mark(Object *o, Object **grey) {
 static void collect(VM *v) {
     Object *grey=NULL;
     mark(v->exception,&grey);
+    mark(v->unsafe_instance,&grey);mark(v->runtime_instance,&grey);
     for (unsigned i=0;i<v->nr;i++) mark(v->roots[i],&grey);
     for(VmThread *t=v->threads;t;t=t->next)if(t->state!=T_NEW&&t->state!=T_DONE) {
         mark(t->object,&grey);mark(t->waiting,&grey);
@@ -147,13 +180,27 @@ static void collect(VM *v) {
     while (grey) {
         Object *o=grey; grey=o->grey;
         mark(o->thread_target,&grey);
+        if(o->thread)for(LocalEntry *e=o->thread->locals_map;e;e=e->next)mark(e->value,&grey);
         for(size_t i=0;i<o->count;i++) if(o->data[i].tag==REF) mark(obj(o->data[i]),&grey);
+    }
+    /* ThreadLocal keys are weak. Retain values for reachable Thread objects,
+     * then discard stale entries before their key objects are freed. */
+    for(VmThread *t=v->threads;t;t=t->next) {
+        LocalEntry **entry=&t->locals_map;
+        while(*entry){LocalEntry *e=*entry;if(!e->key->mark){*entry=e->next;release(v,e);}else entry=&e->next;}
     }
     Object **p=&v->objects;
     while(*p) {
         Object *o=*p;
         if(o->mark) { o->mark=0; p=&o->next; }
         else { *p=o->next; v->heap-=o->bytes; if(o->thread)o->thread->object=NULL; free(o->data); free(o->text); free(o->array_desc); free(o); }
+    }
+    VmThread **tp=&v->threads;
+    while(*tp) {
+        VmThread *t=*tp;
+        if(t!=v->current&&t!=v->main_thread&&!t->object&&(t->state==T_NEW||t->state==T_DONE)) {
+            *tp=t->next;clear_locals(v,t);release(v,t->stack);release(v,t);
+        } else tp=&t->next;
     }
     v->threshold=v->heap+v->heap/2+65536;
     if(v->threshold>v->opt.heap_limit) v->threshold=v->opt.heap_limit;
@@ -220,11 +267,8 @@ static Value constant(VM *v,Class *c,unsigned idx) {
     if(p->tag==8) {
         const char *s=utf(v,c,p->a);
         if(!p->intern) {
-            for(int i=0;i<v->nclasses&&!p->intern;i++) for(unsigned j=1;j<v->classes[i]->nc;j++) {
-                Object *o=v->classes[i]->cp[j].intern;
-                if(o&&o->kind=='s'&&!strcmp(o->text,s)) { p->intern=o; break; }
-            }
-            if(!p->intern) p->intern=string(v,s);
+            for(Object *o=v->objects;o;o=o->next)if(o->interned&&!strcmp(o->text,s)){p->intern=o;break;}
+            if(!p->intern) {p->intern=string(v,s);p->intern->interned=1;}
         }
         return rv(p->intern);
     }
@@ -247,10 +291,16 @@ static const char *wrapper_primitive(const char *name) {
 }
 static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/Object")) return "";
+    if(!strcmp(n,"sun/misc/Unsafe")||!strcmp(n,"sun/misc/VM")||!strcmp(n,"java/lang/Runtime")||!strcmp(n,"java/lang/reflect/Field"))return "java/lang/Object";
+    if(!strcmp(n,"java/lang/ThreadLocal"))return "java/lang/Object";
+    if(!strcmp(n,"java/lang/InheritableThreadLocal"))return "java/lang/ThreadLocal";
     const char *plain[]={"java/lang/Thread","java/lang/Runnable","java/lang/Class","java/lang/Cloneable","java/io/Serializable","java/lang/String","java/lang/StringBuilder","java/lang/System","java/io/PrintStream","java/lang/Math","java/lang/Number","java/lang/Boolean","java/lang/Character","java/lang/Void","java/lang/Throwable",NULL};
     for(int i=0;plain[i];i++) if(!strcmp(n,plain[i])) return "java/lang/Object";
     if(wrapper_primitive(n))return "java/lang/Number";
     if(!strcmp(n,"java/lang/ClassNotFoundException"))return "java/lang/Exception";
+    if(!strcmp(n,"java/lang/NoSuchFieldException"))return "java/lang/Exception";
+    if(!strcmp(n,"java/lang/Error"))return "java/lang/Throwable";
+    if(!strcmp(n,"java/lang/AssertionError")||!strcmp(n,"java/lang/InternalError"))return "java/lang/Error";
     if(!strcmp(n,"java/lang/InterruptedException"))return "java/lang/Exception";
     if(!strcmp(n,"java/lang/IllegalThreadStateException"))return "java/lang/IllegalArgumentException";
     if(!strcmp(n,"java/lang/IllegalMonitorStateException"))return "java/lang/RuntimeException";
@@ -384,6 +434,10 @@ static Class *load(VM *v,const char *name) {
         if(!strcmp(name,"java/lang/Cloneable")||!strcmp(name,"java/io/Serializable")||!strcmp(name,"java/lang/Runnable"))c->access=0x601;
         if(!strcmp(name,"java/lang/Thread")) {
             c->ni=1;c->interfaces=(Class **)alloc(v,sizeof(Class *));c->interfaces[0]=load(v,"java/lang/Runnable");
+            const char *names[]={"parkBlocker","threadLocalRandomSeed","threadLocalRandomProbe","threadLocalRandomSecondarySeed"};
+            const char *descs[]={"Ljava/lang/Object;","J","I","I"};
+            c->nf=4;c->slots=4;c->fields=(Field *)alloc(v,4*sizeof(Field));
+            for(unsigned i=0;i<4;i++){c->fields[i].name=(char *)names[i];c->fields[i].desc=(char *)descs[i];c->fields[i].slot=i;c->fields[i].flags=0x42;}
         }
         if(!strcmp(name,"java/lang/Class")||!strcmp(name,"java/lang/String")||wrapper_primitive(name))c->access=0x11;
         if(wrapper_primitive(name)) {
@@ -536,9 +590,75 @@ static int class_available(VM *v,const char *name) {
     if(!valid_name(name))return 0;
     char path[1024];int index;return find_class(v,name,&index,path)!=NULL;
 }
+#include "unsafe.inc"
+static LocalEntry *local_entry(VM *v,VmThread *t,Object *key,int create) {
+    for(LocalEntry *e=t->locals_map;e;e=e->next)if(e->key==key)return e;
+    if(!create)return NULL;
+    LocalEntry *e=(LocalEntry *)alloc(v,sizeof *e);e->key=key;e->next=t->locals_map;t->locals_map=e;return e;
+}
+static void inherit_locals(VM *v,VmThread *child) {
+    size_t count=0;Class *inheritable=load(v,"java/lang/InheritableThreadLocal");
+    for(LocalEntry *e=v->current->locals_map;e;e=e->next)if(subtype(e->key->cls,inheritable))count++;
+    if(!count)return;
+    /* childValue may mutate the parent's map, allocate or yield: snapshot and
+     * root all inputs before invoking any user code. */
+    Object *snapshot=new_object(v,load(v,"java/lang/Object"),'o',2*count);root(v,snapshot);
+    size_t used=0;
+    for(LocalEntry *e=v->current->locals_map;e;e=e->next)if(subtype(e->key->cls,inheritable)) {
+        snapshot->data[used++]=rv(e->key);snapshot->data[used++]=rv(e->value);
+    }
+    for(size_t i=0;i<used&&!v->exception;i+=2) {
+        Object *key=obj(snapshot->data[i]);Method *m=method(key->cls,"childValue","(Ljava/lang/Object;)Ljava/lang/Object;");
+        Value result=m?execute(v,m,&snapshot->data[i],2):snapshot->data[i+1];
+        if(!v->exception)local_entry(v,child,key,1)->value=obj(result);
+    }
+    v->nr--;
+}
+static unsigned utf_unit(const unsigned char **input) {
+    const unsigned char *p=*input;unsigned ch=*p++;
+    if(ch>=0xe0&&p[0]&&p[1]){ch=((ch&15)<<12)|((p[0]&63)<<6)|(p[1]&63);p+=2;}
+    else if(ch>=0xc0&&*p)ch=((ch&31)<<6)|(*p++&63);
+    *input=p;return ch;
+}
+static size_t write_unit(char *p,unsigned ch) {
+    if(ch&&ch<128){p[0]=(char)ch;return 1;}
+    if(ch<2048){p[0]=(char)(0xc0|(ch>>6));p[1]=(char)(0x80|(ch&63));return 2;}
+    p[0]=(char)(0xe0|(ch>>12));p[1]=(char)(0x80|((ch>>6)&63));p[2]=(char)(0x80|(ch&63));return 3;
+}
 static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,unsigned na,int isstatic) {
     const char *cl=c->name; Value none=iv(0); Object *self=NULL;
     if(!isstatic) { if(!na) fail(v,"missing receiver"); self=nonnull(v,a[0]); if(!self) return none; }
+    if(!strcmp(cl,"sun/misc/Unsafe"))return unsafe_call(v,n,d,a,isstatic);
+    if(!strcmp(cl,"sun/misc/VM")&&isstatic&&!strcmp(n,"getSavedProperty")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;")) {
+        Object *key=nonnull(v,a[0]);if(!key)return none;Property *p=property(v,key->text,0);
+        return rv(p&&p->initial?string(v,p->initial):NULL);
+    }
+    if(!strcmp(cl,"java/lang/ThreadLocal")||!strcmp(cl,"java/lang/InheritableThreadLocal")) {
+        if(!isstatic) {
+            if(!strcmp(n,"<init>")&&!strcmp(d,"()V"))return none;
+            if(!strcmp(n,"initialValue")&&!strcmp(d,"()Ljava/lang/Object;"))return rv(NULL);
+            if(!strcmp(cl,"java/lang/InheritableThreadLocal")&&!strcmp(n,"childValue")&&!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/Object;"))return a[1];
+            if(!strcmp(n,"get")&&!strcmp(d,"()Ljava/lang/Object;")) {
+                LocalEntry *e=local_entry(v,v->current,self,0);if(e)return rv(e->value);
+                Method *m=method(self->cls,"initialValue","()Ljava/lang/Object;");
+                Value result=m?execute(v,m,a,1):rv(NULL);
+                if(!v->exception)local_entry(v,v->current,self,1)->value=obj(result);
+                return result;
+            }
+            if(!strcmp(n,"set")&&!strcmp(d,"(Ljava/lang/Object;)V")){local_entry(v,v->current,self,1)->value=obj(a[1]);return none;}
+            if(!strcmp(n,"remove")&&!strcmp(d,"()V")) {
+                LocalEntry **p=&v->current->locals_map;
+                while(*p){LocalEntry *e=*p;if(e->key==self){*p=e->next;release(v,e);break;}p=&e->next;}return none;
+            }
+        }
+        goto missing;
+    }
+    if(!strcmp(cl,"java/lang/Runtime")) {
+        if(isstatic&&!strcmp(n,"getRuntime")&&!strcmp(d,"()Ljava/lang/Runtime;")) {
+            if(!v->runtime_instance)v->runtime_instance=new_object(v,c,'o',0);return rv(v->runtime_instance);
+        }
+        if(!isstatic&&!strcmp(n,"availableProcessors")&&!strcmp(d,"()I"))return iv(1);
+    }
     if(!strcmp(cl,"java/lang/Thread")) {
         if(isstatic) {
             if(!strcmp(n,"currentThread")&&!strcmp(d,"()Ljava/lang/Thread;"))return rv(v->current->object);
@@ -556,6 +676,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
                 else if(!strcmp(d,"(Ljava/lang/Runnable;Ljava/lang/String;)V")){target=obj(a[1]);name=nonnull(v,a[2]);if(!name)return none;}
                 else goto missing;
                 self->thread_target=target;
+                inherit_locals(v,t);if(v->exception)return none;
                 if(name)set_text(v,self,name->text);else {char buf[64];snprintf(buf,sizeof buf,"Thread-%u",t->id);set_text(v,self,buf);}
                 return none;
             }
@@ -578,7 +699,7 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         goto missing;
     }
     if(!strcmp(n,"<init>")) {
-        if(!strcmp(cl,"java/lang/Object")&&!strcmp(d,"()V")) return none;
+        if((!strcmp(cl,"java/lang/Object")||!strcmp(cl,"java/lang/Number"))&&!strcmp(d,"()V")) return none;
         if((!strcmp(cl,"java/lang/StringBuilder")||subtype(c,load(v,"java/lang/Throwable"))) &&
            (!strcmp(d,"()V")||!strcmp(d,"(Ljava/lang/String;)V"))) {
             if(na==2&&obj(a[1])) set_text(v,self,obj(a[1])->text?obj(a[1])->text:"");
@@ -618,6 +739,15 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         }
         if(!isstatic) {
             Class *target=self->represented;if(self->kind!='c'||!target)fail(v,"invalid Class receiver");
+            if(!strcmp(n,"getDeclaredField")&&!strcmp(d,"(Ljava/lang/String;)Ljava/lang/reflect/Field;")) {
+                Object *name=nonnull(v,a[1]);if(!name)return none;
+                for(unsigned i=0;i<target->nf;i++)if(!strcmp(target->fields[i].name,name->text)) {
+                    Object *o=new_object(v,load(v,"java/lang/reflect/Field"),'f',0);
+                    o->represented=target;o->represented_field=&target->fields[i];return rv(o);
+                }
+                throwing(v,"java/lang/NoSuchFieldException");return none;
+            }
+            if(!strcmp(n,"desiredAssertionStatus")&&!strcmp(d,"()Z"))return iv(0);
             if(!strcmp(n,"getName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,0));
             if(!strcmp(n,"getSimpleName")&&!strcmp(d,"()Ljava/lang/String;"))return rv(class_name_string(v,target,1));
             if(!strcmp(n,"isPrimitive")&&!strcmp(d,"()Z"))return iv(target->primitive!=0);
@@ -642,6 +772,26 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"isEmpty")&&!strcmp(d,"()Z")) return iv(!*s);
         if(!strcmp(n,"equals")&&!strcmp(d,"(Ljava/lang/Object;)Z")) return iv(obj(a[1])&&obj(a[1])->kind=='s'&&!strcmp(s,obj(a[1])->text));
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return a[0];
+        if(!strcmp(n,"intern")&&!strcmp(d,"()Ljava/lang/String;")) {
+            for(Object *o=v->objects;o;o=o->next)if(o->interned&&!strcmp(o->text,s))return rv(o);
+            self->interned=1;return a[0];
+        }
+        if(!strcmp(n,"hashCode")&&!strcmp(d,"()I")) {
+            uint32_t hash=0;const unsigned char *p=(const unsigned char *)s;
+            while(*p)hash=31*hash+utf_unit(&p);return iv((int32_t)hash);
+        }
+        if(!strcmp(n,"compareTo")&&(!strcmp(d,"(Ljava/lang/String;)I")||!strcmp(d,"(Ljava/lang/Object;)I"))) {
+            Object *other=nonnull(v,a[1]);if(!other)return none;
+            if(other->kind!='s'){throwing(v,"java/lang/ClassCastException");return none;}
+            const unsigned char *p=(const unsigned char *)s,*q=(const unsigned char *)other->text;
+            while(*p&&*q){int x=(int)utf_unit(&p)-(int)utf_unit(&q);if(x)return iv(x);}
+            int remaining=0;while(*p){utf_unit(&p);remaining++;}while(*q){utf_unit(&q);remaining--;}return iv(remaining);
+        }
+        if(!strcmp(n,"replace")&&!strcmp(d,"(CC)Ljava/lang/String;")) {
+            char *buf=(char *)alloc(v,strlen(s)*3+1),*out=buf;const unsigned char *p=(const unsigned char *)s;
+            while(*p){unsigned ch=utf_unit(&p);out+=write_unit(out,ch==(uint16_t)integer(a[1])?(uint16_t)integer(a[2]):ch);}
+            *out=0;Object *r=string(v,buf);release(v,buf);return rv(r);
+        }
         if(!strcmp(n,"charAt")&&!strcmp(d,"(I)C")) {
             int target=integer(a[1]), pos=0; const unsigned char *p=(const unsigned char *)s;
             while(*p) { unsigned ch=*p++; if(ch>=0xe0&&p[0]&&p[1]) { ch=((ch&15)<<12)|((p[0]&63)<<6)|(p[1]&63); p+=2; } else if(ch>=0xc0&&*p) ch=((ch&31)<<6)|(*p++&63);
@@ -652,6 +802,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(isstatic&&!strcmp(n,"valueOf")&&(!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;")||!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
     }
     if(!strcmp(cl,"java/lang/StringBuilder")) {
+        if(!strcmp(n,"append")&&!strcmp(d,"(C)Ljava/lang/StringBuilder;")) {
+            size_t x=self->text?strlen(self->text):0;char *buf=(char *)alloc(v,x+4);
+            if(x)memcpy(buf,self->text,x);x+=write_unit(buf+x,(uint16_t)integer(a[1]));buf[x]=0;
+            set_text(v,self,buf);release(v,buf);return a[0];
+        }
         if(!strcmp(n,"append")&&na==2&&(!strcmp(d,"(I)Ljava/lang/StringBuilder;")||!strcmp(d,"(J)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/String;)Ljava/lang/StringBuilder;")||!strcmp(d,"(Ljava/lang/Object;)Ljava/lang/StringBuilder;"))) {
             char b[128]; const char *s=as_text(v,a[1],b); size_t x=self->text?strlen(self->text):0, y=strlen(s);
             char *t=(char *)alloc(v,x+y+1); if(x) memcpy(t,self->text,x); memcpy(t+x,s,y+1); set_text(v,self,t); release(v,t); return a[0];
@@ -659,8 +814,23 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
         if(!strcmp(n,"toString")&&!strcmp(d,"()Ljava/lang/String;")) return rv(string(v,self->text?self->text:""));
     }
     if(!strcmp(cl,"java/lang/System")&&isstatic) {
+        int get=!strcmp(n,"getProperty"),set=!strcmp(n,"setProperty"),clear=!strcmp(n,"clearProperty");
+        if((get||set||clear)&&
+           ((!strcmp(d,"(Ljava/lang/String;)Ljava/lang/String;")&&(get||clear))||
+            (!strcmp(d,"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;")&&(get||set)))) {
+            Object *key=nonnull(v,a[0]);if(!key)return none;
+            if(!*key->text){throwing(v,"java/lang/IllegalArgumentException");return none;}
+            Object *value=set?nonnull(v,a[1]):NULL;if(set&&!value)return none;
+            Property *p=property(v,key->text,set);
+            Object *previous=p&&p->value?string(v,p->value):NULL;
+            if(set){release(v,p->value);p->value=copy(v,value->text);}
+            if(clear&&p){release(v,p->value);p->value=NULL;}
+            return previous?rv(previous):get&&na==2?a[1]:rv(NULL);
+        }
         if(!strcmp(n,"gc")&&!strcmp(d,"()V")) { collect(v); return none; }
         if(!strcmp(n,"currentTimeMillis")&&!strcmp(d,"()J")) return val((uint64_t)time(NULL)*1000,LONG);
+        if(!strcmp(n,"nanoTime")&&!strcmp(d,"()J"))return val(vm_millis()*1000000,LONG);
+        if(!strcmp(n,"identityHashCode")&&!strcmp(d,"(Ljava/lang/Object;)I"))return iv((int32_t)(uintptr_t)obj(a[0]));
         /* arraycopy is implemented below after type checking helpers. */
     }
     if(!strcmp(cl,"java/lang/Math")&&isstatic) {
@@ -671,6 +841,18 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     }
     if((!strcmp(cl,"java/lang/Integer")||!strcmp(cl,"java/lang/Long"))&&isstatic&&!strcmp(n,"toString")&&
        (!strcmp(d,"(I)Ljava/lang/String;")||!strcmp(d,"(J)Ljava/lang/String;"))) { char b[128]; return rv(string(v,as_text(v,a[0],b))); }
+    if(!strcmp(cl,"java/lang/Integer")&&isstatic&&!strcmp(n,"numberOfLeadingZeros")&&!strcmp(d,"(I)I")) {
+        uint32_t x=(uint32_t)a[0].bits;int count=0;if(!x)return iv(32);
+        while(!(x&0x80000000U)){count++;x<<=1;}return iv(count);
+    }
+    if(isstatic&&!strcmp(n,"isNaN")) {
+        if(!strcmp(cl,"java/lang/Float")&&!strcmp(d,"(F)Z"))return iv(isnan(flt(a[0]))!=0);
+        if(!strcmp(cl,"java/lang/Double")&&!strcmp(d,"(D)Z"))return iv(isnan(dbl(a[0]))!=0);
+    }
+    if(!strcmp(cl,"java/lang/Boolean")&&isstatic&&!strcmp(n,"parseBoolean")&&!strcmp(d,"(Ljava/lang/String;)Z")) {
+        Object *o=obj(a[0]);const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return iv(0);
+        return iv((s[0]=='t'||s[0]=='T')&&(s[1]=='r'||s[1]=='R')&&(s[2]=='u'||s[2]=='U')&&(s[3]=='e'||s[3]=='E'));
+    }
 missing:
     fail(v,"runtime method not implemented: %s.%s%s",cl,n,d); return none;
 }
@@ -680,7 +862,7 @@ static void thread_entry(void *opaque) {
     if(m)execute(v,m,&arg,1);
     else native_call(v,load(v,"java/lang/Thread"),"run","()V",&arg,1,0);
     if(v->exception){fprintf(stderr,"Uncaught Java exception in thread %s: %s\n",o->text?o->text:"?",v->exception->cls->name);v->exception=NULL;}
-    t->state=T_DONE;v->live_threads--;schedule(v);fail(v,"terminated thread resumed");
+    clear_locals(v,t);t->finished=1;t->state=T_DONE;v->live_threads--;schedule(v);fail(v,"terminated thread resumed");
 }
 static int assignable(VM *v,Object *o,const char *name) {
     if(!o) return 1;
@@ -932,11 +1114,15 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             Value res;
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
-                if(target->flags&NATIVE)fail(v,"unbound native method: %s.%s%s",c->name,n,d);
-                res=execute(v,target,aa,na);
+                if(target->flags&NATIVE) {
+                    if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
+                    else fail(v,"unbound native method: %s.%s%s",c->name,n,d);
+                } else res=execute(v,target,aa,na);
             } else if(!strcmp(c->name,"java/lang/System")&&!strcmp(n,"arraycopy")&&!strcmp(d,"(Ljava/lang/Object;ILjava/lang/Object;II)V")&&stat) res=arraycopy(v,aa);
             else {
                 Class *base=c;while(base&&!base->builtin)base=base->super;
+                if(op!=0xb7&&!stat&&obj(aa[0])->kind=='s'&&
+                    (!strcmp(n,"equals")||!strcmp(n,"hashCode")||!strcmp(n,"toString")||!strcmp(n,"compareTo")))base=obj(aa[0])->cls;
                 if(!base)fail(v,"method not found: %s.%s%s",c->name,n,d);
                 res=native_call(v,base,n,d,aa,na,stat);
             }
@@ -1003,8 +1189,11 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
     v->opt=*opt;v->threshold=65536;int status=1;
     if(!setjmp(v->abort)) {
         if(opt->heap_limit<4096||opt->heap_limit>128U*1024U*1024U)fail(v,"heap must be 4096..134217728 bytes");
+        init_properties(v);
         open_paths(v,opt->bootclasspath);open_paths(v,opt->classpath);
-        Object *main_object=new_object(v,load(v,"java/lang/Thread"),'o',0);
+        Class *thread_class=load(v,"java/lang/Thread");
+        Object *main_object=new_object(v,thread_class,'o',thread_class->slots);
+        for(unsigned i=0;i<thread_class->nf;i++)main_object->data[i]=zero(thread_class->fields[i].desc);
         VmThread *main_thread=thread_record(v,main_object);
         v->current=v->main_thread=main_thread;main_thread->state=T_RUN;v->live_threads=1;
         set_text(v,main_object,"main");
@@ -1020,6 +1209,7 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
         }
         if(v->exception)fprintf(stderr,"Uncaught Java exception: %s\n",v->exception->cls->name);
         else status=0;
+        clear_locals(v,v->main_thread);v->main_thread->finished=1;v->live_threads--;
         if(workers_alive(v)){v->main_thread->state=T_DRAIN;schedule(v);}
     }
     for(unsigned i=0;i<v->npaths;i++)if(v->paths[i].is_zip)mz_zip_reader_end(&v->paths[i].zip);
