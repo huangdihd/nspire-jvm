@@ -17,6 +17,14 @@
 #include <time.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <dirent.h>
+#include "canonical.h"
+#ifndef _TINSPIRE
+#include <sys/time.h>
+#include <sys/statvfs.h>
+#endif
 
 #define MAX_CLASSES 2048
 #define MAX_DEPTH 128
@@ -31,6 +39,7 @@ typedef struct VM VM;
 typedef struct VmThread VmThread;
 typedef struct XmlParse XmlParse;
 typedef struct XmlMem XmlMem;
+typedef struct NativeDir { struct NativeDir *next;DIR *handle; } NativeDir;
 typedef struct LocalEntry { struct LocalEntry *next;Object *key,*value; } LocalEntry;
 typedef struct Property { struct Property *next;char *key,*value,*initial; } Property;
 typedef struct { uint64_t bits; unsigned char tag; } Value;
@@ -73,6 +82,7 @@ struct Object {
     Object *thread_target;
     Object *cause,*suppressed;
     unsigned output_flags,output_pending;int output_fd;
+    int file_fd,file_open;
     unsigned char *buffer;size_t buffer_size,cursor,mark_cursor;
     int resource_path,resource_index,closed,pending,skip_lf;
     char *resource_name;
@@ -105,6 +115,7 @@ struct VM {
     Object *small_cache[3][256];
     Property *properties;
     XmlParse *xml_parsers;XmlMem *xml_mem;size_t xml_bytes;
+    NativeDir *directories;
 };
 static void abort_vm(VM *v);
 static void fail(VM *v, const char *fmt, ...) {
@@ -144,6 +155,7 @@ static void init_properties(VM *v) {
         "java.vm.vendor","Nspire JVM contributors","java.class.version","61.0",
         "file.separator","/","path.separator",";","line.separator","\n","file.encoding","UTF-8",
         "user.language","en","user.country","",
+        "sun.io.useCanonCaches","false","sun.io.useCanonPrefixCache","false",
 #ifdef _TINSPIRE
         "os.name","Ndless","os.arch","arm",
 #else
@@ -233,7 +245,7 @@ static void collect(VM *v) {
     while(*p) {
         Object *o=*p;
         if(o->mark) { o->mark=0; p=&o->next; }
-        else { *p=o->next; v->heap-=o->bytes; if(o->thread)o->thread->object=NULL; free(o->data); free(o->text); free(o->array_desc); free(o->buffer);free(o->resource_name);free(o); }
+        else { *p=o->next; v->heap-=o->bytes; if(o->thread)o->thread->object=NULL; if(o->file_open)close(o->file_fd);free(o->data); free(o->text); free(o->array_desc); free(o->buffer);free(o->resource_name);free(o); }
     }
     VmThread **tp=&v->threads;
     while(*tp) {
@@ -285,6 +297,7 @@ static void initialize(VM *,Class *);
 static Value execute(VM *,Method *,Value *,unsigned);
 static Value native_call(VM *,Class *,const char *,const char *,Value *,unsigned,int);
 static void printstream_class(VM *,Class *);
+static void filestream_class(VM *,Class *);
 static Object *array_new(VM *,const char *,int32_t);
 static void schedule(VM *);
 static int monitor_enter(VM *,Object *);
@@ -337,6 +350,8 @@ static const char *builtin_super(const char *n) {
     if(!strcmp(n,"java/lang/ref/WeakReference"))return "java/lang/ref/Reference";
     if(!strcmp(n,"java/lang/Package"))return "java/lang/Object";
     if(!strcmp(n,"java/io/PrintStream"))return "java/io/FilterOutputStream";
+    if(!strcmp(n,"java/io/FileInputStream"))return "java/io/InputStream";
+    if(!strcmp(n,"java/io/FileOutputStream"))return "java/io/OutputStream";
     if(!strcmp(n,"java/lang/Object")) return "";
     if(!strcmp(n,"java/lang/AutoCloseable")||!strcmp(n,"java/io/Closeable")||!strcmp(n,"java/net/URLConnection"))return "java/lang/Object";
     if(!strcmp(n,"java/net/JarURLConnection")||!strcmp(n,"nspire/FileConnection"))return "java/net/URLConnection";
@@ -532,6 +547,7 @@ static Class *load(VM *v,const char *name) {
     if(base) {
         c->builtin=1;c->access=1; if(*base) c->super=load(v,base); c->slots=c->super?c->super->slots:0;c->loading=0;
         if(!strcmp(name,"java/io/PrintStream"))printstream_class(v,c);
+        if(!strcmp(name,"java/io/FileInputStream")||!strcmp(name,"java/io/FileOutputStream"))filestream_class(v,c);
         if(!strcmp(name,"java/lang/ref/Reference")) {
             c->access=0x401;c->slots=1;c->nf=1;c->fields=(Field *)alloc(v,sizeof(Field));
             c->fields[0].name="referent";c->fields[0].desc="Ljava/lang/Object;";c->fields[0].flags=2;c->fields[0].slot=0;
@@ -837,6 +853,7 @@ static size_t write_unit(char *p,unsigned ch) {
 #include "methods.inc"
 #include "boxing.inc"
 #include "charset.inc"
+#include "filesystem.inc"
 #include "xml.inc"
 static int parse_boolean(Object *o) {
     const char *s=o?o->text:NULL;if(!s||strlen(s)!=4)return 0;
@@ -849,6 +866,8 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
     loaded=method_reflection_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=small_box_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=charset_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
+    loaded=filesystem_native(v,c,n,d,a,&handled);if(handled)return loaded;
+    loaded=filestream_native(v,c,n,d,a,na,&handled);if(handled)return loaded;
     loaded=annotation_native(v,c,n,d,a,isstatic,&handled);if(handled)return loaded;
     loaded=loader_native(v,c,n,d,a,na,isstatic,&handled);if(handled)return loaded;
     if(!isstatic&&!strcmp(cl,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")) {
@@ -1124,6 +1143,11 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(!strcmp(n,"getModifiers")&&!strcmp(d,"()I"))return iv(target->access&0x7611);
             if(!strcmp(n,"getSuperclass")&&!strcmp(d,"()Ljava/lang/Class;"))return rv(target->super&&!(target->access&0x200)?class_mirror(v,target->super):NULL);
             if(!strcmp(n,"getComponentType")&&!strcmp(d,"()Ljava/lang/Class;"))return rv(target->component?class_mirror(v,target->component):NULL);
+            if(!strcmp(n,"getInterfaces")&&!strcmp(d,"()[Ljava/lang/Class;")) {
+                Object *interfaces=array_new(v,"[Ljava/lang/Class;",target->ni);root(v,interfaces);
+                for(unsigned i=0;i<target->ni;i++)interfaces->data[i]=rv(class_mirror(v,target->interfaces[i]));
+                v->nr--;return rv(interfaces);
+            }
             if(!strcmp(n,"isInstance")&&!strcmp(d,"(Ljava/lang/Object;)Z"))return iv(obj(a[1])&&subtype(obj(a[1])->cls,target));
             if(!strcmp(n,"isAssignableFrom")&&!strcmp(d,"(Ljava/lang/Class;)Z")) {
                 Object *other=nonnull(v,a[1]);if(!other)return none;
@@ -1213,12 +1237,13 @@ static Value native_call(VM *v,Class *c,const char *n,const char *d,Value *a,uns
             if(start<0||end<start||end>pos){throwing(v,"java/lang/StringIndexOutOfBoundsException");return none;}
             size_t len=(size_t)(finish-begin);char *buf=(char *)alloc(v,len+1);memcpy(buf,begin,len);Object *r=string(v,buf);release(v,buf);return rv(r);
         }
-        if(!strcmp(n,"indexOf")&&(!strcmp(d,"(I)I")||!strcmp(d,"(II)I"))) {
-            int32_t want=integer(a[1]),from=na==3?integer(a[2]):0,pos=0;const unsigned char *p=(const unsigned char *)s;
-            while(*p){unsigned ch=utf_unit(&p);if(pos>=from){unsigned point=ch;
+        if((!strcmp(n,"indexOf")||!strcmp(n,"lastIndexOf"))&&(!strcmp(d,"(I)I")||!strcmp(d,"(II)I"))) {
+            int backwards=!strcmp(n,"lastIndexOf");
+            int32_t want=integer(a[1]),from=na==3?integer(a[2]):backwards?INT32_MAX:0,pos=0,result=-1;const unsigned char *p=(const unsigned char *)s;
+            while(*p){unsigned ch=utf_unit(&p);if(backwards?pos<=from:pos>=from){unsigned point=ch;
                 if(ch>=0xd800&&ch<=0xdbff&&*p){const unsigned char *q=p;unsigned low=utf_unit(&q);if(low>=0xdc00&&low<=0xdfff)point=0x10000+((ch-0xd800)<<10)+(low-0xdc00);}
-                if((want>=0&&want<=0xffff&&ch==(unsigned)want)||(want>0xffff&&point==(unsigned)want))return iv(pos);}
-                pos++;}return iv(-1);
+                if((want>=0&&want<=0xffff&&ch==(unsigned)want)||(want>0xffff&&point==(unsigned)want)){result=pos;if(!backwards)return iv(result);}}
+                if(backwards&&pos>=from)break;pos++;}return iv(result);
         }
         if(!strcmp(n,"codePointAt")&&!strcmp(d,"(I)I")) {
             int target=integer(a[1]),pos=0;const unsigned char *p=(const unsigned char *)s;
@@ -1524,7 +1549,7 @@ static void stackop(VM *v,Frame *f,unsigned op) {
     }
 }
 static Value execute(VM *v,Method *m,Value *args,unsigned count) {
-    if(m->owner->builtin) {
+    if(m->owner->builtin||((m->flags&NATIVE)&&!strcmp(m->owner->name,"java/io/UnixFileSystem"))) {
         if(++v->depth>MAX_DEPTH)fail(v,"maximum native call depth exceeded");
         unsigned saved=v->nr;for(unsigned i=0;i<count;i++)if(args[i].tag==REF)root(v,obj(args[i]));
         Value result=native_call(v,m->owner,m->name,m->desc,args,count,!!(m->flags&STATIC));v->nr=saved;v->depth--;return result;
@@ -1670,7 +1695,7 @@ static Value execute(VM *v,Method *m,Value *args,unsigned count) {
             if(target) {
                 if(!!(target->flags&STATIC)!=stat)fail(v,"method static/instance mismatch");
                 if(target->flags&NATIVE) {
-                    if(target->owner->annotation_type||target->owner->builtin)res=execute(v,target,aa,na);
+                    if(target->owner->annotation_type||target->owner->builtin||!strcmp(target->owner->name,"java/io/UnixFileSystem"))res=execute(v,target,aa,na);
                     else if(!strcmp(target->owner->name,"java/util/concurrent/atomic/AtomicLong")&&!strcmp(n,"VMSupportsCS8")&&!strcmp(d,"()Z"))res=iv(1);
                     else if(!strcmp(target->owner->name,"nspire/xml/ExpatReader")&&!strcmp(n,"parse0")&&!strcmp(d,"(Lorg/xml/sax/InputSource;ZZ)V")&&!stat)res=native_call(v,target->owner,n,d,aa,na,stat);
                     else fail(v,"unbound native method: %s.%s%s",c->name,n,d);
@@ -1766,6 +1791,7 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
         VmThread *main_thread=thread_record(v,main_object);
         v->current=v->main_thread=main_thread;main_thread->state=T_RUN;v->live_threads=1;
         set_text(v,main_object,"main");
+        filesystem_start(v);
         char name[512];if(strlen(opt->main_class)>=sizeof name)fail(v,"main class name too long");strcpy(name,opt->main_class);
         for(char *p=name;*p;p++)if(*p=='.')*p='/';
         Class *c=load(v,name);initialize(v,c);
@@ -1786,7 +1812,8 @@ int vm_run(const VmOptions *opt,int argc,const char **argv) {
      * destructor then refuses to free it. No parser can run after this point;
      * release every remaining allocation through our tracked memory suite. */
     while(v->xml_mem)xml_free(v->xml_mem+1);
+    while(v->directories)directory_close(v,v->directories);
     for(unsigned i=0;i<v->npaths;i++)if(v->paths[i].is_zip)mz_zip_reader_end(&v->paths[i].zip);
-    while(v->objects){Object *o=v->objects;v->objects=o->next;free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
+    while(v->objects){Object *o=v->objects;v->objects=o->next;if(o->file_open)close(o->file_fd);free(o->data);free(o->text);free(o->array_desc);free(o->buffer);free(o->resource_name);free(o);}
     while(v->mem){Mem *m=v->mem;v->mem=m->next;free(m);}free(v);return status;
 }

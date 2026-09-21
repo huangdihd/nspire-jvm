@@ -55,8 +55,9 @@ bash tools/build-local-sdk.sh
 - 正则及配套运行库：8 项检查涵盖真实 OpenJDK 正则、UTF-16、全部 Unicode 码点属性、浮点解析、环境变量、真实 Logback Duration 和明确不支持的路径，均通过普通构建与 ASan/UBSan/泄漏检测；见 `REGEX-RESULTS.txt`。
 - 输出流检查：5 项 Java 8 对照、1 项真实 Logback 控制台包装类对照和 1 项未实现文件构造器检查，均通过普通构建与 ASan/UBSan/泄漏检测。比较实际 stdout/stderr 字节；并发检查仅过滤 ASan 关于 ucontext 的那条固定提示，仍检查所有内存错误，见 `OUTPUT-SUPPORT.md`。
 - 目标构建：ARM ELF 链接成功、`genzehn` 生成 `.tns` 并检查其结构。
-- 方法反射与包查询：9 项检查包含标准 Java 对照、原始 Logback 属性发现和真实 setter/getter 调用，以及未实现内建方法的明确失败；全部通过普通构建与 ASan/UBSan/泄漏检测，见 `METHOD-SUPPORT.md`。
-- 字符集：6 项 Java 8 对照、1 项原始 Logback 正文编码的 Java 17 对照、1 项原始日志头缺少 File 的明确失败检查，均通过普通构建与 ASan/UBSan/泄漏检测；见 `CHARSET-SUPPORT.md`。
+- 方法反射与包查询：10 项检查包含标准 Java 对照、原始 Logback 属性发现和真实 setter/getter 调用，以及未实现内建方法的明确失败；全部通过普通构建与 ASan/UBSan/泄漏检测，见 `METHOD-SUPPORT.md`。
+- 字符集：6 项 Java 8 对照、1 项原始 Logback 正文编码的 Java 17 对照、1 项原始日志头字节编码对照，均通过普通构建与 ASan/UBSan/泄漏检测；见 `CHARSET-SUPPORT.md`。
+- 文件系统：3 项 Linux Java 8 输出和磁盘内容对照、2 项低句柄限制下的 GC/异常路径检查，以及同一进程六次 vm_run 正常/异常返回的句柄计数检查，均通过普通构建与 ASan/UBSan/泄漏检测，见 `FILE-SUPPORT.md`。
 - **未完成：计算器或带合法系统镜像的模拟器运行测试。**
 
 `dist/` 中的示例用于第一次实机验证；即使它通过，也不能据此声称完整 Xinbot 已经兼容。

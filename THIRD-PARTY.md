@@ -21,7 +21,7 @@ the exact task-local build procedure and any compatibility changes.
 OpenJDK supplemental class library:
 https://github.com/openjdk/jdk8u/tree/f826be1da079fb8d44055a0d86021d13748f9c36
 
-`runtime/openjdk8/` contains 244 unmodified Java source files, their per-file
+`runtime/openjdk8/` contains 251 unmodified Java source files, their per-file
 copyright notices, LICENSE (GPLv2 with the Classpath exception for these files),
 ASSEMBLY_EXCEPTION and THIRD_PARTY_README. SOURCES.json records every upstream
 path and SHA-256. These files are not relicensed under this project's MIT license.
@@ -37,6 +37,13 @@ the upstream generators; the compiled runtime embeds their notices and manifest.
 These sources retain GPLv2 with the Classpath exception. Project charset-provider,
 Unicode-containment, heap-Bits and StringCoding adapters in runtime/nspire are
 separate MIT code. The imported Unicode codecs remain unmodified.
+
+`vendor/openjdk8-file/` preserves the original Unix canonicalizer, two JNI
+filesystem/stream reference files and their GPLv2 + Classpath-exception notices
+at the same pinned revision. Only canonicalize_md.c is compiled, through an
+original C wrapper. SOURCES.json records all six source/notice hashes. The
+canonicalizer is not relicensed under MIT; the new filesystem bridge is original
+MIT code. See FILE-SUPPORT.md for the host and Ndless boundaries.
 
 The SAX sources also preserve their historical SAX notices. The OpenJDK source
 headers and root license files remain intact. The additional Java adapter and

@@ -10,3 +10,13 @@ ISO-8859-1
 [108, 111, 103, 58, 63, 63]
 
 Component check only; whole startup remains incomplete.
+
+Original Logback header path:
+PASS LogbackHeaderTest (standard Java oracle)
+104
+101
+97
+100
+101
+114
+10

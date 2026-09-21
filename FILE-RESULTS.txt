@@ -1,0 +1,7 @@
+PASS FilePathTest (Linux Java 8 output and actual disk contents)
+PASS FileMutationTest (Linux Java 8 output and actual disk contents)
+PASS FileStreamTest (Linux Java 8 output and actual disk contents)
+PASS file handle GC under 64-descriptor limit
+PASS file handle GC under 64-descriptor limit and fatal path
+PASS descriptor count unchanged after six vm_run returns, including three fatal aborts
+Host only; Ndless execution and its unsupported operations remain unverified.

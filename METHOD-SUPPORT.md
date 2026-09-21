@@ -61,7 +61,7 @@ python3 tools/test-methods.py --vm build/nspire-jvm
 python3 tools/test-methods.py --vm build/nspire-jvm --xinbot /path/to/xinbot.jar
 ```
 
-With the original Xinbot JAR, nine checks cover seven Java comparisons, the
+With the original Xinbot JAR, ten checks cover eight Java comparisons, the
 unchanged Logback bean-discovery component and an explicit unsupported-intrinsic
 failure. The conversion matrix exercises all eight primitive source and target
 types, rejecting narrowing and boolean/numeric mixing; float checks include
@@ -70,7 +70,7 @@ tests cover public/declared discovery, unrelated and overriding interfaces,
 bridges, varargs, private/protected/package access, independent mirrors, actual
 virtual/private/static calls, synchronization, initialization ordering, exception
 wrapping, method annotations and repeated GC on a 256 KiB Java heap.
-All nine checks and the existing full host regression suite pass on ordinary
+All ten checks and the existing full host regression suite pass on ordinary
 and ASan/UBSan builds with leak detection. Direct original-Xinbot runs on both
 builds reached the missing Charset class at this checkpoint. The subsequent
 charset implementation and its current stopping point are in CHARSET-SUPPORT.md.
@@ -90,6 +90,12 @@ but still lack implementations. Reflection observes the VM's existing class,
 metadata, depth, instruction and heap limits; it does not make this a verifier
 or an untrusted-code security boundary.
 
-Actual Xinbot completes appender bean discovery and package lookup. Charset is
-now supplied; it next needs java.io.File in property substitution, before Xinbot.main.
+Class.getInterfaces now returns direct interfaces in declaration order, including
+array Cloneable/Serializable interfaces and an empty array for primitive types.
+Each call returns a fresh array. InterfacesTest compares inheritance, interfaces,
+annotations, primitives, arrays, mutation isolation and reflective invocation.
+
+Actual Xinbot completes appender bean discovery, package lookup and its
+NoAutoStart annotation walk through direct interfaces. Charset and File are now
+supplied; it next needs java.time.ZoneId in date formatting, before Xinbot.main.
 No calculator or firmware-emulator execution is established by these host tests.

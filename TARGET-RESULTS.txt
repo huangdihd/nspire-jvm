@@ -4,9 +4,9 @@ ELF: ELF32, little-endian ARM, Version5 EABI, soft-float ABI.
 Linking: no unresolved strong symbols; SDK/toolchain optional weak symbols remain.
 genzehn --info: PASS
   Application: Nspire JVM
-  Relocations: 12078
-  Zehn executable size: 649192 bytes
-  Bytes needed to load: 650128 (excluding runtime heap/stack/ZIP/XML data)
+  Relocations: 12359
+  Zehn executable size: 660796 bytes
+  Bytes needed to load: 661732 (excluding runtime heap/stack/ZIP/XML data)
   Uses new lcd_blit API.
 
 Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
@@ -14,22 +14,23 @@ Current host tests: 45/45 basic checks, 6/6 OpenJDK library runs,
 lambda runs, 3/3 casing checks, 6/6 stream/enum/boxing checks,
 6/6 annotation checks (including actual Logback phases), 8/8 regex and supporting
 runtime checks (including actual Logback Duration), 7/7 output checks (including
-actual Logback ConsoleTarget), 9/9 method/package checks (including actual
+actual Logback ConsoleTarget), 10/10 method/package/interface checks (including actual
 Logback bean discovery and invocation), 8/8 charset/buffer/reference checks
-(including actual Logback body encoding and its expected missing-File header
-failure), 3/3 SAX tests and 1/1 actual Logback XML component test passed.
+(including actual Logback body and header encoding), 6/6 filesystem/stream/handle
+lifetime checks, 3/3 SAX tests and 1/1 actual Logback XML component test passed.
 All suites passed on ordinary and AddressSanitizer + UndefinedBehaviorSanitizer
 builds, with ASAN_OPTIONS=detect_leaks=1, UBSAN_OPTIONS=halt_on_error=1 and no
 sanitizer errors reported. Expected-failure tests also reject sanitizer output.
 The output concurrency test excludes only ASan's exact known ucontext warning
 from its stderr byte comparison; all other stderr remains compared.
 The real Xinbot attempt on both ordinary and instrumented hosts stopped at the
-same missing java/io/File in CoreConstants initialization,
+same missing java/time/ZoneId in CachingDateFormatter initialization,
 with no sanitizer errors. Initial lambda creation/invocation, XML parsing,
 stream-based element path matching, actual annotation phase selection, regex
 compilation, environment substitution and AtomicBoolean initialization pass;
 execution creates Xinbot's JLineConsoleAppender, completes method discovery and
-package lookup, loads Charset and reaches property substitution, before Xinbot.main.
+package lookup, loads Charset/File and traverses direct component interfaces.
+It now starts the PatternLayout date converter, before Xinbot.main.
 The ordinary and instrumented component checks read the same phases as standard
 Java from nine original Xinbot/Logback classes. Class capacity is now 2,048;
 the 16 MiB metadata budget remains enforced.
@@ -37,10 +38,14 @@ Separately, Xinbot's actual Logback SaxEventRecorder produced the same 27 events
 as standard Java from the original logback.xml. This does not prove full startup.
 The unchanged ConsoleTarget wrappers also write the same bytes as standard Java,
 including replacement of System.out after obtaining an output wrapper.
-Actual Logback StringToObjectConverter and LayoutWrappingEncoder body encoding
+Actual Logback StringToObjectConverter and LayoutWrappingEncoder body/header encoding
 also match Java 17. Core codec/buffer tests use Java 8, preserving documented
 Java 8 versus Java 17 UTF-16 malformed-input differences.
 Expat callback-abort cleanup was checked on both main and child fiber stacks.
+File checks compare actual on-disk contents, Unicode paths and working directories,
+and errors with Linux Java 8. Descriptor counts remain unchanged across six
+normal/fatal vm_run returns in one process, also under ASan/UBSan/leak detection.
+Ndless filesystem coverage is partial; see FILE-SUPPORT.md for explicit gaps.
 ARM context switching and timing have NOT been tested at runtime.
 Ndless RTC time is currently only second-resolution; see BUILD-NOTES.md.
 

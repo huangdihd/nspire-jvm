@@ -19,7 +19,6 @@ for name in ('CharsetTest','EncodingTest','CoderStateTest','BufferTest','WeakRef
 if ns.xinbot and (not ns.only or ns.only=='LogbackCharsetTest'):
  xinbot=ns.xinbot.resolve();run([javac,'--release','8','-cp',path_for(javac,xinbot),'-d',path_for(javac,build),*[path_for(javac,p) for p in sorted((ROOT/'charset-tests/logback').glob('*.java'))]])
  output=check('LogbackCharsetTest',[build,xinbot],java17);(ROOT/'LOGBACK-CHARSET-RESULTS.txt').write_text(report[-1]+'\n'+output+'\nComponent check only; whole startup remains incomplete.\n',encoding='utf-8')
- failure=run([str(Path(ns.vm).resolve()),'-bootclasspath',ROOT/'dist/runtime.jar.tns','-cp',str(build)+';'+str(xinbot),'LogbackHeaderPendingTest'],ok=False)
- assert failure.returncode==1 and 'VM error: class not found: java/io/File' in failure.stderr,failure.stderr
- report.append('PASS expected missing File on original Logback header path (sanitizer output checked)');print(report[-1],flush=True)
+ header=check('LogbackHeaderTest',[build,xinbot],java17)
+ with (ROOT/'LOGBACK-CHARSET-RESULTS.txt').open('a',encoding='utf-8') as record:record.write('\nOriginal Logback header path:\n'+report[-1]+'\n'+header)
 if not ns.only:(ROOT/'CHARSET-RESULTS.txt').write_text('\n'.join(report)+'\nHost only; calculator execution not verified.\n',encoding='utf-8')

@@ -60,8 +60,9 @@ compatibility. The test heap is 512 KiB.
 
 A seventh check compares the unchanged Logback StringToObjectConverter,
 reflective setCharset and LayoutWrappingEncoder.encode against Java 17 using
-four encodings. An eighth check verifies that its headerBytes path explicitly
-fails at the missing java.io.File dependency and also rejects sanitizer errors.
+four encodings. An eighth check now compares actual headerBytes output with
+Java 17 after both runs set the same LF line separator. It exercises the original
+CoreConstants initialization, which now loads File successfully.
 Successful body encoding is not successful logger or application startup.
 All eight checks and the complete existing host suite pass on ordinary and
 ASan/UBSan builds with leak detection. The rebuilt ARM ELF and Zehn structure
@@ -73,6 +74,7 @@ general writers, reference queues and complete buffer/library API coverage.
 No direct-memory operation is silently replaced with a heap allocation.
 
 The original whole Xinbot JAR now passes the earlier missing-Charset point,
-then stops at java.io.File during CoreConstants initialization and property
-substitution, still before Xinbot.main. Calculator and firmware-emulator
+passes File initialization and component interface inspection, then stops at
+java.time.ZoneId in the original date formatter, still before Xinbot.main.
+Calculator and firmware-emulator
 execution remain unverified.

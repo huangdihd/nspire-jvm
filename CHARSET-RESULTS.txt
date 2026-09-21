@@ -5,5 +5,5 @@ PASS BufferTest (standard Java oracle)
 PASS WeakReferenceTest (standard Java oracle)
 PASS CharsetProviderTest (standard Java oracle)
 PASS LogbackCharsetTest (standard Java oracle)
-PASS expected missing File on original Logback header path (sanitizer output checked)
+PASS LogbackHeaderTest (standard Java oracle)
 Host only; calculator execution not verified.

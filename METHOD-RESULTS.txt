@@ -5,6 +5,7 @@ PASS MethodAccessTest (standard Java oracle)
 PASS MethodInitializationTest (standard Java oracle)
 PASS MethodConversionTest (standard Java oracle)
 PASS PackageTest (standard Java oracle)
+PASS InterfacesTest (standard Java oracle)
 PASS LogbackBeanTest (standard Java oracle)
 PASS explicit unsupported reflected intrinsic (sanitizer output checked)
 Host only; calculator execution not verified.

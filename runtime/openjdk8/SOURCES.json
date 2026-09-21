@@ -10,6 +10,30 @@
       "upstream_path": "jdk/src/share/classes/java/io/ByteArrayOutputStream.java",
       "sha256": "97f991d6e95f6c7dc531fc57484c6b86ce6c66ad9077809dd46e7053bb9ca0e7"
     },
+    "java/io/DefaultFileSystem.java": {
+      "upstream_path": "jdk/src/solaris/classes/java/io/DefaultFileSystem.java",
+      "sha256": "a88b9c2973d426b64c7eb52fc3cd9bcda10ffca949d77f23848d88ae4266a0fc"
+    },
+    "java/io/ExpiringCache.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/ExpiringCache.java",
+      "sha256": "426d9bd173b3f13df73051171b71d4e9d742c52cc31129c72707c87419f749c1"
+    },
+    "java/io/File.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/File.java",
+      "sha256": "2cd6451763c68ef6f7fe1bc4bdc3547055b158b22313071aba64bad07ffebb89"
+    },
+    "java/io/FileFilter.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FileFilter.java",
+      "sha256": "b70a88c87c0390b0e096b3ecde31bd7a0d5d54b395d3a769122809ef3c84dbd7"
+    },
+    "java/io/FileSystem.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FileSystem.java",
+      "sha256": "d0f619904e7f63dabae75ecd50b5cc22b97a26daf8e7858defd74a80eac218e6"
+    },
+    "java/io/FilenameFilter.java": {
+      "upstream_path": "jdk/src/share/classes/java/io/FilenameFilter.java",
+      "sha256": "665e22a22ec691495820826fb99509e0eb1d474f0438479211555db6d714093a"
+    },
     "java/io/FilterOutputStream.java": {
       "upstream_path": "jdk/src/share/classes/java/io/FilterOutputStream.java",
       "sha256": "553b087a00a85d337e403deac3f86ed97495040d91bead9bd4b3676d7c95f945"
@@ -29,6 +53,10 @@
     "java/io/OutputStream.java": {
       "upstream_path": "jdk/src/share/classes/java/io/OutputStream.java",
       "sha256": "7e1f7f258e781cc951af58c3151e7071321c21b1125042d962ea6cd5271452e6"
+    },
+    "java/io/UnixFileSystem.java": {
+      "upstream_path": "jdk/src/solaris/classes/java/io/UnixFileSystem.java",
+      "sha256": "69585a0062a78387f0e725e40628ab28666d7fa1b765b1514c9abc72910f51ff"
     },
     "java/lang/AbstractStringBuilder.java": {
       "upstream_path": "jdk/src/share/classes/java/lang/AbstractStringBuilder.java",

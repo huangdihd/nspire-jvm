@@ -1,8 +1,8 @@
 {
   "source": "Temurin 8u504-b01 JRE build-time rt.jar (API declarations only)",
   "rt_jar_sha256": "ebcc5ee761cb12c3f37222da14bdf14e4e9f16e86b60c21827e6252e38c91531",
-  "classes": 94,
-  "methods": 1610,
+  "classes": 97,
+  "methods": 1647,
   "files": {
     "LICENSE": {
       "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
@@ -19,7 +19,7 @@
   },
   "generated": {
     "methods.inc": {
-      "sha256": "9494b1337ed44caeb4b63dcc44349363b6ca5e22cdff7ccbc28eee67e88408e0"
+      "sha256": "28b4873267787931573975fc10e7fb9b568f915f4beb258fe535529c63919263"
     }
   }
 }

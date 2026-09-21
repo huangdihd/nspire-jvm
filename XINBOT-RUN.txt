@@ -7,22 +7,15 @@ Command:
 
 Exit status: 1
 stderr:
-VM error: class not found: java/io/File
-  at ch/qos/logback/core/CoreConstants.<clinit>()V pc=38
-  at ch/qos/logback/core/subst/Parser.T()Lch/qos/logback/core/subst/Node; pc=85
-  at ch/qos/logback/core/subst/Parser.E()Lch/qos/logback/core/subst/Node; pc=1
-  at ch/qos/logback/core/subst/Parser.Eopt()Lch/qos/logback/core/subst/Node; pc=12
-  at ch/qos/logback/core/subst/Parser.E()Lch/qos/logback/core/subst/Node; pc=12
-  at ch/qos/logback/core/subst/Parser.parse()Lch/qos/logback/core/subst/Node; pc=22
-  at ch/qos/logback/core/subst/NodeToStringTransformer.tokenizeAndParseString(Ljava/lang/String;)Lch/qos/logback/core/subst/Node; pc=24
-  at ch/qos/logback/core/subst/NodeToStringTransformer.substituteVariable(Ljava/lang/String;Lch/qos/logback/core/spi/PropertyContainer;Lch/qos/logback/core/spi/PropertyContainer;)Ljava/lang/String; pc=1
-  at ch/qos/logback/core/util/OptionHelper.substVars(Ljava/lang/String;Lch/qos/logback/core/spi/PropertyContainer;Lch/qos/logback/core/spi/PropertyContainer;)Ljava/lang/String; pc=3
-  at ch/qos/logback/core/model/util/VariableSubstitutionsHelper.subst(Ljava/lang/String;)Ljava/lang/String; pc=12
-  at ch/qos/logback/core/model/processor/ModelInterpretationContext.subst(Ljava/lang/String;)Ljava/lang/String; pc=5
-  at ch/qos/logback/core/model/processor/ImplicitModelHandler.doBasicProperty(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/joran/action/ImcplicitActionDataForBasicProperty;)V pc=5
-  at ch/qos/logback/core/model/processor/ImplicitModelHandler.handle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=163
-  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=61
-  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
+VM error: class not found: java/time/ZoneId
+  at ch/qos/logback/core/util/CachingDateFormatter.<init>(Ljava/lang/String;Ljava/time/ZoneId;Ljava/util/Locale;)V pc=9
+  at ch/qos/logback/classic/pattern/DateConverter.start()V pc=153
+  at ch/qos/logback/core/pattern/ConverterUtil.startConverters(Lch/qos/logback/core/pattern/Converter;)V pc=47
+  at ch/qos/logback/core/pattern/PatternLayoutBase.start()V pc=108
+  at ch/qos/logback/classic/encoder/PatternLayoutEncoder.start()V pc=33
+  at ch/qos/logback/core/model/processor/ImplicitModelHandler.postHandleComplex(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;Lch/qos/logback/core/joran/action/ImplicitModelDataForComplexProperty;)V pc=72
+  at ch/qos/logback/core/model/processor/ImplicitModelHandler.postHandle(Lch/qos/logback/core/model/processor/ModelInterpretationContext;Lch/qos/logback/core/model/Model;)V pc=47
+  at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=154
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor.secondPhaseTraverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=133
   at ch/qos/logback/core/model/processor/DefaultProcessor$$Lambda$138.traverse(Lch/qos/logback/core/model/Model;Lch/qos/logback/core/model/processor/ModelFilter;)I pc=8
@@ -65,7 +58,10 @@ AtomicBoolean and ConsoleTarget initialization. BeanDescriptionFactory now
 discovers the actual inherited public methods, including their parameter and
 return types. Property analysis queries the actual class package and then
 StringToObjectConverter can now load Charset. Execution proceeds into basic
-property substitution and requires java/io/File in CoreConstants initialization.
+property substitution and CoreConstants File initialization. Actual component
+interface inspection now lets NoAutoStartUtil perform its annotation walk.
+PatternLayout starts its original converter chain, reaching CachingDateFormatter
+which now requires java/time/ZoneId.
 This is still before Xinbot.main().
 No Minecraft connection was made and
 no account credentials were used.
@@ -88,7 +84,10 @@ those values (LOGBACK-BEAN-RESULTS.txt).
 In a separate component check, the original StringToObjectConverter resolves
 four actual charsets. Reflective setCharset and LayoutWrappingEncoder.encode
 produce the same bytes as Java 17 (LOGBACK-CHARSET-RESULTS.txt). Its headerBytes
-path still fails at the same missing File; no logger initialization was skipped.
-File is the next missing path. Additional reflection, encoding coverage,
-dynamic invocation, file I/O, networking and device verification
+path now returns the same header bytes as Java 17 with the same configured LF
+line separator. No logger initialization was skipped.
+Host file operations and descriptor-backed streams are tested separately against
+Java 8; Ndless still lacks several native filesystem operations.
+ZoneId is the next missing class. Time/timezone APIs, additional reflection,
+encoding coverage, dynamic invocation, filesystem completion, networking and device verification
 remain. The application or its logging setup was not bypassed.

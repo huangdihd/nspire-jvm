@@ -12,7 +12,7 @@ def check(name,paths):
     actual=run([str(Path(ns.vm).resolve()),'--heap','262144','-bootclasspath',ROOT/'dist/runtime.jar.tns','-cp',';'.join(str(p) for p in paths),name]).stdout
     assert actual==expected,name+'\n'+''.join(difflib.unified_diff(expected.splitlines(True),actual.splitlines(True),fromfile='Java',tofile='Nspire JVM'))
     report.append('PASS '+name+' (standard Java oracle)');print(report[-1],flush=True);return actual
-for name in ('MethodDiscoveryTest','MethodInvokeTest','MethodAnnotationTest','MethodAccessTest','MethodInitializationTest','MethodConversionTest','PackageTest'):
+for name in ('MethodDiscoveryTest','MethodInvokeTest','MethodAnnotationTest','MethodAccessTest','MethodInitializationTest','MethodConversionTest','PackageTest','InterfacesTest'):
     if not ns.only or ns.only==name:check(name,[build])
 if ns.xinbot and (not ns.only or ns.only=='LogbackBeanTest'):
     xinbot=ns.xinbot.resolve()
